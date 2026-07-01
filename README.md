@@ -240,3 +240,6 @@ All AI modules use the **Service Pattern**:
 | Agronomist  | Mock    | Ollama / LLM        |
 
 To replace a mock service, just implement the same interface in the service file — no Router changes needed.
+=======
+Hello World!
+>>>>>>> 01ce429bfb51eba94b2e231e7b4e442b8cfef375
