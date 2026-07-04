@@ -1,0 +1,102 @@
+model:
+  name: "recommendation_engine"
+  type: "multi_task_rf"
+  description: "AI Recommendation Engine using multi-task Random Forest"
+  tasks:
+    classification: "priority_code"
+    regression: ["urgency_score", "estimated_loss_pct", "next_check_days"]
+
+dataset:
+  train: "training_recommendation/datasets/recommendation_dataset.csv"
+  source: "mongodb"
+  database_name: "durian_guardian_ai"
+
+features:
+  categorical:
+    - "health_status"
+    - "predicted_disease"
+    - "detection_prediction"
+    - "alert_type"
+    - "alert_priority"
+    - "season"
+    - "risk_level"
+  numerical:
+    - "temperature"
+    - "humidity"
+    - "rainfall"
+    - "tree_age"
+    - "area_hectare"
+    - "confidence"
+    - "detection_confidence"
+    - "disease_history_count"
+    - "last_treatment_days"
+    - "alert_count"
+    - "days_since_last_inspection"
+    - "historical_disease_count"
+    - "historical_disease_frequency"
+    - "density_per_hectare"
+    - "priority_score"
+  total: 22
+
+labels:
+  priority:
+    type: "categorical"
+    values: ["Low", "Medium", "High", "Critical"]
+    codes: {Low: 0, Medium: 1, High: 2, Critical: 3}
+  urgency_score:
+    type: "regression"
+    range: [0.0, 1.0]
+  estimated_loss_pct:
+    type: "regression"
+    range: [0.0, 90.0]
+  next_check_days:
+    type: "regression"
+    range: [1, 30]
+
+classification:
+  algorithm: "RandomForestClassifier"
+  n_estimators: 300
+  max_depth: null
+  min_samples_split: 5
+  min_samples_leaf: 2
+  class_weight: "balanced"
+  random_state: 42
+
+regression:
+  algorithm: "RandomForestRegressor"
+  n_estimators: 200
+  max_depth: 15
+  min_samples_split: 5
+  min_samples_leaf: 2
+  random_state: 42
+
+preprocessing:
+  categorical_encoding: "ordinal"
+  numerical_scaling: "standard"
+  handle_unknown: "use_encoded_value"
+  unknown_value: -1
+  handle_missing: "median"
+
+training:
+  test_size: 0.20
+  val_size: 0.15
+  seed: 42
+
+export:
+  formats:
+    - "pkl"
+  output_dir: "training_recommendation/exports"
+
+rule_engine:
+  version: "1.0.0"
+  priority_thresholds:
+    critical: 0.70
+    high: 0.40
+    medium: 0.15
+    low: 0.00
+  severe_diseases:
+    - "Anthracnose"
+    - "Phytophthora"
+    - "Stem Rot"
+    - "Root Rot"
+    - "Fruit Rot"

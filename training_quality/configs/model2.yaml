@@ -1,0 +1,107 @@
+model:
+  name: "image_quality"
+  architecture: "mobilenet_v3_small"
+  pretrained: true
+  freeze_backbone: false
+  num_classes: 2
+  input_channels: 3
+  dropout: 0.3
+
+dataset:
+  name: "image_quality"
+  root: "training_quality/dataset_quality"
+  train_split: "Train"
+  val_split: "Validation"
+  test_split: "Test"
+  target_size: [224, 224]
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  num_workers: 4
+  pin_memory: true
+  generator:
+    bad_samples_per_good: 2
+    val_split_ratio: 0.1
+    test_split_ratio: 0.1
+    seed: 42
+    degradations:
+      gaussian_blur:
+        kernel_sizes: [3, 5, 7]
+        sigma_range: [0.5, 3.0]
+        probability: 0.25
+      motion_blur:
+        kernel_sizes: [5, 9, 15]
+        probability: 0.20
+      underexposure:
+        gamma_range: [1.5, 3.0]
+        probability: 0.20
+      overexposure:
+        gamma_range: [0.3, 0.6]
+        probability: 0.20
+      gaussian_noise:
+        std_range: [0.02, 0.08]
+        probability: 0.20
+      jpeg_compression:
+        quality_range: [5, 25]
+        probability: 0.20
+      random_crop:
+        scale_range: [0.4, 0.7]
+        probability: 0.15
+      occlusion:
+        num_boxes_range: [1, 4]
+        box_size_range: [0.05, 0.2]
+        probability: 0.15
+      low_resolution:
+        scale_factor_range: [0.15, 0.4]
+        probability: 0.15
+
+training:
+  epochs: 30
+  batch_size: 64
+  accumulation_steps: 1
+  gradient_clip: 1.0
+  mixed_precision: "fp16"
+  resume_from: null
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+optimizer:
+  name: "AdamW"
+  params:
+    lr: 0.001
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    T_max: 30
+    eta_min: 1.0e-6
+  warmup_epochs: 3
+  warmup_start_lr: 1.0e-6
+
+loss:
+  name: "CrossEntropyLoss"
+
+metrics:
+  - accuracy
+  - precision
+  - recall
+  - f1_score
+  - confusion_matrix
+  - roc_auc
+
+logging:
+  level: "INFO"
+  file: "training_quality/logs/model2.log"
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+export:
+  formats:
+    - "pytorch"
+    - "torchscript"
+    - "onnx"
+  output_dir: "training_quality/exports"
+  onnx_opset: 17
+  dynamic_batch: true

@@ -1,0 +1,114 @@
+model:
+  name: "risk_prediction"
+  architecture: "xgboost"
+  task: "classification"
+  num_classes: 3
+  classes: ["low", "medium", "high"]
+
+dataset:
+  name: "disease_risk"
+  source: "mongodb"
+  database_name: "durian_guardian_ai"
+  collections:
+    features: "inspections"
+    labels: "disease_history"
+    auxiliary:
+      - "trees"
+      - "zones"
+      - "farms"
+      - "weather_data"
+  batch_size: 64
+  num_workers: 2
+
+feature_pipeline:
+  categorical_features:
+    - "tree_variety"
+    - "zone_type"
+    - "soil_type"
+    - "irrigation_type"
+    - "season"
+    - "health_status"
+  numerical_features:
+    - "temperature"
+    - "humidity"
+    - "rainfall"
+    - "tree_age"
+    - "density_per_hectare"
+    - "days_since_last_inspection"
+    - "days_since_last_treatment"
+    - "historical_disease_count"
+    - "historical_disease_frequency"
+  target: "risk_level"
+  encoding: "label"
+  scaling: "standard"
+  handle_missing: "mean"
+  feature_selection:
+    method: "importance"
+    top_k: 20
+
+training:
+  epochs: 1000
+  early_stopping_rounds: 50
+  seed: 42
+  cv_folds: 5
+  cv_strategy: "stratified"
+
+optimizer:
+  name: "native"
+
+scheduler:
+  name: "none"
+
+loss:
+  name: "LogLoss"
+  params: {}
+
+metrics:
+  - accuracy
+  - precision
+  - recall
+  - f1_score
+  - roc_auc
+  - confusion_matrix
+  - classification_report
+
+callbacks:
+  - name: "ModelCheckpoint"
+    params:
+      monitor: "val_accuracy"
+      mode: "max"
+      save_best_only: true
+  - name: "EarlyStopping"
+    params:
+      monitor: "val_accuracy"
+      patience: 50
+  - name: "CSVLogger"
+    params:
+      filename: "training/logs/model3_training_log.csv"
+
+logging:
+  level: "INFO"
+  file: "training/logs/model3.log"
+
+export:
+  formats:
+    - "pkl"
+    - "onnx"
+  output_dir: "training/exports/model3"
+
+hyperparameters:
+  xgboost:
+    n_estimators: 1000
+    max_depth: 8
+    learning_rate: 0.01
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_weight: 3
+    gamma: 0.1
+    reg_alpha: 0.1
+    reg_lambda: 1.0
+    scale_pos_weight: 1.0
+    objective: "multi:softmax"
+    eval_metric: ["mlogloss", "merror"]
+    tree_method: "hist"
+    device: "cuda"

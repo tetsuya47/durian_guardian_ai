@@ -1,0 +1,37 @@
+{
+  "model_name": "disease_detection",
+  "architecture": "efficientnet_b0",
+  "input_size": [
+    224,
+    224
+  ],
+  "input_channels": 3,
+  "num_classes": 11,
+  "class_names": [
+    "anthracnose_disease",
+    "canker_disease",
+    "fruit_rot",
+    "Healthy",
+    "mealybug_infestation",
+    "pink_disease",
+    "sooty_mold",
+    "stem_blight",
+    "stem_cracking_ gummosis",
+    "thrips_disease",
+    "yellow_leaf"
+  ],
+  "pretrained": true,
+  "freeze_backbone": false,
+  "dropout": 0.3,
+  "parameters": {
+    "total": 4021639,
+    "trainable": 4021639,
+    "non_trainable": 0
+  },
+  "model_size_mb": 15.5,
+  "framework": {
+    "pytorch": "2.11.0+cpu",
+    "torchvision": "0.26.0+cpu",
+    "python": "3.13.12"
+  }
+}

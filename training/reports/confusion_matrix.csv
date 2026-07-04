@@ -1,0 +1,12 @@
+,anthracnose_disease,canker_disease,fruit_rot,Healthy,mealybug_infestation,pink_disease,sooty_mold,stem_blight,stem_cracking_ gummosis,thrips_disease,yellow_leaf
+anthracnose_disease,61,0,0,0,0,0,1,1,0,0,0
+canker_disease,0,15,0,0,0,0,0,0,0,0,0
+fruit_rot,0,0,30,0,0,0,0,0,0,0,0
+Healthy,0,0,0,74,0,0,0,0,0,0,0
+mealybug_infestation,0,0,0,0,57,7,1,0,0,0,0
+pink_disease,0,0,0,0,1,27,0,1,4,0,0
+sooty_mold,0,2,0,0,0,0,50,8,2,0,0
+stem_blight,0,0,0,0,0,0,0,46,0,0,0
+stem_cracking_ gummosis,0,0,0,0,0,0,0,0,58,0,0
+thrips_disease,0,0,1,0,0,0,1,0,1,26,0
+yellow_leaf,0,0,0,0,0,0,0,0,0,0,62

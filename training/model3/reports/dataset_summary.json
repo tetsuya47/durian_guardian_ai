@@ -1,0 +1,39 @@
+{
+  "total_samples": 10000,
+  "features": [
+    "inspection_code",
+    "tree_id",
+    "farm_id",
+    "disease_id",
+    "inspection_date",
+    "temperature",
+    "humidity",
+    "rainfall",
+    "health_status",
+    "predicted_disease",
+    "confidence",
+    "tree_code",
+    "farm_id_tree",
+    "zone_id",
+    "variety",
+    "planting_date",
+    "tree_age",
+    "status",
+    "farm_code",
+    "area_hectare",
+    "tree_count",
+    "season",
+    "density_per_hectare",
+    "days_since_last_inspection",
+    "historical_disease_count",
+    "days_since_last_treatment",
+    "historical_disease_frequency",
+    "risk_score",
+    "risk_level"
+  ],
+  "risk_distribution": {
+    "Medium": 4028,
+    "High": 3517,
+    "Low": 2455
+  }
+}

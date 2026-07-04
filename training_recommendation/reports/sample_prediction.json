@@ -1,0 +1,14 @@
+{
+  "priority": "Low",
+  "priority_code": 0,
+  "recommended_action": "Continue Regular Monitoring",
+  "priority_probabilities": {
+    "0": 0.9844702612452058,
+    "1": 0.012196405421460919,
+    "2": 0.0033333333333333335,
+    "3": 0.0
+  },
+  "urgency_score": 0.0,
+  "estimated_loss_pct": 0.0,
+  "next_check_days": 30
+}

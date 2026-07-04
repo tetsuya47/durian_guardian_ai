@@ -1,0 +1,134 @@
+[
+  {
+    "name": "temperature",
+    "type": "numerical",
+    "source": "inspections",
+    "available": true
+  },
+  {
+    "name": "humidity",
+    "type": "numerical",
+    "source": "inspections",
+    "available": true
+  },
+  {
+    "name": "rainfall",
+    "type": "numerical",
+    "source": "inspections",
+    "available": true
+  },
+  {
+    "name": "health_status",
+    "type": "categorical",
+    "source": "inspections",
+    "available": true
+  },
+  {
+    "name": "predicted_disease",
+    "type": "categorical",
+    "source": "inspections",
+    "available": true
+  },
+  {
+    "name": "confidence",
+    "type": "numerical",
+    "source": "inspections",
+    "available": true
+  },
+  {
+    "name": "tree_age",
+    "type": "numerical",
+    "source": "trees",
+    "available": true
+  },
+  {
+    "name": "area_hectare",
+    "type": "numerical",
+    "source": "farms",
+    "available": true
+  },
+  {
+    "name": "detection_prediction",
+    "type": "categorical",
+    "source": "detection_results",
+    "available": true
+  },
+  {
+    "name": "detection_confidence",
+    "type": "numerical",
+    "source": "detection_results",
+    "available": true
+  },
+  {
+    "name": "disease_history_count",
+    "type": "numerical",
+    "source": "disease_history",
+    "available": true
+  },
+  {
+    "name": "last_treatment_days",
+    "type": "numerical",
+    "source": "disease_history",
+    "available": true
+  },
+  {
+    "name": "alert_type",
+    "type": "categorical",
+    "source": "alerts",
+    "available": true
+  },
+  {
+    "name": "alert_priority",
+    "type": "categorical",
+    "source": "alerts",
+    "available": true
+  },
+  {
+    "name": "alert_count",
+    "type": "numerical",
+    "source": "alerts",
+    "available": true
+  },
+  {
+    "name": "season",
+    "type": "categorical",
+    "source": "derived from inspection_date",
+    "available": true
+  },
+  {
+    "name": "density_per_hectare",
+    "type": "numerical",
+    "source": "derived from tree_count/area_hectare",
+    "available": true
+  },
+  {
+    "name": "days_since_last_inspection",
+    "type": "numerical",
+    "source": "derived temporal",
+    "available": true
+  },
+  {
+    "name": "historical_disease_count",
+    "type": "numerical",
+    "source": "derived from disease_history per tree",
+    "available": true
+  },
+  {
+    "name": "historical_disease_frequency",
+    "type": "numerical",
+    "source": "derived from count/tree_age",
+    "available": true
+  },
+  {
+    "name": "risk_score",
+    "type": "numerical",
+    "source": "Model 3 output",
+    "available": true
+  },
+  {
+    "name": "risk_level",
+    "type": "categorical",
+    "source": "Model 3 output",
+    "available": true
+  }
+]

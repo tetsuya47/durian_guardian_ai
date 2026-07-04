@@ -1,0 +1,17 @@
+                         precision    recall  f1-score   support
+
+    anthracnose_disease       1.00      0.97      0.98        63
+         canker_disease       0.88      1.00      0.94        15
+              fruit_rot       0.97      1.00      0.98        30
+                Healthy       1.00      1.00      1.00        74
+   mealybug_infestation       0.98      0.88      0.93        65
+           pink_disease       0.79      0.82      0.81        33
+             sooty_mold       0.94      0.81      0.87        62
+            stem_blight       0.82      1.00      0.90        46
+stem_cracking_ gummosis       0.89      1.00      0.94        58
+         thrips_disease       1.00      0.90      0.95        29
+            yellow_leaf       1.00      1.00      1.00        62
+
+               accuracy                           0.94       537
+              macro avg       0.93      0.94      0.94       537
+           weighted avg       0.95      0.94      0.94       537

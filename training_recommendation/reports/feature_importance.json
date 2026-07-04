@@ -1,0 +1,370 @@
+{
+  "classifier": {
+    "feature_importances_": [
+      {
+        "feature": "priority_score_scaled",
+        "importance": 0.3676871674807747
+      },
+      {
+        "feature": "risk_level_encoded",
+        "importance": 0.24074355795869615
+      },
+      {
+        "feature": "health_status_encoded",
+        "importance": 0.11922263491869135
+      },
+      {
+        "feature": "detection_prediction_encoded",
+        "importance": 0.05550468706559928
+      },
+      {
+        "feature": "predicted_disease_encoded",
+        "importance": 0.05294578472640255
+      },
+      {
+        "feature": "humidity_scaled",
+        "importance": 0.032458301050092835
+      },
+      {
+        "feature": "historical_disease_count_scaled",
+        "importance": 0.024537517764383145
+      },
+      {
+        "feature": "disease_history_count_scaled",
+        "importance": 0.023464230131609656
+      },
+      {
+        "feature": "historical_disease_frequency_scaled",
+        "importance": 0.017475928476171323
+      },
+      {
+        "feature": "temperature_scaled",
+        "importance": 0.012651502257562026
+      },
+      {
+        "feature": "rainfall_scaled",
+        "importance": 0.012061814729081827
+      },
+      {
+        "feature": "alert_type_encoded",
+        "importance": 0.007363993556868594
+      },
+      {
+        "feature": "alert_priority_encoded",
+        "importance": 0.006374042812544448
+      },
+      {
+        "feature": "alert_count_scaled",
+        "importance": 0.0057616555113575415
+      },
+      {
+        "feature": "last_treatment_days_scaled",
+        "importance": 0.005020348224220859
+      },
+      {
+        "feature": "days_since_last_inspection_scaled",
+        "importance": 0.0034207962378614586
+      },
+      {
+        "feature": "confidence_scaled",
+        "importance": 0.0033244558766417184
+      },
+      {
+        "feature": "detection_confidence_scaled",
+        "importance": 0.0031659805120901187
+      },
+      {
+        "feature": "season_encoded",
+        "importance": 0.0027493382205211166
+      },
+      {
+        "feature": "tree_age_scaled",
+        "importance": 0.0016019915184879948
+      },
+      {
+        "feature": "area_hectare_scaled",
+        "importance": 0.0012682839235866293
+      },
+      {
+        "feature": "density_per_hectare_scaled",
+        "importance": 0.0011959870467547582
+      }
+    ]
+  },
+  "regressor_urgency_score": {
+    "feature_importances_": [
+      {
+        "feature": "priority_score_scaled",
+        "importance": 0.976585542036046
+      },
+      {
+        "feature": "risk_level_encoded",
+        "importance": 0.00901931040462748
+      },
+      {
+        "feature": "season_encoded",
+        "importance": 0.008717025874201555
+      },
+      {
+        "feature": "humidity_scaled",
+        "importance": 0.004072137711772072
+      },
+      {
+        "feature": "last_treatment_days_scaled",
+        "importance": 0.00031635037099513
+      },
+      {
+        "feature": "historical_disease_frequency_scaled",
+        "importance": 0.00018908535455078483
+      },
+      {
+        "feature": "historical_disease_count_scaled",
+        "importance": 0.00018664417750492615
+      },
+      {
+        "feature": "days_since_last_inspection_scaled",
+        "importance": 0.0001555803714392908
+      },
+      {
+        "feature": "disease_history_count_scaled",
+        "importance": 0.00015451664965682817
+      },
+      {
+        "feature": "rainfall_scaled",
+        "importance": 0.00011640709444859564
+      },
+      {
+        "feature": "temperature_scaled",
+        "importance": 9.032396443160776e-05
+      },
+      {
+        "feature": "alert_type_encoded",
+        "importance": 6.189092834417304e-05
+      },
+      {
+        "feature": "confidence_scaled",
+        "importance": 4.854739206627052e-05
+      },
+      {
+        "feature": "detection_confidence_scaled",
+        "importance": 4.6781084738888485e-05
+      },
+      {
+        "feature": "alert_count_scaled",
+        "importance": 4.338140420254679e-05
+      },
+      {
+        "feature": "detection_prediction_encoded",
+        "importance": 3.534246539223421e-05
+      },
+      {
+        "feature": "tree_age_scaled",
+        "importance": 3.3447505580806495e-05
+      },
+      {
+        "feature": "predicted_disease_encoded",
+        "importance": 3.212929295123411e-05
+      },
+      {
+        "feature": "density_per_hectare_scaled",
+        "importance": 3.057794897481193e-05
+      },
+      {
+        "feature": "area_hectare_scaled",
+        "importance": 3.005874565077965e-05
+      },
+      {
+        "feature": "alert_priority_encoded",
+        "importance": 2.9700612786315875e-05
+      },
+      {
+        "feature": "health_status_encoded",
+        "importance": 5.218609637670092e-06
+      }
+    ]
+  },
+  "regressor_estimated_loss_pct": {
+    "feature_importances_": [
+      {
+        "feature": "priority_score_scaled",
+        "importance": 0.966238364566593
+      },
+      {
+        "feature": "risk_level_encoded",
+        "importance": 0.01575760049034038
+      },
+      {
+        "feature": "predicted_disease_encoded",
+        "importance": 0.007589488473340879
+      },
+      {
+        "feature": "detection_prediction_encoded",
+        "importance": 0.007267556513022603
+      },
+      {
+        "feature": "disease_history_count_scaled",
+        "importance": 0.00043324639532202276
+      },
+      {
+        "feature": "historical_disease_frequency_scaled",
+        "importance": 0.00043202193556205284
+      },
+      {
+        "feature": "historical_disease_count_scaled",
+        "importance": 0.0004200284188532211
+      },
+      {
+        "feature": "temperature_scaled",
+        "importance": 0.0002709492139852172
+      },
+      {
+        "feature": "alert_type_encoded",
+        "importance": 0.0002602411415213409
+      },
+      {
+        "feature": "alert_count_scaled",
+        "importance": 0.0002348106173236523
+      },
+      {
+        "feature": "rainfall_scaled",
+        "importance": 0.00020538455415063973
+      },
+      {
+        "feature": "humidity_scaled",
+        "importance": 0.00019244003975931582
+      },
+      {
+        "feature": "days_since_last_inspection_scaled",
+        "importance": 0.00013624292820968223
+      },
+      {
+        "feature": "confidence_scaled",
+        "importance": 0.00011374760133723494
+      },
+      {
+        "feature": "detection_confidence_scaled",
+        "importance": 0.000111757580722391
+      },
+      {
+        "feature": "tree_age_scaled",
+        "importance": 9.374442722755031e-05
+      },
+      {
+        "feature": "area_hectare_scaled",
+        "importance": 7.272666724149033e-05
+      },
+      {
+        "feature": "density_per_hectare_scaled",
+        "importance": 5.2814499769547e-05
+      },
+      {
+        "feature": "alert_priority_encoded",
+        "importance": 4.833170260042876e-05
+      },
+      {
+        "feature": "health_status_encoded",
+        "importance": 3.202431161017744e-05
+      },
+      {
+        "feature": "season_encoded",
+        "importance": 2.2937453072921703e-05
+      },
+      {
+        "feature": "last_treatment_days_scaled",
+        "importance": 1.3540468434365784e-05
+      }
+    ]
+  },
+  "regressor_next_check_days": {
+    "feature_importances_": [
+      {
+        "feature": "priority_score_scaled",
+        "importance": 0.9881274662359675
+      },
+      {
+        "feature": "season_encoded",
+        "importance": 0.011219216508448995
+      },
+      {
+        "feature": "health_status_encoded",
+        "importance": 0.0005889192798733192
+      },
+      {
+        "feature": "alert_count_scaled",
+        "importance": 6.269302539177799e-05
+      },
+      {
+        "feature": "alert_type_encoded",
+        "importance": 5.030103493329699e-07
+      },
+      {
+        "feature": "humidity_scaled",
+        "importance": 4.428882014425059e-07
+      },
+      {
+        "feature": "historical_disease_frequency_scaled",
+        "importance": 3.589954119462116e-07
+      },
+      {
+        "feature": "risk_level_encoded",
+        "importance": 2.0615827441050697e-07
+      },
+      {
+        "feature": "temperature_scaled",
+        "importance": 7.836098188304501e-08
+      },
+      {
+        "feature": "rainfall_scaled",
+        "importance": 5.640780402229278e-08
+      },
+      {
+        "feature": "disease_history_count_scaled",
+        "importance": 4.377269762795125e-08
+      },
+      {
+        "feature": "days_since_last_inspection_scaled",
+        "importance": 9.633570932035067e-09
+      },
+      {
+        "feature": "density_per_hectare_scaled",
+        "importance": 5.723026864394878e-09
+      },
+      {
+        "feature": "historical_disease_count_scaled",
+        "importance": 0.0
+      },
+      {
+        "feature": "area_hectare_scaled",
+        "importance": 0.0
+      },
+      {
+        "feature": "tree_age_scaled",
+        "importance": 0.0
+      },
+      {
+        "feature": "detection_confidence_scaled",
+        "importance": 0.0
+      },
+      {
+        "feature": "confidence_scaled",
+        "importance": 0.0
+      },
+      {
+        "feature": "last_treatment_days_scaled",
+        "importance": 0.0
+      },
+      {
+        "feature": "alert_priority_encoded",
+        "importance": 0.0
+      },
+      {
+        "feature": "detection_prediction_encoded",
+        "importance": 0.0
+      },
+      {
+        "feature": "predicted_disease_encoded",
+        "importance": 0.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+model:
+  name: "ai_agronomist"
+  type: "rag_llm"
+  llm:
+    provider: "ollama"
+    model_name: "llama3.2"
+    base_url: "http://localhost:11434"
+    temperature: 0.3
+    max_tokens: 1024
+    top_p: 0.9
+
+rag:
+  chunk_size: 512
+  chunk_overlap: 64
+  top_k: 5
+  retrieval_score_threshold: 0.7
+  max_context_length: 2048
+
+embedding:
+  provider: "ollama"
+  model_name: "nomic-embed-text"
+  dimension: 768
+
+vector_store:
+  type: "chromadb"
+  collection_name: "dga_knowledge_base"
+  persist_directory: "training/models/llm/vector_store"
+  distance: "cosine"
+
+knowledge_base:
+  sources:
+    - path: "training/models/llm/knowledge/durian_diseases.md"
+      type: "markdown"
+    - path: "training/models/llm/knowledge/treatment_guide.md"
+      type: "markdown"
+    - path: "training/models/llm/knowledge/farm_management.md"
+      type: "markdown"
+    - path: "training/models/llm/knowledge/pest_control.md"
+      type: "markdown"
+
+prompt_templates:
+  disease_diagnosis: |
+    You are an AI Agronomist specializing in durian farming.
+    Based on the following symptoms and context, diagnose the disease
+    and provide treatment recommendations.
+
+    Context:
+    {context}
+
+    Symptoms: {symptoms}
+    Tree Variety: {variety}
+    Weather Conditions: {weather}
+
+    Please provide:
+    1. Disease diagnosis
+    2. Confidence level
+    3. Recommended treatment
+    4. Preventive measures
+
+  treatment_query: |
+    You are a durian farming expert. Answer the farmer's question
+    based on the provided knowledge base.
+
+    Context:
+    {context}
+
+    Question: {question}
+
+  general_advice: |
+    You are an experienced agronomist specializing in durian cultivation.
+    Provide practical, actionable advice.
+
+    Context:
+    {context}
+
+    Question: {question}
+
+logging:
+  level: "INFO"
+  file: "training/logs/model4.log"
+
+export:
+  formats: []
+  output_dir: "training/exports/model4"

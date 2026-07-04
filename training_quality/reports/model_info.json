@@ -1,0 +1,26 @@
+{
+  "model_name": "image_quality",
+  "architecture": "mobilenet_v3_small",
+  "num_classes": 2,
+  "class_names": [
+    "Good",
+    "Bad"
+  ],
+  "parameters": {
+    "total": 1075234,
+    "trainable": 1075234,
+    "frozen": 0
+  },
+  "model_size_mb": 4.15,
+  "test_metrics": {
+    "accuracy": 0.8711111111111111,
+    "precision": 0.8991517436380773,
+    "recall": 0.9085714285714286,
+    "f1_score": 0.9038370440549502,
+    "roc_auc": 0.938053514739229
+  },
+  "framework": {
+    "pytorch": "2.11.0+cpu",
+    "python": "3.13.12"
+  }
+}

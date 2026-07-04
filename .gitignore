@@ -1,20 +1,55 @@
 # Python
-venv/
-.venv/
 __pycache__/
+*.py[cod]
 *.pyc
 .pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+env/
 
 # Environment
 .env
-
-# Uploads
-uploads/
+.env.local
+.env.example
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Dataset images (too large for Git)
+Ten_Classes_of_Durian_Leaf_Diseases/
+
+# Backup
+AI_Backup/
+
+# Logs
+logs/
+*.log
+
+# Temp / Cache
+temp/
+cache/
+
+# Generated/augmented datasets (not source code)
+training_quality/dataset_quality/
+
+# Prediction output
+training_quality/predictions/
+
+# TensorBoard logs
+training_quality/tensorboard/
+
+# Generated CSV training datasets (can be regenerated)
+training_recommendation/datasets/*.csv

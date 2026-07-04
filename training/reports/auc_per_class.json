@@ -1,0 +1,14 @@
+{
+  "anthracnose_disease": 0.9981247069854665,
+  "canker_disease": 1.0,
+  "fruit_rot": 1.0,
+  "Healthy": 1.0,
+  "mealybug_infestation": 0.9927314211212517,
+  "pink_disease": 0.9650673400673401,
+  "sooty_mold": 0.9779286926994906,
+  "stem_blight": 0.9962366067475427,
+  "stem_cracking_ gummosis": 0.9979843063854295,
+  "thrips_disease": 0.9994569644311703,
+  "yellow_leaf": 1.0,
+  "weighted_avg": 0.9936358021076391
+}

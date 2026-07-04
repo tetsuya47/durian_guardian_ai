@@ -1,0 +1,143 @@
+model:
+  name: "disease_detection"
+  architecture: "efficientnet_b0"
+  pretrained: true
+  freeze_backbone: false
+  num_classes: 11
+  input_channels: 3
+  dropout: 0.3
+
+dataset:
+  name: "durian_leaf_disease"
+  root: "Ten_Classes_of_Durian_Leaf_Diseases/Ten_Classes_of_Durian_Leaf_Diseases"
+  train_split: "Train"
+  val_split: "Validation"
+  test_split: "Test"
+  target_size: [224, 224]
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  num_workers: 4
+  pin_memory: true
+
+preprocessing:
+  resize: [224, 224]
+  normalize: true
+  to_tensor: true
+
+augmentation:
+  train:
+    RandomHorizontalFlip:
+      p: 0.5
+    RandomVerticalFlip:
+      p: 0.1
+    RandomRotation:
+      degrees: 30
+    ColorJitter:
+      brightness: 0.2
+      contrast: 0.2
+      saturation: 0.2
+      hue: 0.1
+    RandomAffine:
+      degrees: 0
+      translate: [0.1, 0.1]
+      scale: [0.9, 1.1]
+    RandomPerspective:
+      distortion_scale: 0.2
+      p: 0.3
+    GaussianBlur:
+      kernel_size: 3
+      sigma: [0.1, 1.0]
+    RandAugment:
+      n: 2
+      m: 9
+  val:
+    - Resize: [224, 224]
+    - CenterCrop: [224, 224]
+    - ToTensor
+    - Normalize
+
+training:
+  epochs: 50
+  batch_size: 32
+  accumulation_steps: 1
+  gradient_clip: 1.0
+  mixed_precision: "fp16"
+  resume_from: null
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+optimizer:
+  name: "AdamW"
+  params:
+    lr: 0.0001
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+scheduler:
+  name: "CosineAnnealingLR"
+  params:
+    T_max: 50
+    eta_min: 1.0e-6
+  warmup_epochs: 5
+  warmup_start_lr: 1.0e-6
+
+loss:
+  name: "CrossEntropyLoss"
+  params:
+    label_smoothing: 0.1
+
+metrics:
+  - accuracy
+  - precision
+  - recall
+  - f1_score
+  - top5
+  - confusion_matrix
+  - roc_auc
+  - pr_curve
+
+callbacks:
+  - name: "ModelCheckpoint"
+    params:
+      monitor: "val_accuracy"
+      mode: "max"
+      save_best_only: true
+      save_last: true
+      save_freq: 1
+  - name: "EarlyStopping"
+    params:
+      monitor: "val_accuracy"
+      patience: 15
+      mode: "max"
+      min_delta: 0.001
+  - name: "ReduceLROnPlateau"
+    params:
+      monitor: "val_loss"
+      factor: 0.5
+      patience: 5
+      min_lr: 1.0e-7
+  - name: "TensorBoard"
+    params:
+      log_dir: "training/tensorboard/model1"
+  - name: "CSVLogger"
+    params:
+      filename: "training/logs/model1_training_log.csv"
+  - name: "GradientNormMonitor"
+    params:
+      log_freq: 10
+
+logging:
+  level: "INFO"
+  file: "training/logs/model1.log"
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+export:
+  formats:
+    - "pytorch"
+    - "torchscript"
+    - "onnx"
+  output_dir: "training/exports/model1"
+  onnx_opset: 17
+  dynamic_batch: true
