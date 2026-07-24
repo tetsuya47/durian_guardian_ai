@@ -2,66 +2,71 @@
   {
     "rank": 1,
     "feature": "health_status_encoded",
-    "importance": 0.260456
+    "importance": 0.278434
   },
   {
     "rank": 2,
     "feature": "humidity_scaled",
-    "importance": 0.16246
+    "importance": 0.162085
   },
   {
     "rank": 3,
     "feature": "predicted_disease_encoded",
-    "importance": 0.129041
+    "importance": 0.150647
   },
   {
     "rank": 4,
     "feature": "rainfall_scaled",
-    "importance": 0.095102
+    "importance": 0.085092
   },
   {
     "rank": 5,
     "feature": "temperature_scaled",
-    "importance": 0.090249
+    "importance": 0.080942
   },
   {
     "rank": 6,
-    "feature": "historical_disease_count_scaled",
-    "importance": 0.052153
+    "feature": "historical_disease_frequency_scaled",
+    "importance": 0.058883
   },
   {
     "rank": 7,
-    "feature": "historical_disease_frequency_scaled",
-    "importance": 0.051186
+    "feature": "historical_disease_count_scaled",
+    "importance": 0.054686
   },
   {
     "rank": 8,
     "feature": "confidence_scaled",
-    "importance": 0.046482
+    "importance": 0.033961
   },
   {
     "rank": 9,
     "feature": "days_since_last_inspection_scaled",
-    "importance": 0.034206
+    "importance": 0.02593
   },
   {
     "rank": 10,
     "feature": "season_encoded",
-    "importance": 0.023277
+    "importance": 0.021653
   },
   {
     "rank": 11,
-    "feature": "tree_age_scaled",
-    "importance": 0.020252
+    "feature": "days_since_last_treatment_scaled",
+    "importance": 0.017506
   },
   {
     "rank": 12,
-    "feature": "density_per_hectare_scaled",
-    "importance": 0.019
+    "feature": "tree_age_scaled",
+    "importance": 0.012571
   },
   {
     "rank": 13,
-    "feature": "days_since_last_treatment_scaled",
-    "importance": 0.016137
+    "feature": "density_per_hectare_scaled",
+    "importance": 0.011482
+  },
+  {
+    "rank": 14,
+    "feature": "variety_encoded",
+    "importance": 0.00613
   }
 ]

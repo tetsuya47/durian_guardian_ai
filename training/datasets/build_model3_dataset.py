@@ -244,7 +244,7 @@ class Model3DatasetBuilder:
     def get_feature_target(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
         feature_cols = [
             "temperature", "humidity", "rainfall", "tree_age",
-            "tree_variety", "health_status", "predicted_disease",
+            "variety", "health_status", "predicted_disease",
             "confidence", "season", "density_per_hectare",
             "days_since_last_inspection", "days_since_last_treatment",
             "historical_disease_count", "historical_disease_frequency",

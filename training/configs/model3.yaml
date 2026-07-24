@@ -22,7 +22,7 @@ dataset:
 
 feature_pipeline:
   categorical_features:
-    - "tree_variety"
+    - "variety"
     - "zone_type"
     - "soil_type"
     - "irrigation_type"

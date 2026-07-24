@@ -1,4 +1,5 @@
 [
+  "variety_encoded",
   "health_status_encoded",
   "predicted_disease_encoded",
   "season_encoded",

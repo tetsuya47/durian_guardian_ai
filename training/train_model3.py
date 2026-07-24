@@ -70,7 +70,7 @@ def preprocess(X: pd.DataFrame, y: pd.Series, logger):
     from sklearn.preprocessing import OrdinalEncoder, StandardScaler
     import joblib
 
-    cat_cols = ["tree_variety", "health_status", "predicted_disease", "season"]
+    cat_cols = ["variety", "health_status", "predicted_disease", "season"]
     num_cols = ["temperature", "humidity", "rainfall", "tree_age",
                 "confidence", "density_per_hectare",
                 "days_since_last_inspection", "days_since_last_treatment",

@@ -109,7 +109,7 @@ def main():
         "humidity": 78.0,
         "rainfall": 35.0,
         "tree_age": 5,
-        "tree_variety": "Monthong",
+        "variety": "Monthong",
         "health_status": "Healthy",
         "predicted_disease": "Healthy",
         "confidence": 85.0,

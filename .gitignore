@@ -53,3 +53,13 @@ training_quality/tensorboard/
 
 # Generated CSV training datasets (can be regenerated)
 training_recommendation/datasets/*.csv
+
+# Training backups
+**/backups/
+
+# Training checkpoints (last — temporary)
+**/checkpoints/last_*
+
+# Lint/cache
+.ruff_cache/
+.coverage
