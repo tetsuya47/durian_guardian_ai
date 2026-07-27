@@ -3,7 +3,7 @@ Schema Definitions
 ==================
 
 Collection names, JSON Schema validators, and type hints
-for all 10 MongoDB collections in Durian Guardian AI.
+for all 14 MongoDB collections in Durian Guardian AI.
 
 Validators match the EXACT document structure produced
 by the Excel ETL pipeline — never reject valid data.
@@ -25,6 +25,10 @@ class Collections:
     DETECTION_RESULTS: str = "detection_results"
     DISEASE_HISTORY: str = "disease_history"
     ALERTS: str = "alerts"
+    SEASONS: str = "seasons"
+    HARVESTS: str = "harvests"
+    FARM_TARGETS: str = "farm_targets"
+    FARM_PERFORMANCE: str = "farm_performance"
 
     @classmethod
     def all(cls) -> List[str]:
@@ -32,6 +36,7 @@ class Collections:
             cls.COMPANIES, cls.FARMS, cls.ZONES, cls.TREES,
             cls.USERS, cls.DISEASES, cls.INSPECTIONS,
             cls.DETECTION_RESULTS, cls.DISEASE_HISTORY, cls.ALERTS,
+            cls.SEASONS, cls.HARVESTS, cls.FARM_TARGETS, cls.FARM_PERFORMANCE,
         ]
 
     @classmethod
@@ -329,6 +334,93 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "date": {"bsonType": "date"},
                     "updated_at": {"bsonType": ["date", "null"]},
                     "created_at": {"bsonType": "date"},
+                },
+            }
+        },
+        Collections.SEASONS: {
+            "$jsonSchema": {
+                "bsonType": "object",
+                "title": "Season Validation",
+                "required": ["farm_id", "season_name", "season_year", "start_date", "status"],
+                "properties": {
+                    "_id": {"bsonType": "objectId"},
+                    "season_id": {"bsonType": "string", "description": "Unique season code"},
+                    "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
+                    "season_name": {"bsonType": "string", "description": "Mùa vụ名称"},
+                    "season_year": {"bsonType": "int", "minimum": 2020, "maximum": 2030},
+                    "start_date": {"bsonType": "date"},
+                    "end_date": {"bsonType": ["date", "null"]},
+                    "expected_harvest_date": {"bsonType": ["date", "null"]},
+                    "status": {"bsonType": "string", "description": "active/completed/planned"},
+                    "created_at": {"bsonType": "date"},
+                    "updated_at": {"bsonType": ["date", "null"]},
+                },
+            }
+        },
+        Collections.HARVESTS: {
+            "$jsonSchema": {
+                "bsonType": "object",
+                "title": "Harvest Validation",
+                "required": ["farm_id", "season_id", "harvest_date", "yield_kg"],
+                "properties": {
+                    "_id": {"bsonType": "objectId"},
+                    "harvest_id": {"bsonType": "string", "description": "Unique harvest code"},
+                    "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
+                    "season_id": {"bsonType": "objectId", "description": "Ref seasons._id"},
+                    "harvest_date": {"bsonType": "date"},
+                    "yield_kg": {"bsonType": "double", "minimum": 0},
+                    "average_weight": {"bsonType": ["double", "null"], "minimum": 0},
+                    "grade_a": {"bsonType": ["double", "null"], "minimum": 0},
+                    "grade_b": {"bsonType": ["double", "null"], "minimum": 0},
+                    "grade_c": {"bsonType": ["double", "null"], "minimum": 0},
+                    "selling_price": {"bsonType": ["double", "null"], "minimum": 0},
+                    "total_revenue": {"bsonType": ["double", "null"], "minimum": 0},
+                    "buyer": {"bsonType": ["string", "null"]},
+                    "created_at": {"bsonType": "date"},
+                    "updated_at": {"bsonType": ["date", "null"]},
+                },
+            }
+        },
+        Collections.FARM_TARGETS: {
+            "$jsonSchema": {
+                "bsonType": "object",
+                "title": "Farm Target Validation",
+                "required": ["farm_id", "season_id", "target_yield", "target_revenue"],
+                "properties": {
+                    "_id": {"bsonType": "objectId"},
+                    "target_id": {"bsonType": "string", "description": "Unique target code"},
+                    "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
+                    "season_id": {"bsonType": "objectId", "description": "Ref seasons._id"},
+                    "target_yield": {"bsonType": "double", "minimum": 0},
+                    "target_revenue": {"bsonType": "double", "minimum": 0},
+                    "target_grade_a": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "target_tree_health": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "target_inspection_rate": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "target_disease_rate": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "created_at": {"bsonType": "date"},
+                    "updated_at": {"bsonType": ["date", "null"]},
+                },
+            }
+        },
+        Collections.FARM_PERFORMANCE: {
+            "$jsonSchema": {
+                "bsonType": "object",
+                "title": "Farm Performance Validation",
+                "required": ["farm_id", "season_id", "farm_score", "overall_status", "last_calculated"],
+                "properties": {
+                    "_id": {"bsonType": "objectId"},
+                    "performance_id": {"bsonType": "string", "description": "Unique performance code"},
+                    "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
+                    "season_id": {"bsonType": "objectId", "description": "Ref seasons._id"},
+                    "farm_score": {"bsonType": "double", "minimum": 0, "maximum": 100},
+                    "health_score": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "risk_index": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "inspection_score": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "yield_score": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 100},
+                    "overall_status": {"bsonType": "string", "description": "excellent/good/fair/poor"},
+                    "last_calculated": {"bsonType": "date"},
+                    "created_at": {"bsonType": "date"},
+                    "updated_at": {"bsonType": ["date", "null"]},
                 },
             }
         },

@@ -370,6 +370,10 @@ class ETLStats:
         self.detection_results_loaded: int = 0
         self.disease_history_loaded: int = 0
         self.alerts_loaded: int = 0
+        self.seasons_loaded: int = 0
+        self.harvests_loaded: int = 0
+        self.farm_targets_loaded: int = 0
+        self.farm_performance_loaded: int = 0
 
         self.companies_removed_duplicates: int = 0
         self.farms_removed_duplicates: int = 0
@@ -427,8 +431,11 @@ def transform_companies(companies_df: pd.DataFrame) -> List[Dict[str, Any]]:
 def transform_farms(
     farms_df: pd.DataFrame,
     company_map: Dict[str, ObjectId],
+    farm_owner_map: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
     """Extract unique farms from the Excel farms sheet."""
+    if farm_owner_map is None:
+        farm_owner_map = {}
     seen = {}
 
     for _, row in farms_df.iterrows():
@@ -436,12 +443,16 @@ def transform_farms(
         if not farm_id or farm_id in seen:
             continue
 
+        company_code = str(row.get("company_code", "")).strip()
+        owner_info = farm_owner_map.get(company_code, {})
+
         seen[farm_id] = {
             "_id": ObjectId(),
             "farm_code": farm_id,
             "farm_name": str(row.get("farm_name", "")).strip(),
-            "company_id": company_map.get(str(row.get("company_code", "")).strip()),
-            "owner": None,
+            "company_id": company_map.get(company_code),
+            "owner": owner_info.get("owner_name"),
+            "owner_user_id": owner_info.get("owner_user_id"),
             "phone": None,
             "district": str(row.get("district", "")).strip(),
             "commune": None,
@@ -603,6 +614,58 @@ def transform_users(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         })
     logger.info("Transformed %d unique users", len(users))
     return users
+
+
+# ── TRANSFORM: Farm Owner Users ────────────────────────────────────
+
+FARM_OWNER_DATA = [
+    {"full_name": "Nguyễn Văn An", "email": "nguyen.van.an@durianguardian.ai", "phone": "0901234001"},
+    {"full_name": "Trần Thị Bình", "email": "tran.thi.binh@durianguardian.ai", "phone": "0901234002"},
+    {"full_name": "Lê Hoàng Cường", "email": "le.hoang.cuong@durianguardian.ai", "phone": "0901234003"},
+    {"full_name": "Phạm Minh Đức", "email": "pham.minh.duc@durianguardian.ai", "phone": "0901234004"},
+    {"full_name": "Hoàng Thị Em", "email": "hoang.thi.em@durianguardian.ai", "phone": "0901234005"},
+    {"full_name": "Vũ Đức Phong", "email": "vu.duc.phong@durianguardian.ai", "phone": "0901234006"},
+    {"full_name": "Đặng Thị Giang", "email": "dang.thi.giang@durianguardian.ai", "phone": "0901234007"},
+    {"full_name": "Bùi Văn Hùng", "email": "bui.van.hung@durianguardian.ai", "phone": "0901234008"},
+    {"full_name": "Ngô Thị Khánh", "email": "ngo.thi.khanh@durianguardian.ai", "phone": "0901234009"},
+    {"full_name": "Đỗ Văn Long", "email": "do.van.long@durianguardian.ai", "phone": "0901234010"},
+]
+
+
+def generate_farm_owner_users(existing_users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Generate Farm Owner user accounts if none exist in the Excel source."""
+    existing_emails = {u.get("email") for u in existing_users}
+    existing_fo = [u for u in existing_users if u.get("role") == "Farm Owner"]
+
+    if existing_fo:
+        logger.info("Found %d Farm Owner users in source data", len(existing_fo))
+        return existing_fo
+
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    default_password_hash = pwd_context.hash("123456")
+
+    now = datetime.now(timezone.utc)
+    base_code = len(existing_users) + 1
+    fo_users = []
+    for i, fo_data in enumerate(FARM_OWNER_DATA):
+        if fo_data["email"] in existing_emails:
+            continue
+        user_code = f"USR{base_code + i:04d}"
+        fo_users.append({
+            "_id": ObjectId(),
+            "user_code": user_code,
+            "full_name": fo_data["full_name"],
+            "email": fo_data["email"],
+            "phone": fo_data["phone"],
+            "password_hash": default_password_hash,
+            "role": "Farm Owner",
+            "refresh_token": "",
+            "created_at": now,
+            "updated_at": now,
+        })
+    logger.info("Generated %d Farm Owner users", len(fo_users))
+    return fo_users
 
 
 # ── TRANSFORM: Combined Diseases ─────────────────────────────────────
@@ -811,6 +874,203 @@ def transform_alerts(
     return alerts
 
 
+# ── TRANSFORM: Seasons (auto-generated) ─────────────────────────────
+
+SEASON_NAMES = [
+    ("Mùa vụ Xuân", "spring"),
+    ("Mùa vụ Hè", "summer"),
+]
+
+def transform_seasons(
+    farms: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Generate 2 seasons per farm automatically."""
+    now = datetime.now(timezone.utc)
+    seasons = []
+    for farm in farms:
+        for i, (season_name, _) in enumerate(SEASON_NAMES):
+            year = 2024 + i
+            start_month = 1 if i == 0 else 5
+            end_month = 4 if i == 0 else 9
+            harvest_month = 5 if i == 0 else 10
+
+            start_date = datetime(year, start_month, 1, tzinfo=timezone.utc)
+            end_date = datetime(year, end_month, 28, tzinfo=timezone.utc)
+            expected_harvest = datetime(year, harvest_month, 15, tzinfo=timezone.utc)
+
+            if i == 0 and now.year > year:
+                status = "completed"
+            elif i == 1 and now.year > year:
+                status = "completed"
+            else:
+                status = "active" if now.year == year else "planned"
+
+            season_id_str = f"S{farm['farm_code'].replace('FARM', '')}{year}{i+1:02d}"
+            seasons.append({
+                "_id": ObjectId(),
+                "season_id": season_id_str,
+                "farm_id": farm["_id"],
+                "season_name": season_name,
+                "season_year": year,
+                "start_date": start_date,
+                "end_date": end_date,
+                "expected_harvest_date": expected_harvest,
+                "status": status,
+                "created_at": now,
+                "updated_at": None,
+            })
+    logger.info("Generated %d seasons (%d per farm)", len(seasons), len(SEASON_NAMES))
+    return seasons
+
+
+# ── TRANSFORM: Harvests (auto-generated) ────────────────────────────
+
+def transform_harvests(
+    seasons: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Generate 1 harvest per season automatically."""
+    import random
+    random.seed(42)
+    now = datetime.now(timezone.utc)
+    harvests = []
+
+    for season in seasons:
+        farm_code = None
+        year = season["season_year"]
+        is_summer = season["season_name"] == "Mùa vụ Hè"
+
+        if is_summer:
+            harvest_date = datetime(year, 10, 20, tzinfo=timezone.utc)
+            base_yield = random.uniform(2500.0, 5000.0)
+        else:
+            harvest_date = datetime(year, 5, 10, tzinfo=timezone.utc)
+            base_yield = random.uniform(2000.0, 4000.0)
+
+        grade_a_pct = random.uniform(0.35, 0.60)
+        grade_b_pct = random.uniform(0.25, 0.40)
+        grade_c_pct = 1.0 - grade_a_pct - grade_b_pct
+        avg_weight = random.uniform(2.5, 5.0)
+        price_per_kg = random.uniform(60000.0, 120000.0)
+        total_revenue = base_yield * price_per_kg
+
+        # Derive farm code from season_id
+        raw = season["season_id"].replace("S", "")
+        farm_num = raw[:3]
+        farm_code = f"FARM{farm_num}"
+
+        harvest_id_str = f"H{raw}"
+        harvests.append({
+            "_id": ObjectId(),
+            "harvest_id": harvest_id_str,
+            "farm_id": season["farm_id"],
+            "season_id": season["_id"],
+            "harvest_date": harvest_date,
+            "yield_kg": round(base_yield, 2),
+            "average_weight": round(avg_weight, 2),
+            "grade_a": round(base_yield * grade_a_pct, 2),
+            "grade_b": round(base_yield * grade_b_pct, 2),
+            "grade_c": round(base_yield * grade_c_pct, 2),
+            "selling_price": round(price_per_kg, 2),
+            "total_revenue": round(total_revenue, 2),
+            "buyer": random.choice(["Công ty TNHH Durian Export", "Mekong Fruit Co.", "Đà Lạt Fresh", "Local Market"]),
+            "created_at": now,
+            "updated_at": None,
+        })
+    logger.info("Generated %d harvests (1 per season)", len(harvests))
+    return harvests
+
+
+# ── TRANSFORM: Farm Targets (auto-generated) ────────────────────────
+
+def transform_farm_targets(
+    seasons: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Generate 1 farm target per season automatically."""
+    import random
+    random.seed(42)
+    now = datetime.now(timezone.utc)
+    targets = []
+
+    for season in seasons:
+        raw = season["season_id"].replace("S", "")
+        is_summer = season["season_name"] == "Mùa vụ Hè"
+
+        if is_summer:
+            target_yield = random.uniform(3000.0, 5500.0)
+        else:
+            target_yield = random.uniform(2500.0, 4500.0)
+
+        price = random.uniform(70000.0, 110000.0)
+
+        targets.append({
+            "_id": ObjectId(),
+            "target_id": f"T{raw}",
+            "farm_id": season["farm_id"],
+            "season_id": season["_id"],
+            "target_yield": round(target_yield, 2),
+            "target_revenue": round(target_yield * price, 2),
+            "target_grade_a": round(random.uniform(40.0, 65.0), 1),
+            "target_tree_health": round(random.uniform(75.0, 95.0), 1),
+            "target_inspection_rate": round(random.uniform(85.0, 100.0), 1),
+            "target_disease_rate": round(random.uniform(5.0, 20.0), 1),
+            "created_at": now,
+            "updated_at": None,
+        })
+    logger.info("Generated %d farm targets (1 per season)", len(targets))
+    return targets
+
+
+# ── TRANSFORM: Farm Performance (auto-generated) ────────────────────
+
+def transform_farm_performance(
+    seasons: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Generate 1 farm performance record per season automatically."""
+    import random
+    random.seed(42)
+    now = datetime.now(timezone.utc)
+    performances = []
+
+    for season in seasons:
+        raw = season["season_id"].replace("S", "")
+
+        health_score = round(random.uniform(60.0, 95.0), 1)
+        risk_index = round(random.uniform(5.0, 40.0), 1)
+        inspection_score = round(random.uniform(70.0, 100.0), 1)
+        yield_score = round(random.uniform(65.0, 95.0), 1)
+        farm_score = round(
+            (health_score * 0.3 + (100 - risk_index) * 0.2 +
+             inspection_score * 0.25 + yield_score * 0.25), 1
+        )
+
+        if farm_score >= 85:
+            overall_status = "excellent"
+        elif farm_score >= 70:
+            overall_status = "good"
+        elif farm_score >= 55:
+            overall_status = "fair"
+        else:
+            overall_status = "poor"
+
+        performances.append({
+            "_id": ObjectId(),
+            "performance_id": f"P{raw}",
+            "farm_id": season["farm_id"],
+            "season_id": season["_id"],
+            "farm_score": farm_score,
+            "health_score": health_score,
+            "risk_index": risk_index,
+            "inspection_score": inspection_score,
+            "yield_score": yield_score,
+            "overall_status": overall_status,
+            "last_calculated": now,
+            "created_at": now,
+            "updated_at": None,
+        })
+    logger.info("Generated %d farm performance records (1 per season)", len(performances))
+    return performances
+
+
 # ── LOAD: Users ──────────────────────────────────────────────────────
 
 def load_users(db: Database, users: List[Dict[str, Any]], stats: ETLStats) -> None:
@@ -897,6 +1157,90 @@ def load_alerts(db: Database, alerts: List[Dict[str, Any]], stats: ETLStats) -> 
         stats.alerts_loaded = count
     logger.info("Inserted %d alerts (%d duplicates skipped)",
                  stats.alerts_loaded, stats.alerts_removed_duplicates)
+
+
+# ── LOAD: Seasons ──────────────────────────────────────────────────
+
+def load_seasons(db: Database, seasons: List[Dict[str, Any]], stats: ETLStats) -> None:
+    """Insert seasons into MongoDB."""
+    if not seasons:
+        return
+    try:
+        result = db.seasons.insert_many(seasons, ordered=False)
+        stats.seasons_loaded = len(result.inserted_ids)
+    except DuplicateKeyError:
+        count = 0
+        for s in seasons:
+            try:
+                db.seasons.insert_one(s)
+                count += 1
+            except DuplicateKeyError:
+                pass
+        stats.seasons_loaded = count
+    logger.info("Inserted %d seasons", stats.seasons_loaded)
+
+
+# ── LOAD: Harvests ─────────────────────────────────────────────────
+
+def load_harvests(db: Database, harvests: List[Dict[str, Any]], stats: ETLStats) -> None:
+    """Insert harvests into MongoDB."""
+    if not harvests:
+        return
+    try:
+        result = db.harvests.insert_many(harvests, ordered=False)
+        stats.harvests_loaded = len(result.inserted_ids)
+    except DuplicateKeyError:
+        count = 0
+        for h in harvests:
+            try:
+                db.harvests.insert_one(h)
+                count += 1
+            except DuplicateKeyError:
+                pass
+        stats.harvests_loaded = count
+    logger.info("Inserted %d harvests", stats.harvests_loaded)
+
+
+# ── LOAD: Farm Targets ─────────────────────────────────────────────
+
+def load_farm_targets(db: Database, targets: List[Dict[str, Any]], stats: ETLStats) -> None:
+    """Insert farm targets into MongoDB."""
+    if not targets:
+        return
+    try:
+        result = db.farm_targets.insert_many(targets, ordered=False)
+        stats.farm_targets_loaded = len(result.inserted_ids)
+    except DuplicateKeyError:
+        count = 0
+        for t in targets:
+            try:
+                db.farm_targets.insert_one(t)
+                count += 1
+            except DuplicateKeyError:
+                pass
+        stats.farm_targets_loaded = count
+    logger.info("Inserted %d farm_targets", stats.farm_targets_loaded)
+
+
+# ── LOAD: Farm Performance ─────────────────────────────────────────
+
+def load_farm_performance(db: Database, perfs: List[Dict[str, Any]], stats: ETLStats) -> None:
+    """Insert farm performance records into MongoDB."""
+    if not perfs:
+        return
+    try:
+        result = db.farm_performance.insert_many(perfs, ordered=False)
+        stats.farm_performance_loaded = len(result.inserted_ids)
+    except DuplicateKeyError:
+        count = 0
+        for p in perfs:
+            try:
+                db.farm_performance.insert_one(p)
+                count += 1
+            except DuplicateKeyError:
+                pass
+        stats.farm_performance_loaded = count
+    logger.info("Inserted %d farm_performance", stats.farm_performance_loaded)
 
 
 # ── TRANSFORM: Inspections ───────────────────────────────────────────
@@ -1040,6 +1384,11 @@ def load_documents(
     disease_history: List[Dict],
     alerts: List[Dict],
     stats: ETLStats,
+    farm_owner_users: Optional[List[Dict]] = None,
+    seasons: Optional[List[Dict]] = None,
+    harvests: Optional[List[Dict]] = None,
+    farm_targets: Optional[List[Dict]] = None,
+    farm_performance: Optional[List[Dict]] = None,
 ) -> None:
     # Check if any collection already contains documents
     for coll_name in Collections.all():
@@ -1072,6 +1421,14 @@ def load_documents(
     detection_results = [clean_doc(dr) for dr in detection_results]
     disease_history = [clean_doc(dh) for dh in disease_history]
     alerts = [clean_doc(al) for al in alerts]
+    if seasons:
+        seasons = [clean_doc(s) for s in seasons]
+    if harvests:
+        harvests = [clean_doc(h) for h in harvests]
+    if farm_targets:
+        farm_targets = [clean_doc(t) for t in farm_targets]
+    if farm_performance:
+        farm_performance = [clean_doc(p) for p in farm_performance]
 
     # Build lookup maps
     company_by_name: Dict[str, Any] = {}
@@ -1259,6 +1616,22 @@ def load_documents(
     # ── 10. Insert alerts ────────────────────────────────────────────
     load_alerts(db, alerts, stats)
 
+    # ── 11. Insert seasons ──────────────────────────────────────────
+    if seasons:
+        load_seasons(db, seasons, stats)
+
+    # ── 12. Insert harvests ─────────────────────────────────────────
+    if harvests:
+        load_harvests(db, harvests, stats)
+
+    # ── 13. Insert farm targets ─────────────────────────────────────
+    if farm_targets:
+        load_farm_targets(db, farm_targets, stats)
+
+    # ── 14. Insert farm performance ─────────────────────────────────
+    if farm_performance:
+        load_farm_performance(db, farm_performance, stats)
+
 
 # ── MAIN ETL ─────────────────────────────────────────────────────────
 
@@ -1307,11 +1680,36 @@ def run_etl(
     logger.info("  Normalizing companies...")
     companies = transform_companies(rows.companies_df)
     company_by_name = {c["company_name"]: c for c in companies}
+    company_map = {c["company_code"]: c["_id"] for c in companies}
+
+    # Users (must come before farms so Farm Owner users can be linked)
+    logger.info("  Normalizing users...")
+    users = transform_users(users_rows)
+
+    # Farm Owner users (generated if not in Excel)
+    logger.info("  Generating Farm Owner users...")
+    fo_users = generate_farm_owner_users(users)
+    users.extend(fo_users)
+
+    # Build farm_owner_map: company_code -> {owner_user_id, owner_name}
+    farms_by_company_code = {f["farm_code"]: f for f in rows.farms_df.to_dict("records")}
+    fo_by_company: Dict[str, Dict[str, Any]] = {}
+    fo_iter = iter(fo_users)
+    for _, row in rows.farms_df.iterrows():
+        cc = str(row.get("company_code", "")).strip()
+        if cc and cc not in fo_by_company:
+            try:
+                fo = next(fo_iter)
+                fo_by_company[cc] = {
+                    "owner_user_id": fo["_id"],
+                    "owner_name": fo["full_name"],
+                }
+            except StopIteration:
+                fo_by_company[cc] = {"owner_user_id": None, "owner_name": None}
 
     # Farms
     logger.info("  Normalizing farms...")
-    company_map = {c["company_code"]: c["_id"] for c in companies}
-    farms = transform_farms(rows.farms_df, company_map)
+    farms = transform_farms(rows.farms_df, company_map, fo_by_company)
     farm_by_code = {f["farm_code"]: f for f in farms}
 
     # Zones
@@ -1319,10 +1717,6 @@ def run_etl(
     farm_map = {f["farm_code"]: f["_id"] for f in farms}
     zones = transform_zones(rows.zones_df, farm_map)
     zone_by_code = {z["zone_code"]: z for z in zones}
-
-    # Users
-    logger.info("  Normalizing users...")
-    users = transform_users(users_rows)
 
     # Trees
     logger.info("  Normalizing trees...")
@@ -1373,6 +1767,19 @@ def run_etl(
         alerts_rows, farm_map, tree_lookup_by_code, company_map, stats
     )
 
+    # Farm Performance Dashboard (auto-generated from farms)
+    logger.info("  Generating seasons...")
+    seasons = transform_seasons(farms)
+
+    logger.info("  Generating harvests...")
+    harvests = transform_harvests(seasons)
+
+    logger.info("  Generating farm targets...")
+    farm_targets = transform_farm_targets(seasons)
+
+    logger.info("  Generating farm performance...")
+    farm_performance = transform_farm_performance(seasons)
+
     if dry_run:
         logger.info("")
         logger.info(">>> DRY RUN - Summary")
@@ -1380,12 +1787,17 @@ def run_etl(
         logger.info("  Farms             : %d", len(farms))
         logger.info("  Zones             : %d", len(zones))
         logger.info("  Users             : %d", len(users))
+        logger.info("  Farm Owner Users  : %d", len(fo_users))
         logger.info("  Trees             : %d", len(trees))
         logger.info("  Diseases          : %d", len(diseases))
         logger.info("  Inspections       : %d", len(inspections))
         logger.info("  Detection Results : %d", len(detection_results))
         logger.info("  Disease History   : %d", len(disease_history))
         logger.info("  Alerts            : %d", len(alerts))
+        logger.info("  Seasons           : %d", len(seasons))
+        logger.info("  Harvests          : %d", len(harvests))
+        logger.info("  Farm Targets      : %d", len(farm_targets))
+        logger.info("  Farm Performance  : %d", len(farm_performance))
         return stats
 
     # ── LOAD ─────────────────────────────────────────────────────────
@@ -1415,7 +1827,9 @@ def run_etl(
         logger.info("  Inserting documents...")
         load_documents(
             db, companies, farms, zones, trees, diseases, inspections,
-            users, detection_results, disease_history, alerts, stats
+            users, detection_results, disease_history, alerts, stats,
+            seasons=seasons, harvests=harvests,
+            farm_targets=farm_targets, farm_performance=farm_performance,
         )
 
         # ── VALIDATION ───────────────────────────────────────────────
@@ -1440,6 +1854,12 @@ def run_etl(
                 orphan_farms += 1
         stats.orphan_farms = orphan_farms
         logger.info("  Orphan farms (no company): %d", orphan_farms)
+
+        # Farms -> Farm Owner (owner_user_id)
+        farms_with_owner = db.farms.count_documents({"owner_user_id": {"$exists": True, "$ne": None}})
+        farms_without_owner = db.farms.count_documents({"$or": [{"owner_user_id": None}, {"owner_user_id": {"$exists": False}}]})
+        logger.info("  Farms with owner_user_id   : %d", farms_with_owner)
+        logger.info("  Farms without owner_user_id: %d", farms_without_owner)
 
         # Zones -> Farms
         orphan_zones = 0
@@ -1500,6 +1920,34 @@ def run_etl(
         logger.info("  Orphan alerts (no farm): %d", orphan_alerts_farm)
         logger.info("  Orphan alerts (no tree): %d", orphan_alerts_tree)
 
+        # Seasons -> Farms
+        orphan_seasons = 0
+        for s in db.seasons.find():
+            if not db.farms.find_one({"_id": s["farm_id"]}):
+                orphan_seasons += 1
+        logger.info("  Orphan seasons (no farm): %d", orphan_seasons)
+
+        # Harvests -> Seasons
+        orphan_harvests = 0
+        for h in db.harvests.find():
+            if not db.seasons.find_one({"_id": h["season_id"]}):
+                orphan_harvests += 1
+        logger.info("  Orphan harvests (no season): %d", orphan_harvests)
+
+        # Farm Targets -> Seasons
+        orphan_targets = 0
+        for t in db.farm_targets.find():
+            if not db.seasons.find_one({"_id": t["season_id"]}):
+                orphan_targets += 1
+        logger.info("  Orphan farm_targets (no season): %d", orphan_targets)
+
+        # Farm Performance -> Seasons
+        orphan_perf = 0
+        for p in db.farm_performance.find():
+            if not db.seasons.find_one({"_id": p["season_id"]}):
+                orphan_perf += 1
+        logger.info("  Orphan farm_performance (no season): %d", orphan_perf)
+
     except Exception as exc:
         logger.critical("ETL failed: %s", exc)
         stats.add_error(str(exc))
@@ -1529,6 +1977,10 @@ def print_summary(stats: ETLStats) -> None:
     logger.info("    Detection Results : %d", stats.detection_results_loaded)
     logger.info("    Disease History   : %d", stats.disease_history_loaded)
     logger.info("    Alerts            : %d", stats.alerts_loaded)
+    logger.info("    Seasons           : %d", stats.seasons_loaded)
+    logger.info("    Harvests          : %d", stats.harvests_loaded)
+    logger.info("    Farm Targets      : %d", stats.farm_targets_loaded)
+    logger.info("    Farm Performance  : %d", stats.farm_performance_loaded)
     logger.info("")
     logger.info("  Duplicates removed:")
     logger.info("    Companies         : %d", stats.companies_removed_duplicates)

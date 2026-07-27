@@ -2,7 +2,7 @@
 Index Definitions
 =================
 
-MongoDB index specifications for all 10 collections.
+MongoDB index specifications for all 14 collections.
 Optimized for production query patterns.
 """
 
@@ -77,5 +77,29 @@ def get_index_specs() -> Dict[str, List[Dict[str, Any]]]:
             {"keys": [("status", 1)], "name": "idx_alerts_status"},
             {"keys": [("is_read", 1), ("created_at", -1)], "name": "idx_alerts_unread"},
             {"keys": [("date", -1)], "name": "idx_alerts_date_desc"},
+        ],
+        Collections.SEASONS: [
+            {"keys": [("farm_id", 1)], "name": "idx_seasons_farm_id"},
+            {"keys": [("farm_id", 1), ("season_year", 1)], "name": "idx_seasons_farm_year"},
+            {"keys": [("season_year", 1)], "name": "idx_seasons_year"},
+            {"keys": [("status", 1)], "name": "idx_seasons_status"},
+        ],
+        Collections.HARVESTS: [
+            {"keys": [("farm_id", 1)], "name": "idx_harvests_farm_id"},
+            {"keys": [("season_id", 1)], "name": "idx_harvests_season_id"},
+            {"keys": [("farm_id", 1), ("season_id", 1)], "name": "idx_harvests_farm_season"},
+            {"keys": [("harvest_date", -1)], "name": "idx_harvests_date_desc"},
+        ],
+        Collections.FARM_TARGETS: [
+            {"keys": [("farm_id", 1)], "name": "idx_targets_farm_id"},
+            {"keys": [("season_id", 1)], "name": "idx_targets_season_id"},
+            {"keys": [("farm_id", 1), ("season_id", 1)], "name": "idx_targets_farm_season"},
+        ],
+        Collections.FARM_PERFORMANCE: [
+            {"keys": [("farm_id", 1)], "name": "idx_performance_farm_id"},
+            {"keys": [("season_id", 1)], "name": "idx_performance_season_id"},
+            {"keys": [("farm_id", 1), ("season_id", 1)], "name": "idx_performance_farm_season"},
+            {"keys": [("overall_status", 1)], "name": "idx_performance_status"},
+            {"keys": [("farm_score", -1)], "name": "idx_performance_score_desc"},
         ],
     }
