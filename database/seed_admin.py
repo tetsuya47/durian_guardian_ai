@@ -27,7 +27,7 @@ logger = logging.getLogger("durian_guardian.seed_admin")
 ADMIN_EMAIL = "bao@gmail.com"
 ADMIN_PASSWORD = "123456"
 ADMIN_ROLE = "Admin"  # DB role for enterprise_admin
-ADMIN_FULL_NAME = "Bao Admin"
+ADMIN_FULL_NAME = "Bảo Quản trị"
 
 
 def hash_password(password: str) -> str:
