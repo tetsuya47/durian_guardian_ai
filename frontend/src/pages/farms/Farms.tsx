@@ -25,8 +25,6 @@ import { alertService } from "../../services/alert.service";
 import type { Farm } from "../../types/farm";
 import type { Company } from "../../types/company";
 import type { Zone } from "../../types/zone";
-import type { Inspection } from "../../types/inspection";
-import type { Alert } from "../../types/alert";
 import { formatDateTime } from "../../utils/dateFormatter";
 
 export default function FarmsPage() {
@@ -34,8 +32,6 @@ export default function FarmsPage() {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [inspections, setInspections] = useState<Inspection[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +65,16 @@ export default function FarmsPage() {
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
   const [detailRecord, setDetailRecord] = useState<Farm | null>(null);
+
+  // On-demand detail drawer data (loaded when drawer opens)
+  const [detailStats, setDetailStats] = useState<{
+    zoneCount: number;
+    density: number;
+    areaShare: string;
+    treeShare: string;
+    inspectionCount: number;
+    alertCount: number;
+  } | null>(null);
 
   // Build query params and fetch farms from server
   const fetchFarms = useCallback(() => {
@@ -113,11 +119,8 @@ export default function FarmsPage() {
       Promise.allSettled([
         farmService.get<Farm[] & { total?: number; total_pages?: number }>({ params }),
         loadAllPages(companyService),
-        loadAllPages(zoneService),
-        loadAllPages(inspectionService),
-        loadAllPages(alertService),
       ])
-        .then(([farmsResult, companiesResult, zonesResult, inspectionsResult, alertsResult]) => {
+        .then(([farmsResult, companiesResult]) => {
           if (farmsResult.status === "fulfilled") {
             const farmsData = farmsResult.value;
             const arr = farmsData as unknown as Farm[];
@@ -131,19 +134,16 @@ export default function FarmsPage() {
           if (companiesResult.status === "fulfilled") {
             setCompanies(companiesResult.value);
           }
-          if (zonesResult.status === "fulfilled") {
-            setZones(zonesResult.value);
-          }
-          if (inspectionsResult.status === "fulfilled") {
-            setInspections(inspectionsResult.value);
-          }
-          if (alertsResult.status === "fulfilled") {
-            setAlerts(alertsResult.value);
-          }
         })
         .finally(() => {
           setLoading(false);
         });
+
+      Promise.allSettled([
+        loadAllPages(zoneService),
+      ]).then(([zonesResult]) => {
+        if (zonesResult.status === "fulfilled") setZones(zonesResult.value);
+      });
 
       return;
     }
@@ -152,35 +152,46 @@ export default function FarmsPage() {
   }, [currentPage, searchQuery, fetchFarms]);
 
   const getCompanyName = (id: string) => {
+    if (!id) return "—";
+    if (companies.length === 0) return "—";
     const company = companies.find((c) => c._id === id || c.company_code === id);
-    return company ? company.company_name : id;
+    return company ? company.company_name : "—";
   };
-
-  const companyMap = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const c of companies) m.set(c._id, c.company_name);
-    return m;
-  }, [companies]);
 
   const totalAreaAll = useMemo(() => farms.reduce((s, f) => s + (f.area_hectare || 0), 0), [farms]);
   const totalTreesAll = useMemo(() => farms.reduce((s, f) => s + (f.tree_count || 0), 0), [farms]);
 
-  const detailStats = useMemo(() => {
-    if (!detailRecord) return null;
+  // On-demand: load detail drawer data when a farm is selected
+  useEffect(() => {
+    if (!detailRecord) {
+      setDetailStats(null);
+      return;
+    }
+
     const fid = detailRecord._id;
-    const zoneCount = zones.filter((z) => z.farm_id === fid).length;
     const area = detailRecord.area_hectare || 0;
     const trees = detailRecord.tree_count || 0;
     const density = area > 0 ? Number((trees / area).toFixed(1)) : 0;
     const areaShare = totalAreaAll > 0 ? ((area / totalAreaAll) * 100).toFixed(1) : "0";
     const treeShare = totalTreesAll > 0 ? ((trees / totalTreesAll) * 100).toFixed(1) : "0";
-    const inspectionCount = inspections.filter((i) => {
-      const ext = i as unknown as Record<string, unknown>;
-      return ext.farm_id === fid || ext.farm === detailRecord.farm_name;
-    }).length;
-    const alertCount = alerts.filter((a) => a.farm_id === fid).length;
-    return { zoneCount, density, areaShare, treeShare, inspectionCount, alertCount };
-  }, [detailRecord, zones, inspections, alerts, totalAreaAll, totalTreesAll]);
+    const zoneCount = zones.filter((z) => z.farm_id === fid).length;
+
+    Promise.allSettled([
+      inspectionService.get({ params: { per_page: 100 } }),
+      alertService.get({ params: { keyword: fid, per_page: 1 } }),
+    ]).then(([inspResult, alertResult]) => {
+      let inspectionCount = 0;
+      if (inspResult.status === "fulfilled") {
+        const items = Array.isArray(inspResult.value) ? inspResult.value : (inspResult.value as any).items ?? [];
+        inspectionCount = items.filter((i: any) => i.farm_id === fid || i.farm === detailRecord.farm_name).length;
+      }
+      const alertCount = alertResult.status === "fulfilled"
+        ? ((alertResult.value as any).total ?? (Array.isArray(alertResult.value) ? alertResult.value.length : 0))
+        : 0;
+
+      setDetailStats({ zoneCount, density, areaShare, treeShare, inspectionCount, alertCount });
+    });
+  }, [detailRecord, totalAreaAll, totalTreesAll, zones]);
 
   // Set form states for Add Farm
   const handleAddClick = () => {
@@ -294,7 +305,7 @@ export default function FarmsPage() {
   ];
 
   // Map database elements to components representation
-  const tableRows = filteredFarms.map((row) => ({
+  const tableRows = useMemo(() => filteredFarms.map((row) => ({
     farm_code: <span className="font-semibold text-gray-900">{row.farm_code}</span>,
     farm_name: <span className="text-gray-700">{row.farm_name}</span>,
     company_id: <span className="text-gray-600 font-semibold">{getCompanyName(row.company_id)}</span>,
@@ -332,7 +343,7 @@ export default function FarmsPage() {
         </button>
       </div>
     ),
-  }));
+  })), [filteredFarms, companies]);
 
   // Drawer Footer layout
   const drawerFooter = (
@@ -555,7 +566,7 @@ export default function FarmsPage() {
                   fields: [
                     { label: "Mã trang trại", value: detailRecord.farm_code || "—" },
                     { label: "Tên trang trại", value: detailRecord.farm_name || "—" },
-                    { label: "Công ty", value: companyMap.get(detailRecord.company_id) || getCompanyName(detailRecord.company_id) },
+                    { label: "Công ty", value: getCompanyName(detailRecord.company_id) },
                   ],
                 },
                 {

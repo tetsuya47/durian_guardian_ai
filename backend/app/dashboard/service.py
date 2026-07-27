@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -35,31 +36,32 @@ class DashboardService:
     async def get_dashboard(self, user_id: str) -> DashboardOut:
         farms, _ = await self.farm_repo.list_by_owner(user_id, page=1, per_page=100)
         total_farms = len(farms)
-
         farm_ids = [f["id"] for f in farms]
 
-        zone_ids = await self._get_zone_ids_for_farms(farm_ids)
+        zone_ids, high_risk_trees = await asyncio.gather(
+            self._get_zone_ids_for_farms(farm_ids),
+            self.db["alerts"].distinct("tree_id", {"priority": "High"}),
+        )
+        high_risk_trees = len(high_risk_trees)
+
         if zone_ids:
-            total_trees = await self.tree_repo.count_by_farms(farm_ids)
-            healthy_trees = await self.db["trees"].count_documents({
-                "zone_id": {"$in": zone_ids},
-                "status": "Healthy",
-            })
-            diseased_trees = await self.db["trees"].count_documents({
-                "zone_id": {"$in": zone_ids},
-                "status": "Diseased",
-            })
+            zone_oid_filter = {"zone_id": {"$in": zone_ids}}
+            total_trees, healthy_trees, diseased_trees = await asyncio.gather(
+                self.db["trees"].count_documents(zone_oid_filter),
+                self.db["trees"].count_documents({**zone_oid_filter, "status": "Healthy"}),
+                self.db["trees"].count_documents({**zone_oid_filter, "status": "Diseased"}),
+            )
         else:
             total_trees = 0
             healthy_trees = 0
             diseased_trees = 0
 
-        high_risk_trees = len(await self.db["alerts"].distinct("tree_id", {"priority": "High"}))
-
-        recent_detection = await self._get_recent_detections()
-        alerts = await self._get_alerts()
-        risk_trend = await self._get_risk_trend()
-        system_overview = await self._get_system_overview()
+        recent_detection, alerts, risk_trend, system_overview = await asyncio.gather(
+            self._get_recent_detections(),
+            self._get_alerts(),
+            self._get_risk_trend(),
+            self._get_system_overview(),
+        )
 
         return DashboardOut(
             kpi=KpiData(
@@ -78,25 +80,28 @@ class DashboardService:
     async def _get_system_overview(self) -> SystemOverview:
         today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
-        inspection_today = await self.db["inspections"].count_documents({
-            "inspection_date": {"$gte": today_start},
-        })
-        ai_detection_today = await self.db["detection_results"].count_documents({
-            "created_at": {"$gte": today_start},
-        })
-        new_alerts_today = await self.db["alerts"].count_documents({
-            "created_at": {"$gte": today_start},
-        })
+        (inspection_today, ai_detection_today, new_alerts_today,
+         inspected_ids, latest_doc) = await asyncio.gather(
+            self.db["inspections"].count_documents({
+                "inspection_date": {"$gte": today_start},
+            }),
+            self.db["detection_results"].count_documents({
+                "created_at": {"$gte": today_start},
+            }),
+            self.db["alerts"].count_documents({
+                "created_at": {"$gte": today_start},
+            }),
+            self.db["detection_results"].distinct("inspection_id"),
+            self.db["alerts"].find_one(
+                sort=[("created_at", -1)],
+                projection={"created_at": 1},
+            ),
+        )
 
-        inspected_ids = await self.db["detection_results"].distinct("inspection_id")
         pending_review = await self.db["inspections"].count_documents({
             "_id": {"$nin": inspected_ids},
         })
 
-        latest_doc = await self.db["alerts"].find_one(
-            sort=[("created_at", -1)],
-            projection={"created_at": 1},
-        )
         updated_at = latest_doc["created_at"] if latest_doc else datetime.now(timezone.utc)
 
         return SystemOverview(
@@ -108,33 +113,55 @@ class DashboardService:
         )
 
     async def _get_recent_detections(self) -> list[DetectionBrief]:
-        cursor = (
-            self.db["detection_results"].find()
-            .sort("created_at", -1)
-            .limit(10)
-        )
+        pipeline = [
+            {"$sort": {"created_at": -1}},
+            {"$limit": 10},
+            {
+                "$lookup": {
+                    "from": "inspections",
+                    "localField": "inspection_id",
+                    "foreignField": "_id",
+                    "as": "inspection",
+                }
+            },
+            {"$unwind": {"path": "$inspection", "preserveNullAndEmptyArrays": False}},
+            {
+                "$lookup": {
+                    "from": "trees",
+                    "localField": "inspection.tree_id",
+                    "foreignField": "_id",
+                    "as": "tree",
+                }
+            },
+            {"$unwind": {"path": "$tree", "preserveNullAndEmptyArrays": True}},
+            {
+                "$project": {
+                    "_id": 0,
+                    "disease": {"$ifNull": ["$prediction", "N/A"]},
+                    "confidence": 1,
+                    "severity": {
+                        "$switch": {
+                            "branches": [
+                                {"case": {"$gte": ["$confidence", 80.0]}, "then": "Severe"},
+                                {"case": {"$gte": ["$confidence", 50.0]}, "then": "Moderate"},
+                            ],
+                            "default": "Mild",
+                        }
+                    },
+                    "tree_code": {"$ifNull": ["$tree.tree_code", "N/A"]},
+                    "created_at": 1,
+                }
+            },
+        ]
+        cursor = self.db["detection_results"].aggregate(pipeline)
         result = []
         async for doc in cursor:
-            inspection = await self.db["inspections"].find_one({"_id": doc["inspection_id"]})
-            if not inspection:
-                continue
-            tree = await self.tree_repo.get(str(inspection["tree_id"]))
-            tree_code = tree["tree_code"] if tree else "N/A"
-            
-            conf = doc["confidence"]
-            if conf >= 80.0:
-                severity = "Severe"
-            elif conf >= 50.0:
-                severity = "Moderate"
-            else:
-                severity = "Mild"
-                
             result.append(
                 DetectionBrief(
-                    disease=doc.get("prediction", "N/A"),
-                    confidence=conf,
-                    severity=severity,
-                    tree_code=tree_code,
+                    disease=doc["disease"],
+                    confidence=doc["confidence"],
+                    severity=doc["severity"],
+                    tree_code=doc["tree_code"],
                     created_at=doc["created_at"],
                 )
             )
@@ -187,39 +214,6 @@ class DashboardService:
             )
         return items
 
-    async def get_heatmap(self) -> list[dict]:
-        items = []
-        pipeline = [
-            {"$match": {"health_status": "Diseased"}},
-            {"$sort": {"created_at": -1}},
-            {
-                "$group": {
-                    "_id": "$tree_id",
-                    "confidence": {"$first": "$confidence"},
-                }
-            },
-        ]
-        cursor = self.db["inspections"].aggregate(pipeline)
-        async for doc in cursor:
-            tree = await self.tree_repo.get(str(doc["_id"]))
-            if tree and tree.get("gps_lat") and tree.get("gps_lng"):
-                conf = doc["confidence"]
-                if conf >= 80.0:
-                    risk_val = 90
-                    status = "High"
-                elif conf >= 50.0:
-                    risk_val = 50
-                    status = "Medium"
-                else:
-                    risk_val = 20
-                    status = "Low"
-                items.append(
-                    {
-                        "tree_id": str(doc["_id"]),
-                        "lat": tree["gps_lat"],
-                        "lng": tree["gps_lng"],
-                        "risk": risk_val,
-                        "status": status,
-                    }
-                )
-        return items
+    async def get_heatmap(self) -> dict:
+        items, total = await self.tree_repo.find_all_heatmap()
+        return {"total": total, "data": items}

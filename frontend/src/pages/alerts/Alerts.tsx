@@ -33,6 +33,9 @@ export default function AlertsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // On-demand loading state for tree dropdown
+  const [treesLoaded, setTreesLoaded] = useState(false);
+
   const [totalAlerts, setTotalAlerts] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -99,9 +102,8 @@ export default function AlertsPage() {
       Promise.allSettled([
         alertService.get<Alert[] & { total?: number; total_pages?: number }>({ params }),
         loadAllPages(farmService),
-        loadAllPages(treeService),
       ])
-        .then(([alertsResult, farmsResult, treesResult]) => {
+        .then(([alertsResult, farmsResult]) => {
           if (alertsResult.status === "fulfilled") {
             const alertsData = alertsResult.value;
             const arr = alertsData as unknown as Alert[];
@@ -114,9 +116,6 @@ export default function AlertsPage() {
           }
           if (farmsResult.status === "fulfilled") {
             setFarms(farmsResult.value);
-          }
-          if (treesResult.status === "fulfilled") {
-            setTrees(treesResult.value);
           }
         })
         .finally(() => {
@@ -157,6 +156,14 @@ export default function AlertsPage() {
     });
     setDrawerMode("create");
     setIsDrawerOpen(true);
+  };
+
+  // On-demand: load trees when form dropdown is interacted with
+  const loadTreesOnDemand = () => {
+    if (!treesLoaded) {
+      setTreesLoaded(true);
+      loadAllPages(treeService).then((data) => setTrees(data)).catch(() => {});
+    }
   };
 
   const handleEditClick = (alertItem: Alert) => {
@@ -394,6 +401,7 @@ export default function AlertsPage() {
             <select
               value={formData.tree_id}
               onChange={(e) => setFormData({ ...formData, tree_id: e.target.value })}
+              onFocus={loadTreesOnDemand}
               aria-label="Cây"
               className="w-full px-3 py-2 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none"
             >

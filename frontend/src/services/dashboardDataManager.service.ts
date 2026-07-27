@@ -40,6 +40,18 @@ export interface SystemOverviewData {
   updated_at: string;
 }
 
+export interface HeatmapTree {
+  tree_id: string;
+  tree_code: string;
+  zone_id: string;
+  status: string;
+}
+
+export interface HeatmapResponse {
+  total: number;
+  data: HeatmapTree[];
+}
+
 export interface DashboardData {
   farms: Farm[];
   zones: Zone[];
@@ -50,6 +62,7 @@ export interface DashboardData {
   errors: DashboardErrors;
   backendKpi: BackendKpi;
   systemOverview: SystemOverviewData;
+  heatmapData: HeatmapTree[];
 }
 
 const EMPTY_ERRORS: DashboardErrors = {
@@ -97,6 +110,24 @@ async function fetchAllFarmData(firstPage: PaginatedResponse<Farm>): Promise<Far
   );
 }
 
+async function fetchAllInspectionData(firstPage: PaginatedResponse<Inspection>): Promise<Inspection[]> {
+  return fetchAllPages(firstPage, (p) =>
+    inspectionService.get<Inspection[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
+  );
+}
+
+async function fetchAllDetectionData(firstPage: PaginatedResponse<DetectionResult>): Promise<DetectionResult[]> {
+  return fetchAllPages(firstPage, (p) =>
+    detectionResultService.get<DetectionResult[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
+  );
+}
+
+async function fetchAllAlertData(firstPage: PaginatedResponse<Alert>): Promise<Alert[]> {
+  return fetchAllPages(firstPage, (p) =>
+    alertService.get<Alert[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
+  );
+}
+
 export async function loadDashboardData(): Promise<DashboardData> {
   const results = await Promise.allSettled([
     farmService.get<Farm[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
@@ -106,6 +137,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
     detectionResultService.get<DetectionResult[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
     alertService.get<Alert[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
     api.get("/dashboard").then((r) => r.data).catch(() => null),
+    api.get("/dashboard/heatmap").then((r) => r.data).catch(() => null),
   ]);
 
   const extract = <T>(r: PromiseSettledResult<T>): T => {
@@ -120,12 +152,19 @@ export async function loadDashboardData(): Promise<DashboardData> {
   const treesFirstPage = (extract(results[2]) || []) as PaginatedResponse<Tree>;
   const zonesFirstPage = (extract(results[1]) || []) as PaginatedResponse<Zone>;
   const farmsFirstPage = (extract(results[0]) || []) as PaginatedResponse<Farm>;
+  const inspectionsFirstPage = (extract(results[3]) || []) as PaginatedResponse<Inspection>;
+  const detectionsFirstPage = (extract(results[4]) || []) as PaginatedResponse<DetectionResult>;
+  const alertsFirstPage = (extract(results[5]) || []) as PaginatedResponse<Alert>;
 
   const [allTrees, allZones, allFarms] = await Promise.all([
     fetchAllTreeData(treesFirstPage),
     fetchAllZoneData(zonesFirstPage),
     fetchAllFarmData(farmsFirstPage),
   ]);
+
+  const allInspections = [...inspectionsFirstPage];
+  const allDetections = [...detectionsFirstPage];
+  const allAlerts = [...alertsFirstPage];
 
   const dashboardResult = results[6];
   let backendKpi: BackendKpi = { total_farms: 0, total_trees: 0, healthy_trees: 0, diseased_trees: 0, high_risk_trees: 0 };
@@ -136,15 +175,23 @@ export async function loadDashboardData(): Promise<DashboardData> {
     systemOverview = resp?.system_overview ?? systemOverview;
   }
 
+  const heatmapResult = results[7];
+  let heatmapData: HeatmapTree[] = [];
+  if (heatmapResult.status === "fulfilled" && heatmapResult.value) {
+    const resp = heatmapResult.value as HeatmapResponse;
+    heatmapData = resp?.data ?? [];
+  }
+
   return {
     farms: allFarms,
     zones: allZones,
     trees: allTrees,
-    alerts: extract(results[5]) || [],
-    detections: extract(results[4]) || [],
-    inspections: extract(results[3]) || [],
+    alerts: allAlerts,
+    detections: allDetections,
+    inspections: allInspections,
     backendKpi,
     systemOverview,
+    heatmapData,
     errors: {
       ...EMPTY_ERRORS,
       farms: extractError(results[0]),

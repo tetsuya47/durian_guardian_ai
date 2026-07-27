@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ClipboardList,
   TreePine,
@@ -52,6 +52,9 @@ export default function DiseaseHistoryPage() {
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
   const [detailRecord, setDetailRecord] = useState<DiseaseHistory | null>(null);
 
+  // On-demand loading state for tree dropdown
+  const [treesLoaded, setTreesLoaded] = useState(false);
+
   const fetchHistory = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -94,9 +97,8 @@ export default function DiseaseHistoryPage() {
 
       Promise.allSettled([
         diseaseHistoryService.get<DiseaseHistory[] & { total?: number; total_pages?: number }>({ params }),
-        loadAllPages(treeService),
       ])
-        .then(([historyResult, treesResult]) => {
+        .then(([historyResult]) => {
           if (historyResult.status === "fulfilled") {
             const historyData = historyResult.value;
             const arr = historyData as unknown as DiseaseHistory[];
@@ -106,9 +108,6 @@ export default function DiseaseHistoryPage() {
           } else {
             const msg = historyResult.reason instanceof Error ? historyResult.reason.message : "Không thể tải chi tiết lịch sử bệnh.";
             setError(msg);
-          }
-          if (treesResult.status === "fulfilled") {
-            setTrees(treesResult.value);
           }
         })
         .finally(() => {
@@ -131,6 +130,14 @@ export default function DiseaseHistoryPage() {
     });
     setDrawerMode("create");
     setIsDrawerOpen(true);
+  };
+
+  // On-demand: load trees when form dropdown is interacted with
+  const loadTreesOnDemand = () => {
+    if (!treesLoaded) {
+      setTreesLoaded(true);
+      loadAllPages(treeService).then((data) => setTrees(data)).catch(() => {});
+    }
   };
 
   const handleEditClick = (record: DiseaseHistory) => {
@@ -209,7 +216,7 @@ export default function DiseaseHistoryPage() {
     { key: "actions", label: "Thao tác", width: "130px", className: "text-right" },
   ];
 
-  const tableRows = filteredHistory.map((row) => {
+  const tableRows = useMemo(() => filteredHistory.map((row) => {
     return {
       disease: <span className="font-semibold text-gray-900">{row.disease}</span>,
       tree_code: <span className="text-gray-700">{row.tree_code ?? ""}</span>,
@@ -245,7 +252,7 @@ export default function DiseaseHistoryPage() {
         </div>
       ),
     };
-  });
+  }), [filteredHistory]);
 
   const drawerFooter = (
     <div className="flex items-center justify-end gap-3">
@@ -337,6 +344,7 @@ export default function DiseaseHistoryPage() {
             <select
               value={formData.tree_id}
               onChange={(e) => setFormData({ ...formData, tree_id: e.target.value })}
+              onFocus={loadTreesOnDemand}
               aria-label="Cây"
               className="w-full px-3 py-2 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none"
               required

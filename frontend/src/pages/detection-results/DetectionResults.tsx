@@ -20,12 +20,10 @@ import StatusChip from "../../components/common/StatusChip";
 import { loadAllPages } from "../../utils/loadAllPages";
 import { detectionResultService } from "../../services/detectionResult.service";
 import { inspectionService } from "../../services/inspection.service";
-import { treeService } from "../../services/tree.service";
 import { zoneService } from "../../services/zone.service";
 import { farmService } from "../../services/farm.service";
 import type { DetectionResult } from "../../types/detectionResult";
 import type { Inspection } from "../../types/inspection";
-import type { Tree } from "../../types/tree";
 import type { Zone } from "../../types/zone";
 import type { Farm } from "../../types/farm";
 import { formatDateTime } from "../../utils/dateFormatter";
@@ -35,11 +33,13 @@ export default function DetectionResultsPage() {
   // Live API data states
   const [detections, setDetections] = useState<DetectionResult[]>([]);
   const [inspections, setInspections] = useState<Inspection[]>([]);
-  const [trees, setTrees] = useState<Tree[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // On-demand loading states for filter/form dropdowns
+  const [inspectionsLoaded, setInspectionsLoaded] = useState(false);
 
   // Server-side pagination metadata
   const [totalDetections, setTotalDetections] = useState(0);
@@ -76,7 +76,6 @@ export default function DetectionResultsPage() {
 
   // Lookup maps for resolving ObjectIds
   const inspectionMap = useMemo(() => new Map(inspections.map((i) => [String(i._id), i])), [inspections]);
-  const treeMap = useMemo(() => new Map(trees.map((t) => [String(t._id), t])), [trees]);
   const zoneMap = useMemo(() => new Map(zones.map((z) => [String(z._id), z])), [zones]);
   const farmMap = useMemo(() => new Map(farms.map((f) => [String(f._id), f])), [farms]);
 
@@ -121,40 +120,28 @@ export default function DetectionResultsPage() {
       };
       if (searchQuery) params.keyword = searchQuery;
 
-      Promise.allSettled([
-        detectionResultService.get<DetectionResult[] & { total?: number; total_pages?: number }>({ params }),
-        loadAllPages(inspectionService),
-        loadAllPages(treeService),
-        loadAllPages(zoneService),
-        loadAllPages(farmService),
-      ])
-        .then(([detectionsResult, inspectionsResult, treesResult, zonesResult, farmsResult]) => {
-          if (detectionsResult.status === "fulfilled") {
-            const detectionsData = detectionsResult.value;
-            const arr = detectionsData as unknown as DetectionResult[];
-            setDetections(arr);
-            setTotalDetections((detectionsData as any).total ?? arr.length);
-            setTotalPages((detectionsData as any).total_pages ?? Math.ceil(((detectionsData as any).total ?? arr.length) / perPage));
-          } else {
-            const msg = detectionsResult.reason instanceof Error ? detectionsResult.reason.message : "Không thể tải chi tiết kết quả phát hiện.";
-            setError(msg);
-          }
-          if (inspectionsResult.status === "fulfilled") {
-            setInspections(inspectionsResult.value);
-          }
-          if (treesResult.status === "fulfilled") {
-            setTrees(treesResult.value);
-          }
-          if (zonesResult.status === "fulfilled") {
-            setZones(zonesResult.value);
-          }
-          if (farmsResult.status === "fulfilled") {
-            setFarms(farmsResult.value);
-          }
+      detectionResultService.get<DetectionResult[] & { total?: number; total_pages?: number }>({ params })
+        .then((detectionsData) => {
+          const arr = detectionsData as unknown as DetectionResult[];
+          setDetections(arr);
+          setTotalDetections((detectionsData as any).total ?? arr.length);
+          setTotalPages((detectionsData as any).total_pages ?? Math.ceil(((detectionsData as any).total ?? arr.length) / perPage));
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Không thể tải chi tiết kết quả phát hiện.";
+          setError(msg);
         })
         .finally(() => {
           setLoading(false);
         });
+
+      Promise.allSettled([
+        loadAllPages(zoneService),
+        loadAllPages(farmService),
+      ]).then(([zonesResult, farmsResult]) => {
+        if (zonesResult.status === "fulfilled") setZones(zonesResult.value);
+        if (farmsResult.status === "fulfilled") setFarms(farmsResult.value);
+      });
 
       return;
     }
@@ -187,6 +174,14 @@ export default function DetectionResultsPage() {
     });
     setDrawerMode("create");
     setIsDrawerOpen(true);
+  };
+
+  // On-demand: load inspections when filter or form dropdown is interacted with
+  const loadInspectionsOnDemand = () => {
+    if (!inspectionsLoaded) {
+      setInspectionsLoaded(true);
+      loadAllPages(inspectionService).then((data) => setInspections(data)).catch(() => {});
+    }
   };
 
   // Set form states for Edit Detection
@@ -295,7 +290,7 @@ export default function DetectionResultsPage() {
   ];
 
   // Map database elements to components representation
-  const tableRows = filteredDetections.map((row) => ({
+  const tableRows = useMemo(() => filteredDetections.map((row) => ({
     prediction: <span className="font-semibold text-gray-900">{row.disease_name}</span>,
     inspection_code: <span className="text-gray-600 font-semibold">{row.inspection_code}</span>,
     tree_code: <span className="text-gray-600 font-semibold">{row.tree_code}</span>,
@@ -350,7 +345,7 @@ export default function DetectionResultsPage() {
         </button>
       </div>
     ),
-  }));
+  })), [filteredDetections]);
 
   // Drawer Footer layout
   const drawerFooter = (
@@ -394,7 +389,7 @@ export default function DetectionResultsPage() {
       >
         <div className="flex items-center gap-3">
           <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Kiểm tra:</span>
-          <select value={selectedInspectionId} onChange={(e) => { setSelectedInspectionId(e.target.value); setCurrentPage(1); }} aria-label="Lọc theo lượt kiểm tra" className="px-3 py-1.5 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none">
+          <select value={selectedInspectionId} onChange={(e) => { setSelectedInspectionId(e.target.value); setCurrentPage(1); }} onFocus={loadInspectionsOnDemand} aria-label="Lọc theo lượt kiểm tra" className="px-3 py-1.5 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none">
             <option value="All">Tất cả</option>
             {inspections.map((i) => (<option key={i._id} value={i._id}>{i.inspection_code}</option>))}
           </select>
@@ -468,6 +463,7 @@ export default function DetectionResultsPage() {
             <select
               value={formData.inspection_id}
               onChange={(e) => setFormData({ ...formData, inspection_id: e.target.value })}
+              onFocus={loadInspectionsOnDemand}
               aria-label="Kiểm tra"
              
               className="w-full px-3 py-2 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none"
@@ -541,7 +537,6 @@ export default function DetectionResultsPage() {
                 const ext = detailRecord as unknown as Record<string, unknown>;
                 const inspection = inspectionMap.get(String(detailRecord.inspection_id));
                 const extInspection = inspection as unknown as Record<string, unknown> | undefined;
-                const tree = treeMap.get(String(detailRecord.tree_id));
 
                 const modelName = ext.model || ext.ai_model || extInspection?.model || extInspection?.ai_model || null;
 
@@ -582,8 +577,6 @@ export default function DetectionResultsPage() {
                 let resolvedZoneId = "";
                 if (extInspection?.zone_id) {
                   resolvedZoneId = String(extInspection.zone_id);
-                } else if (tree) {
-                  resolvedZoneId = String(tree.zone_id || "");
                 }
                 const zone = resolvedZoneId ? zoneMap.get(resolvedZoneId) : null;
                 const zoneName = zone ? zone.zone_name || zone.zone_code || null : null;

@@ -184,6 +184,22 @@ class TreeRepository(BaseRepository):
             return self._serialize(doc)
         return None
 
+    async def find_all_heatmap(self) -> tuple[list[dict], int]:
+        total = await self.collection.count_documents({})
+        cursor = self.collection.find(
+            {},
+            {"tree_code": 1, "zone_id": 1, "status": 1},
+        ).sort("tree_code", 1)
+        items = []
+        async for doc in cursor:
+            items.append({
+                "tree_id": str(doc["_id"]),
+                "tree_code": doc.get("tree_code", ""),
+                "zone_id": str(doc.get("zone_id", "")) if doc.get("zone_id") else "",
+                "status": doc.get("status", "Healthy"),
+            })
+        return items, total
+
     async def count_all(self) -> int:
         return await self.collection.count_documents({})
 

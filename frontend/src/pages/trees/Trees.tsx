@@ -28,10 +28,6 @@ import { alertService } from "../../services/alert.service";
 import type { Tree } from "../../types/tree";
 import type { Zone } from "../../types/zone";
 import type { Farm } from "../../types/farm";
-import type { Inspection } from "../../types/inspection";
-import type { DetectionResult } from "../../types/detectionResult";
-import type { DiseaseHistory } from "../../types/diseaseHistory";
-import type { Alert } from "../../types/alert";
 import { formatDateTime } from "../../utils/dateFormatter";
 import { vi, STATUS_VI } from "../../utils/translate";
 
@@ -40,10 +36,6 @@ export default function TreesPage() {
   const [trees, setTrees] = useState<Tree[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
-  const [inspections, setInspections] = useState<Inspection[]>([]);
-  const [detectionResults, setDetectionResults] = useState<DetectionResult[]>([]);
-  const [diseaseHistories, setDiseaseHistories] = useState<DiseaseHistory[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,6 +70,17 @@ export default function TreesPage() {
   const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
   const [detailRecord, setDetailRecord] = useState<Tree | null>(null);
+
+  // On-demand detail drawer data (loaded when drawer opens)
+  const [detailStats, setDetailStats] = useState<{
+    inspectionCount: number;
+    detectionCount: number;
+    historyCount: number;
+    alertCount: number;
+    latestInspection: Record<string, unknown> | null;
+    ext: Record<string, unknown> | null;
+  } | null>(null);
+  const [detailStatsLoading, setDetailStatsLoading] = useState(false);
 
   // Build query params and fetch trees from server
   const fetchTrees = useCallback(() => {
@@ -122,48 +125,28 @@ export default function TreesPage() {
         per_page: perPage,
       };
 
-      Promise.allSettled([
-        treeService.get<Tree[] & { total?: number; total_pages?: number }>({ params }),
-        loadAllPages(zoneService),
-        loadAllPages(farmService),
-        loadAllPages(inspectionService),
-        loadAllPages(detectionResultService),
-        loadAllPages(diseaseHistoryService),
-        loadAllPages(alertService),
-      ])
-        .then(([treesResult, zonesResult, farmsResult, inspectionsResult, detectionsResult, historyResult, alertsResult]) => {
-          if (treesResult.status === "fulfilled") {
-            const treesData = treesResult.value;
-            const arr = treesData as unknown as Tree[];
-            setTrees(arr);
-            setTotalTrees((treesData as any).total ?? arr.length);
-            setTotalPages((treesData as any).total_pages ?? Math.ceil(((treesData as any).total ?? arr.length) / perPage));
-          } else {
-            const msg = treesResult.reason instanceof Error ? treesResult.reason.message : "Không thể tải chi tiết cây.";
-            setError(msg);
-          }
-          if (zonesResult.status === "fulfilled") {
-            setZones(zonesResult.value);
-          }
-          if (farmsResult.status === "fulfilled") {
-            setFarms(farmsResult.value);
-          }
-          if (inspectionsResult.status === "fulfilled") {
-            setInspections(inspectionsResult.value);
-          }
-          if (detectionsResult.status === "fulfilled") {
-            setDetectionResults(detectionsResult.value);
-          }
-          if (historyResult.status === "fulfilled") {
-            setDiseaseHistories(historyResult.value);
-          }
-          if (alertsResult.status === "fulfilled") {
-            setAlerts(alertsResult.value);
-          }
+      treeService.get<Tree[] & { total?: number; total_pages?: number }>({ params })
+        .then((treesData) => {
+          const arr = treesData as unknown as Tree[];
+          setTrees(arr);
+          setTotalTrees((treesData as any).total ?? arr.length);
+          setTotalPages((treesData as any).total_pages ?? Math.ceil(((treesData as any).total ?? arr.length) / perPage));
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Không thể tải chi tiết cây.";
+          setError(msg);
         })
         .finally(() => {
           setLoading(false);
         });
+
+      Promise.allSettled([
+        loadAllPages(zoneService),
+        loadAllPages(farmService),
+      ]).then(([zonesResult, farmsResult]) => {
+        if (zonesResult.status === "fulfilled") setZones(zonesResult.value);
+        if (farmsResult.status === "fulfilled") setFarms(farmsResult.value);
+      });
 
       return;
     }
@@ -285,8 +268,8 @@ export default function TreesPage() {
   const diseasedTrees = trees.filter((t) => t.status === "Diseased").length;
 
   const getFarmName = (id: string) => {
-    const farm = farms.find((f) => f._id === id || f.farm_code === id);
-    return farm ? farm.farm_name : id;
+    if (!id) return "—";
+    return farmMap.get(id) || farms.find((f) => f.farm_code === id)?.farm_name || "—";
   };
 
   const farmMap = useMemo(() => {
@@ -301,39 +284,55 @@ export default function TreesPage() {
     return m;
   }, [zones]);
 
-  const treeStats = useMemo(() => {
-    if (!detailRecord) return null;
-    const tid = detailRecord._id;
+  // On-demand: load detail drawer data when a tree is selected
+  useEffect(() => {
+    if (!detailRecord) {
+      setDetailStats(null);
+      return;
+    }
 
-    const treeInspections = inspections.filter((i) => i.tree_id === tid);
-    const treeDetections = detectionResults.filter((d) => d.tree_id === tid);
-    const treeHistory = diseaseHistories.filter((h) => h.tree_id === tid);
-    const treeAlerts = alerts.filter((a) => a.tree_id === tid);
+    const tree = detailRecord;
+    setDetailStatsLoading(true);
 
-    const latestInspection = treeInspections.length > 0
-      ? treeInspections.reduce((latest, i) => {
-          const d = i.created_at || i.inspection_date || "";
-          return d > (latest.created_at || latest.inspection_date || "") ? i : latest;
-        })
-      : null;
+    Promise.allSettled([
+      inspectionService.get({ params: { keyword: tree.tree_code, per_page: 1 } }),
+      detectionResultService.get({ params: { per_page: 100 } }),
+      diseaseHistoryService.get({ params: { keyword: tree.tree_code, per_page: 1 } }),
+      alertService.get({ params: { keyword: tree.tree_code, per_page: 1 } }),
+    ]).then(([inspResult, detResult, histResult, alertResult]) => {
+      const inspectionCount = inspResult.status === "fulfilled"
+        ? ((inspResult.value as any).total ?? (Array.isArray(inspResult.value) ? inspResult.value.length : 0))
+        : 0;
+      const latestInspection = inspResult.status === "fulfilled"
+        ? ((inspResult.value as any).items?.[0] ?? (Array.isArray(inspResult.value) ? inspResult.value[0] : null))
+        : null;
+      const historyCount = histResult.status === "fulfilled"
+        ? ((histResult.value as any).total ?? (Array.isArray(histResult.value) ? histResult.value.length : 0))
+        : 0;
+      const alertCount = alertResult.status === "fulfilled"
+        ? ((alertResult.value as any).total ?? (Array.isArray(alertResult.value) ? alertResult.value.length : 0))
+        : 0;
 
-    const ext = latestInspection as unknown as Record<string, unknown> | null;
+      let detectionCount = 0;
+      if (detResult.status === "fulfilled") {
+        const items = Array.isArray(detResult.value) ? detResult.value : (detResult.value as any).items ?? [];
+        detectionCount = items.filter((d: any) => d.tree_id === tree._id).length;
+      }
 
-    const zoneInfo = zoneMap.get(detailRecord.zone_id);
-    const farmName = zoneInfo ? (farmMap.get(zoneInfo.farmId) || "—") : (detailRecord.farm_name || "—");
-    const zoneName = zoneInfo ? zoneInfo.name : (detailRecord.zone_name || detailRecord.zone_code || "—");
+      const ext = latestInspection as unknown as Record<string, unknown> | null;
 
-    return {
-      inspectionCount: treeInspections.length,
-      detectionCount: treeDetections.length,
-      historyCount: treeHistory.length,
-      alertCount: treeAlerts.length,
-      latestInspection,
-      ext,
-      farmName,
-      zoneName,
-    };
-  }, [detailRecord, inspections, detectionResults, diseaseHistories, alerts, farmMap, zoneMap]);
+      setDetailStats({
+        inspectionCount,
+        detectionCount,
+        historyCount,
+        alertCount,
+        latestInspection,
+        ext,
+      });
+    }).finally(() => {
+      setDetailStatsLoading(false);
+    });
+  }, [detailRecord]);
 
   // Column mapping
   const columns = [
@@ -348,7 +347,7 @@ export default function TreesPage() {
   ];
 
   // Map database elements to components representation
-  const tableRows = trees.map((row) => ({
+  const tableRows = useMemo(() => trees.map((row) => ({
     tree_code: <span className="font-semibold text-gray-900">{row.tree_code}</span>,
     farm_name: <span className="text-gray-600 font-semibold">{row.farm_name || "—"}</span>,
     zone_name: <span className="text-gray-600 font-semibold">{row.zone_name || row.zone_code || "—"}</span>,
@@ -384,7 +383,7 @@ export default function TreesPage() {
         </button>
       </div>
     ),
-  }));
+  })), [trees]);
 
   // Drawer Footer layout
   const drawerFooter = (
@@ -628,7 +627,7 @@ export default function TreesPage() {
         open={!!detailRecord}
         onClose={() => setDetailRecord(null)}
         sections={
-          detailRecord && treeStats
+          detailRecord && detailStats
             ? (() => {
                 const ext = detailRecord as unknown as Record<string, unknown>;
 
@@ -640,16 +639,20 @@ export default function TreesPage() {
                   statusVal === "Monitoring" ? "bg-amber-100 text-amber-700" :
                   "bg-gray-100 text-gray-500";
 
-                const latest = treeStats.latestInspection;
-                const latestExt = treeStats.ext;
+                const latest = detailStats.latestInspection;
+                const latestExt = detailStats.ext;
 
                 const plantingDate = detailRecord.planting_date?.split("T")[0]
                   || detailRecord.planted_date?.split("T")[0]
                   || null;
 
                 const lastCheckDate = latest
-                  ? (latest.inspection_date?.split("T")[0] || latest.created_at?.split("T")[0] || null)
+                  ? ((latest.inspection_date as string)?.split("T")[0] || (latest.created_at as string)?.split("T")[0] || null)
                   : null;
+
+                const zoneInfo = zoneMap.get(detailRecord.zone_id);
+                const farmName = zoneInfo ? (farmMap.get(zoneInfo.farmId) || detailRecord.farm_name || "—") : (detailRecord.farm_name || "—");
+                const zoneName = zoneInfo ? zoneInfo.name : (detailRecord.zone_name || detailRecord.zone_code || "—");
 
                 const sections = [
                   {
@@ -678,24 +681,24 @@ export default function TreesPage() {
                   {
                     title: "Vị trí",
                     fields: [
-                      { label: "Trang trại", value: treeStats.farmName },
-                      { label: "Khu vực", value: treeStats.zoneName },
+                      { label: "Trang trại", value: farmName },
+                      { label: "Khu vực", value: zoneName },
                     ],
                   },
                   {
                     title: "Thống kê hoạt động",
                     fields: [
-                      ...(treeStats.inspectionCount > 0
-                        ? [{ label: "Tổng lượt kiểm tra", value: treeStats.inspectionCount }]
+                      ...(detailStats.inspectionCount > 0
+                        ? [{ label: "Tổng lượt kiểm tra", value: detailStats.inspectionCount }]
                         : []),
-                      ...(treeStats.detectionCount > 0
-                        ? [{ label: "Tổng kết quả AI", value: treeStats.detectionCount }]
+                      ...(detailStats.detectionCount > 0
+                        ? [{ label: "Tổng kết quả AI", value: detailStats.detectionCount }]
                         : []),
-                      ...(treeStats.historyCount > 0
-                        ? [{ label: "Tổng lịch sử bệnh", value: treeStats.historyCount }]
+                      ...(detailStats.historyCount > 0
+                        ? [{ label: "Tổng lịch sử bệnh", value: detailStats.historyCount }]
                         : []),
-                      ...(treeStats.alertCount > 0
-                        ? [{ label: "Tổng cảnh báo", value: treeStats.alertCount }]
+                      ...(detailStats.alertCount > 0
+                        ? [{ label: "Tổng cảnh báo", value: detailStats.alertCount }]
                         : []),
                     ],
                   },
@@ -711,7 +714,7 @@ export default function TreesPage() {
                           {
                             label: "Trạng thái sức khỏe",
                             value: (() => {
-                              const hs = latest.health_status || latest.status || "";
+                              const hs = (latest.health_status || latest.status || "") as string;
                               const hsLabel = vi(STATUS_VI, hs) || hs || "—";
                               const hsColor =
                                 hs === "Healthy" ? "bg-emerald-100 text-emerald-700" :
@@ -730,7 +733,7 @@ export default function TreesPage() {
                               ) : hsLabel;
                             })(),
                           },
-                          { label: "Ngày kiểm tra", value: latest.inspection_date?.split("T")[0] || formatDateTime(latest.created_at) },
+                          { label: "Ngày kiểm tra", value: (latest.inspection_date as string)?.split("T")[0] || formatDateTime(latest.created_at as string) },
                         ],
                       }]
                     : [{

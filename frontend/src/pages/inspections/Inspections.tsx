@@ -40,6 +40,9 @@ export default function InspectionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // On-demand loading states for filter dropdowns
+  const [treesLoaded, setTreesLoaded] = useState(false);
+
   const [totalInspections, setTotalInspections] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -105,40 +108,30 @@ export default function InspectionsPage() {
         per_page: perPage,
       };
 
-      Promise.allSettled([
-        inspectionService.get<Inspection[] & { total?: number; total_pages?: number }>({ params }),
-        loadAllPages(treeService),
-        loadAllPages(farmService),
-        loadAllPages(zoneService),
-        loadAllPages(diseaseService),
-      ])
-        .then(([inspectionsResult, treesResult, farmsResult, zonesResult, diseasesResult]) => {
-          if (inspectionsResult.status === "fulfilled") {
-            const inspectionsData = inspectionsResult.value;
-            const arr = inspectionsData as unknown as Inspection[];
-            setInspections(arr);
-            setTotalInspections((inspectionsData as any).total ?? arr.length);
-            setTotalPages((inspectionsData as any).total_pages ?? Math.ceil(((inspectionsData as any).total ?? arr.length) / perPage));
-          } else {
-            const msg = inspectionsResult.reason instanceof Error ? inspectionsResult.reason.message : "Không thể tải chi tiết kiểm tra.";
-            setError(msg);
-          }
-          if (treesResult.status === "fulfilled") {
-            setTrees(treesResult.value);
-          }
-          if (farmsResult.status === "fulfilled") {
-            setFarms(farmsResult.value);
-          }
-          if (zonesResult.status === "fulfilled") {
-            setZones(zonesResult.value);
-          }
-          if (diseasesResult.status === "fulfilled") {
-            setDiseases(diseasesResult.value);
-          }
+      inspectionService.get<Inspection[] & { total?: number; total_pages?: number }>({ params })
+        .then((inspectionsData) => {
+          const arr = inspectionsData as unknown as Inspection[];
+          setInspections(arr);
+          setTotalInspections((inspectionsData as any).total ?? arr.length);
+          setTotalPages((inspectionsData as any).total_pages ?? Math.ceil(((inspectionsData as any).total ?? arr.length) / perPage));
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Không thể tải chi tiết kiểm tra.";
+          setError(msg);
         })
         .finally(() => {
           setLoading(false);
         });
+
+      Promise.allSettled([
+        loadAllPages(farmService),
+        loadAllPages(zoneService),
+        loadAllPages(diseaseService),
+      ]).then(([farmsResult, zonesResult, diseasesResult]) => {
+        if (farmsResult.status === "fulfilled") setFarms(farmsResult.value);
+        if (zonesResult.status === "fulfilled") setZones(zonesResult.value);
+        if (diseasesResult.status === "fulfilled") setDiseases(diseasesResult.value);
+      });
 
       return;
     }
@@ -171,6 +164,14 @@ export default function InspectionsPage() {
     });
     setDrawerMode("create");
     setIsDrawerOpen(true);
+  };
+
+  // On-demand: load trees when filter or form dropdown is interacted with
+  const loadTreesOnDemand = () => {
+    if (!treesLoaded) {
+      setTreesLoaded(true);
+      loadAllPages(treeService).then((data) => setTrees(data)).catch(() => {});
+    }
   };
 
   const handleEditClick = (inspection: Inspection) => {
@@ -291,7 +292,7 @@ export default function InspectionsPage() {
     { key: "actions", label: "Thao tác", width: "130px", className: "text-right" },
   ];
 
-  const tableRows = filteredInspections.map((row) => ({
+  const tableRows = useMemo(() => filteredInspections.map((row) => ({
     inspection_code: <span className="font-semibold text-gray-900">{row.inspection_code}</span>,
     tree_code: <span className="text-gray-600 font-semibold">{row.tree_code}</span>,
     health_status: (
@@ -337,7 +338,7 @@ export default function InspectionsPage() {
         </button>
       </div>
     ),
-  }));
+  })), [filteredInspections]);
 
   const drawerFooter = (
     <div className="flex items-center justify-end gap-3">
@@ -380,7 +381,7 @@ export default function InspectionsPage() {
       >
         <div className="flex items-center gap-3">
           <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Cây:</span>
-          <select value={selectedTreeId} onChange={(e) => { setSelectedTreeId(e.target.value); setCurrentPage(1); }} aria-label="Lọc theo cây" className="px-3 py-1.5 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none">
+          <select value={selectedTreeId} onChange={(e) => { setSelectedTreeId(e.target.value); setCurrentPage(1); }} onFocus={loadTreesOnDemand} aria-label="Lọc theo cây" className="px-3 py-1.5 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none">
             <option value="All">Tất cả</option>
             {trees.map((t) => (<option key={t._id} value={t._id}>{t.tree_code}</option>))}
           </select>
@@ -444,6 +445,7 @@ export default function InspectionsPage() {
             <select
               value={formData.tree_id}
               onChange={(e) => setFormData({ ...formData, tree_id: e.target.value })}
+              onFocus={loadTreesOnDemand}
               aria-label="Cây"
               className="w-full px-3 py-2 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none"
               required

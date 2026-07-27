@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 
 import { loadDashboardData } from "../../services/dashboardDataManager.service";
-import type { BackendKpi, SystemOverviewData } from "../../services/dashboardDataManager.service";
+import type { BackendKpi, SystemOverviewData, HeatmapTree } from "../../services/dashboardDataManager.service";
 
 import type { Tree } from "../../types/tree";
 import type { Inspection } from "../../types/inspection";
@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [backendKpi, setBackendKpi] = useState<BackendKpi>({ total_farms: 0, total_trees: 0, healthy_trees: 0, diseased_trees: 0, high_risk_trees: 0 });
   const [systemOverview, setSystemOverview] = useState<SystemOverviewData>({ inspection_today: 0, ai_detection_today: 0, new_alerts_today: 0, pending_review: 0, updated_at: "" });
+  const [heatmapTrees, setHeatmapTrees] = useState<HeatmapTree[]>([]);
   const [farmFilter, setFarmFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
 
@@ -41,7 +42,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     loadDashboardData()
-      .then(({ farms, zones, trees, inspections, detections, alerts, backendKpi, systemOverview }) => {
+      .then(({ farms, zones, trees, inspections, detections, alerts, backendKpi, systemOverview, heatmapData }) => {
         setTrees(trees);
         setFarms(farms);
         setZones(zones);
@@ -50,6 +51,7 @@ export default function DashboardPage() {
         setAlerts(alerts);
         setBackendKpi(backendKpi);
         setSystemOverview(systemOverview);
+        setHeatmapTrees(heatmapData);
       })
       .finally(() => { setLoading(false); });
   };
@@ -105,8 +107,9 @@ export default function DashboardPage() {
     return [{ value: "all", label: "Tất cả khu vực" }, ...filtered.map((z) => ({ value: z._id, label: z.zone_name }))];
   }, [zones, farmFilter]);
 
-  const filteredTrees = useMemo(() => {
-    return trees.filter((t) => {
+  // --- Heatmap from dedicated API ---
+  const filteredHeatmapTrees = useMemo(() => {
+    return heatmapTrees.filter((t) => {
       if (farmFilter !== "all") {
         const zone = zoneMap.get(t.zone_id);
         if (!zone || zone.farm_id !== farmFilter) return false;
@@ -116,25 +119,25 @@ export default function DashboardPage() {
       }
       return true;
     });
-  }, [trees, farmFilter, zoneFilter, zoneMap]);
+  }, [heatmapTrees, farmFilter, zoneFilter, zoneMap]);
 
   const filteredHealthyPercent = kpiTotalTrees > 0 ? Math.round((kpiHealthyCount / kpiTotalTrees) * 100) : 0;
 
-  // Unique farms/zones from filtered trees
+  // Unique farms/zones from heatmap trees (for KPI)
   const filteredFarmIds = useMemo(() => {
     const ids = new Set<string>();
-    filteredTrees.forEach((t) => {
+    filteredHeatmapTrees.forEach((t) => {
       const zone = zoneMap.get(t.zone_id);
       if (zone) ids.add(zone.farm_id);
     });
     return ids;
-  }, [filteredTrees, zoneMap]);
+  }, [filteredHeatmapTrees, zoneMap]);
 
   const filteredZoneIds = useMemo(() => {
     const ids = new Set<string>();
-    filteredTrees.forEach((t) => ids.add(t.zone_id));
+    filteredHeatmapTrees.forEach((t) => ids.add(t.zone_id));
     return ids;
-  }, [filteredTrees]);
+  }, [filteredHeatmapTrees]);
 
   const filteredZoneCount = filteredZoneIds.size;
   const filteredFarmArea = useMemo(() => {
@@ -161,20 +164,20 @@ export default function DashboardPage() {
   // --- Disease Heatmap ---
   const heatmapSummary = useMemo(() => {
     let healthy = 0, monitor = 0, diseased = 0;
-    filteredTrees.forEach((t) => {
+    filteredHeatmapTrees.forEach((t) => {
       if (t.status === "Healthy") healthy++;
       else if (t.status === "Monitoring") monitor++;
       else diseased++;
     });
     return { healthy, monitor, diseased };
-  }, [filteredTrees]);
+  }, [filteredHeatmapTrees]);
 
   const zoneSections: ZoneSection[] = useMemo(() => {
-    const nameGroups = new Map<string, Tree[]>();
+    const nameGroups = new Map<string, HeatmapTree[]>();
 
-    for (const t of filteredTrees) {
+    for (const t of filteredHeatmapTrees) {
       const zone = zoneMap.get(t.zone_id);
-      const zoneName = zone?.zone_name || t.zone_name || t.zone_id || "Chưa xác định";
+      const zoneName = zone?.zone_name || t.zone_id || "Chưa xác định";
       const g = nameGroups.get(zoneName);
       if (g) g.push(t);
       else nameGroups.set(zoneName, [t]);
@@ -190,12 +193,11 @@ export default function DashboardPage() {
         if (tree.status === "Healthy") h++;
         else if (tree.status === "Monitoring") m++;
         else d++;
-        const det = detectionMap.get(tree._id);
+        const det = detectionMap.get(tree.tree_id);
         return {
-          id: tree._id,
+          id: tree.tree_id,
           risk: tree.status === "Healthy" ? "healthy" : tree.status === "Monitoring" ? "monitor" : "diseased",
-          treeId: tree.tree_code || tree._id,
-          farm: tree.farm_name || "",
+          treeId: tree.tree_code || tree.tree_id,
           zone: zoneName,
           riskScore: det ? Math.round(det.confidence) : 0,
           status: tree.status || "Healthy",
@@ -216,7 +218,7 @@ export default function DashboardPage() {
 
     sections.sort((a, b) => a.zoneName.localeCompare(b.zoneName));
     return sections;
-  }, [filteredTrees, zoneMap, detectionMap]);
+  }, [filteredHeatmapTrees, zoneMap, detectionMap]);
 
   // Last updated from real data
   const heatmapLastUpdated = useMemo(() => {

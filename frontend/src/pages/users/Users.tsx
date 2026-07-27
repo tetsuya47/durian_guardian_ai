@@ -127,8 +127,10 @@ export default function UsersPage() {
   }, [currentPage, searchQuery, fetchUsers]);
 
   const getCompanyName = (id: string) => {
+    if (!id) return "—";
+    if (companies.length === 0) return "—";
     const company = companies.find((c) => c._id === id || c.company_code === id);
-    return company ? company.company_name : id;
+    return company ? company.company_name : "—";
   };
 
   const getRoleLabel = (role: string) => {
