@@ -7,48 +7,48 @@ engine = RecommendationRuleEngine()
 
 test_cases = [
     {
-        "name": "Healthy Low Risk - Dry",
+        "name": "Khỏe mạnh Thấp - Khô",
         "features": {
-            "health_status": "Healthy", "risk_level": "Low", "alert_count": 0,
+            "health_status": "Khỏe mạnh", "risk_level": "Thấp", "alert_count": 0,
             "historical_disease_count": 0, "humidity": 60, "rainfall": 10,
-            "confidence": 95, "days_since_last_inspection": 10, "season": "Dry",
-            "predicted_disease": "Healthy", "last_treatment_days": None,
+            "confidence": 95, "days_since_last_inspection": 10, "season": "Khô",
+            "predicted_disease": "Khỏe mạnh", "last_treatment_days": None,
         },
     },
     {
-        "name": "Diseased High Risk - Rainy - Severe",
+        "name": "Bị bệnh Cao - Mưa - Nặng",
         "features": {
-            "health_status": "Diseased", "risk_level": "High", "alert_count": 3,
+            "health_status": "Bị bệnh", "risk_level": "Cao", "alert_count": 3,
             "historical_disease_count": 5, "humidity": 90, "rainfall": 70,
-            "confidence": 75, "days_since_last_inspection": 120, "season": "Rainy",
-            "predicted_disease": "Anthracnose", "last_treatment_days": 15,
+            "confidence": 75, "days_since_last_inspection": 120, "season": "Mưa",
+            "predicted_disease": "Thán thư", "last_treatment_days": 15,
         },
     },
     {
-        "name": "Diseased Medium Risk - Rainy",
+        "name": "Bị bệnh Trung bình - Mưa",
         "features": {
-            "health_status": "Diseased", "risk_level": "Medium", "alert_count": 1,
+            "health_status": "Bị bệnh", "risk_level": "Trung bình", "alert_count": 1,
             "historical_disease_count": 2, "humidity": 78, "rainfall": 45,
-            "confidence": 85, "days_since_last_inspection": 45, "season": "Rainy",
-            "predicted_disease": "Leaf Spot", "last_treatment_days": 60,
+            "confidence": 85, "days_since_last_inspection": 45, "season": "Mưa",
+            "predicted_disease": "Đốm lá", "last_treatment_days": 60,
         },
     },
     {
-        "name": "Healthy Medium Risk - Dry",
+        "name": "Khỏe mạnh Trung bình - Khô",
         "features": {
-            "health_status": "Healthy", "risk_level": "Medium", "alert_count": 0,
+            "health_status": "Khỏe mạnh", "risk_level": "Trung bình", "alert_count": 0,
             "historical_disease_count": 0, "humidity": 70, "rainfall": 20,
-            "confidence": 92, "days_since_last_inspection": 30, "season": "Dry",
-            "predicted_disease": "Healthy", "last_treatment_days": None,
+            "confidence": 92, "days_since_last_inspection": 30, "season": "Khô",
+            "predicted_disease": "Khỏe mạnh", "last_treatment_days": None,
         },
     },
     {
-        "name": "Diseased Low Risk - Old inspection",
+        "name": "Bị bệnh Thấp - Kiểm tra cũ",
         "features": {
-            "health_status": "Diseased", "risk_level": "Low", "alert_count": 0,
+            "health_status": "Bị bệnh", "risk_level": "Thấp", "alert_count": 0,
             "historical_disease_count": 1, "humidity": 65, "rainfall": 15,
-            "confidence": 90, "days_since_last_inspection": 100, "season": "Dry",
-            "predicted_disease": "Leaf Spot", "last_treatment_days": None,
+            "confidence": 90, "days_since_last_inspection": 100, "season": "Khô",
+            "predicted_disease": "Đốm lá", "last_treatment_days": None,
         },
     },
 ]

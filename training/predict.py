@@ -40,6 +40,21 @@ CLASS_NAMES = [
     "yellow_leaf",
 ]
 
+# Vietnamese disease name mapping (matches database seed/diseases.json)
+DISEASE_NAME_VI = {
+    "anthracnose_disease": "Thán thư",
+    "canker_disease": "Sẹo thân",
+    "fruit_rot": "Thối quả",
+    "Healthy": "Khỏe mạnh",
+    "mealybug_infestation": "Rệp sáp",
+    "pink_disease": "Bệnh hồng thân",
+    "sooty_mold": "Nấm bồ hóng",
+    "stem_blight": "Cháy thân",
+    "stem_cracking_ gummosis": "Nứt thân chảy nhựa",
+    "thrips_disease": "Bọ trĩ",
+    "yellow_leaf": "Vàng lá",
+}
+
 
 def load_model():
     config_path = PROJECT_ROOT / "training" / "configs" / "model1.yaml"
@@ -84,12 +99,17 @@ def predict(image_path: str) -> dict:
 
     top5_indices = torch.topk(probabilities, 5).indices.tolist()
     top5 = [
-        {"class": CLASS_NAMES[i], "confidence": round(probabilities[i].item(), 4)}
+        {
+            "class": CLASS_NAMES[i],
+            "class_vi": DISEASE_NAME_VI.get(CLASS_NAMES[i], CLASS_NAMES[i]),
+            "confidence": round(probabilities[i].item(), 4),
+        }
         for i in top5_indices
     ]
 
     result = {
         "predicted_class": CLASS_NAMES[predicted_idx],
+        "predicted_class_vi": DISEASE_NAME_VI.get(CLASS_NAMES[predicted_idx], CLASS_NAMES[predicted_idx]),
         "class_id": predicted_idx,
         "confidence": round(confidence, 4),
         "top5": top5,

@@ -41,6 +41,21 @@ CLASS_NAMES = [
     "yellow_leaf",
 ]
 
+# Vietnamese disease name mapping (matches database seed/diseases.json)
+DISEASE_NAME_VI = {
+    "anthracnose_disease": "Thán thư",
+    "canker_disease": "Sẹo thân",
+    "fruit_rot": "Thối quả",
+    "Healthy": "Khỏe mạnh",
+    "mealybug_infestation": "Rệp sáp",
+    "pink_disease": "Bệnh hồng thân",
+    "sooty_mold": "Nấm bồ hóng",
+    "stem_blight": "Cháy thân",
+    "stem_cracking_ gummosis": "Nứt thân chảy nhựa",
+    "thrips_disease": "Bọ trĩ",
+    "yellow_leaf": "Vàng lá",
+}
+
 
 class GradCAM:
     """GradCAM for visualizing model attention regions."""
@@ -164,7 +179,8 @@ def main():
         confidence = probs[0, predicted_idx].item()
 
     print(f"\nImage: {img_path.name}")
-    print(f"Predicted: {CLASS_NAMES[predicted_idx]} ({confidence:.4f})")
+    disease_vi = DISEASE_NAME_VI.get(CLASS_NAMES[predicted_idx], CLASS_NAMES[predicted_idx])
+    print(f"Predicted: {CLASS_NAMES[predicted_idx]} / {disease_vi} ({confidence:.4f})")
 
     gradcam = GradCAM(model, args.target_layer)
     cam, class_idx = gradcam.generate(input_tensor, class_idx=predicted_idx)
@@ -190,8 +206,9 @@ def main():
         axes[0].set_title("Original Image", fontsize=14)
         axes[0].axis("off")
 
+        disease_vi = DISEASE_NAME_VI.get(CLASS_NAMES[class_idx], CLASS_NAMES[class_idx])
         axes[1].imshow(cam.numpy(), cmap="jet", interpolation="bilinear")
-        axes[1].set_title(f"GradCAM Heatmap\n{CLASS_NAMES[class_idx]} ({confidence:.2f})", fontsize=14)
+        axes[1].set_title(f"GradCAM Heatmap\n{disease_vi} ({confidence:.2f})", fontsize=14)
         axes[1].axis("off")
 
         overlay = (1 - args.alpha) * img_np + args.alpha * heatmap
@@ -209,7 +226,7 @@ def main():
         plt.figure(figsize=(8, 6))
         plt.imshow(cam.numpy(), cmap="jet", interpolation="bilinear")
         plt.colorbar(label="Activation")
-        plt.title(f"GradCAM Heatmap - {CLASS_NAMES[class_idx]}", fontsize=14)
+        plt.title(f"GradCAM Heatmap - {DISEASE_NAME_VI.get(CLASS_NAMES[class_idx], CLASS_NAMES[class_idx])}", fontsize=14)
         plt.axis("off")
         heatmap_path = output_dir / "heatmap.png"
         plt.savefig(str(heatmap_path), dpi=150, bbox_inches="tight")

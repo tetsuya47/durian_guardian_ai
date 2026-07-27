@@ -41,8 +41,8 @@ features:
 labels:
   priority:
     type: "categorical"
-    values: ["Low", "Medium", "High", "Critical"]
-    codes: {Low: 0, Medium: 1, High: 2, Critical: 3}
+    values: ["Thấp", "Trung bình", "Cao", "Rất cao"]
+    codes: {Thấp: 0, Trung bình: 1, Cao: 2, Rất cao: 3}
   urgency_score:
     type: "regression"
     range: [0.0, 1.0]
@@ -95,8 +95,8 @@ rule_engine:
     medium: 0.15
     low: 0.00
   severe_diseases:
-    - "Anthracnose"
-    - "Phytophthora"
-    - "Stem Rot"
-    - "Root Rot"
-    - "Fruit Rot"
+    - "Thán thư"
+    - "Bệnh thối rễ Phytophthora"
+    - "Thối thân"
+    - "Thối rễ"
+    - "Thối quả"

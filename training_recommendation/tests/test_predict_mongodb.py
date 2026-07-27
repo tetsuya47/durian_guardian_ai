@@ -12,9 +12,9 @@ from training.utils.logger import Logger
 from database.config import settings
 from training_recommendation.predict import load_artifacts, predict
 
-SEASON_MAP = {1: "Dry", 2: "Dry", 3: "Dry", 4: "Dry",
-              5: "Rainy", 6: "Rainy", 7: "Rainy", 8: "Rainy",
-              9: "Rainy", 10: "Rainy", 11: "Rainy", 12: "Dry"}
+SEASON_MAP = {1: "Khô", 2: "Khô", 3: "Khô", 4: "Khô",
+              5: "Mưa", 6: "Mưa", 7: "Mưa", 8: "Mưa",
+              9: "Mưa", 10: "Mưa", 11: "Mưa", 12: "Khô"}
 
 logger = Logger.get_logger("Model4Verify")
 
@@ -61,12 +61,12 @@ for doc in db.alerts.find({"tree_id": {"$in": [i["tree_id"] for i in inspections
         alert_map[tid] = []
     alert_map[tid].append(doc)
 
-PRIORITY_MAP = {0: "Low", 1: "Medium", 2: "High", 3: "Critical"}
+PRIORITY_MAP = {0: "Thấp", 1: "Trung bình", 2: "Cao", 3: "Rất cao"}
 ACTION_MAP = {
-    0: "Continue Regular Monitoring",
-    1: "Monitor and Re-inspect in 14 Days",
-    2: "Schedule Treatment Within 7 Days",
-    3: "Immediate Treatment Required - Urgent intervention needed",
+    0: "Tiếp tục theo dõi định kỳ",
+    1: "Theo dõi và kiểm tra lại sau 14 ngày",
+    2: "Lên lịch điều trị trong 7 ngày",
+    3: "Cần điều trị ngay - Cần can thiệp khẩn cấp",
 }
 
 results = []
@@ -127,13 +127,13 @@ for i, insp in enumerate(inspections):
             "historical_disease_frequency": hist_count / max(tree.get("tree_age", 1), 1),
             "density_per_hectare": float(farm.get("tree_count", 0)) / max(float(farm.get("area_hectare", 1)), 0.1),
             "priority_score": 0.0,
-            "health_status": str(insp.get("health_status", "Healthy")),
-            "predicted_disease": str(insp.get("predicted_disease", "Healthy")),
-            "detection_prediction": str(detection.get("prediction", "Healthy") if detection else "Healthy"),
+            "health_status": str(insp.get("health_status", "Khỏe mạnh")),
+            "predicted_disease": str(insp.get("predicted_disease", "Khỏe mạnh")),
+            "detection_prediction": str(detection.get("prediction", "Khỏe mạnh") if detection else "Khỏe mạnh"),
             "alert_type": alert_type,
             "alert_priority": alert_priority,
-            "season": SEASON_MAP.get(inspection_date.month, "Dry"),
-            "risk_level": "Low",
+            "season": SEASON_MAP.get(inspection_date.month, "Khô"),
+            "risk_level": "Thấp",
         }
 
         result = predict(features, model, regressors, preprocessor)

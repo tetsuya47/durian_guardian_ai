@@ -1,31 +1,31 @@
 {
-  "risk_level": "Low",
-  "risk_score": 0.8533333333333334,
+  "risk_level": "Th\u1ea5p",
+  "risk_score": 0.8166666666666667,
   "probabilities": {
-    "Low": 0.8533333333333334,
-    "Medium": 0.14333333333333334,
-    "High": 0.0033333333333333335
+    "Th\u1ea5p": 0.8166666666666667,
+    "Trung b\u00ecnh": 0.17333333333333334,
+    "Cao": 0.01
   },
   "top_factors": [
     {
       "feature": "health_status_encoded",
-      "importance": 0.26045585566339596
+      "importance": 0.23326063625268065
     },
     {
       "feature": "humidity_scaled",
-      "importance": 0.16245991420120795
+      "importance": 0.16089021227652484
     },
     {
       "feature": "predicted_disease_encoded",
-      "importance": 0.1290405725454414
+      "importance": 0.15235301035825857
     },
     {
       "feature": "rainfall_scaled",
-      "importance": 0.09510180342683205
+      "importance": 0.09285033852214798
     },
     {
       "feature": "temperature_scaled",
-      "importance": 0.09024910944323644
+      "importance": 0.08763144291588247
     }
   ]
 }

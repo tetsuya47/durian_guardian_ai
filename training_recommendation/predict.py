@@ -15,13 +15,13 @@ from training.utils.logger import Logger
 
 EXPORTS_DIR = ROOT / "training_recommendation" / "exports"
 
-PRIORITY_MAP = {0: "Low", 1: "Medium", 2: "High", 3: "Critical"}
+PRIORITY_MAP = {0: "Thấp", 1: "Trung bình", 2: "Cao", 3: "Rất cao"}
 
 ACTION_MAP = {
-    0: "Continue Regular Monitoring",
-    1: "Monitor and Re-inspect in 14 Days",
-    2: "Schedule Treatment Within 7 Days",
-    3: "Immediate Treatment Required - Urgent intervention needed",
+    0: "Tiếp tục theo dõi định kỳ",
+    1: "Theo dõi và kiểm tra lại sau 14 ngày",
+    2: "Lên lịch điều trị trong 7 ngày",
+    3: "Cần điều trị ngay - Cần can thiệp khẩn cấp",
 }
 
 
@@ -108,13 +108,13 @@ def main():
         "historical_disease_frequency": 0.0,
         "density_per_hectare": 50.0,
         "priority_score": 0.0,
-        "health_status": "Healthy",
-        "predicted_disease": "Healthy",
-        "detection_prediction": "Healthy",
+        "health_status": "Khỏe mạnh",
+        "predicted_disease": "Khỏe mạnh",
+        "detection_prediction": "Khỏe mạnh",
         "alert_type": "None",
         "alert_priority": "None",
-        "season": "Dry",
-        "risk_level": "Low",
+        "season": "Khô",
+        "risk_level": "Thấp",
     }
 
     result = predict(sample_features, model, regressors, preprocessor, logger)

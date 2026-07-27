@@ -1,9 +1,9 @@
 model:
   name: "risk_prediction"
-  architecture: "xgboost"
+  architecture: "random_forest"
   task: "classification"
   num_classes: 3
-  classes: ["low", "medium", "high"]
+  classes: ["Low", "Medium", "High"]
 
 dataset:
   name: "disease_risk"
@@ -14,20 +14,16 @@ dataset:
     labels: "disease_history"
     auxiliary:
       - "trees"
-      - "zones"
       - "farms"
-      - "weather_data"
   batch_size: 64
   num_workers: 2
 
 feature_pipeline:
   categorical_features:
     - "variety"
-    - "zone_type"
-    - "soil_type"
-    - "irrigation_type"
-    - "season"
     - "health_status"
+    - "predicted_disease"
+    - "season"
   numerical_features:
     - "temperature"
     - "humidity"
@@ -38,13 +34,14 @@ feature_pipeline:
     - "days_since_last_treatment"
     - "historical_disease_count"
     - "historical_disease_frequency"
+    - "confidence"
   target: "risk_level"
   encoding: "label"
   scaling: "standard"
-  handle_missing: "mean"
+  handle_missing: "median"
   feature_selection:
     method: "importance"
-    top_k: 20
+    top_k: 14
 
 training:
   epochs: 1000

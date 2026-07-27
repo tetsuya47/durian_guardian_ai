@@ -1,11 +1,11 @@
 {
-  "priority": "Low",
+  "priority": "Th\u1ea5p",
   "priority_code": 0,
-  "recommended_action": "Continue Regular Monitoring",
+  "recommended_action": "Ti\u1ebfp t\u1ee5c theo d\u00f5i \u0111\u1ecbnh k\u1ef3",
   "priority_probabilities": {
-    "0": 0.9844702612452058,
-    "1": 0.012196405421460919,
-    "2": 0.0033333333333333335,
+    "0": 0.9874468488262093,
+    "1": 0.012553151173790881,
+    "2": 0.0,
     "3": 0.0
   },
   "urgency_score": 0.0,

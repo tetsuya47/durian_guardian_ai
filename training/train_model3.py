@@ -13,6 +13,8 @@ import time
 import warnings
 from pathlib import Path
 
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+
 import numpy as np
 import pandas as pd
 
@@ -43,7 +45,7 @@ def parse_args():
     parser.add_argument("--cv-folds", type=int, default=5)
     parser.add_argument("--n-estimators", type=int, default=300)
     parser.add_argument("--max-depth", type=int, default=None)
-    parser.add_argument("--grid-search", action="store_true", default=True)
+    parser.add_argument("--grid-search", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
     return parser.parse_args()
 
@@ -87,7 +89,7 @@ def preprocess(X: pd.DataFrame, y: pd.Series, logger):
     for col in available_num:
         missing = X_processed[col].isna().sum()
         if missing > 0:
-            logger.info("  %s: %d missing values → filling with median", col, missing)
+            logger.info("  %s: %d missing values -> filling with median", col, missing)
             X_processed[col] = X_processed[col].fillna(X_processed[col].median())
 
     logger.info("Encoding categorical features...")
@@ -300,7 +302,7 @@ def export_model(model, label_encoder, logger):
     metadata = {
         "model": "RandomForestClassifier",
         "task": "classification",
-        "classes": ["Low", "Medium", "High"],
+        "classes": label_encoder.classes_.tolist(),
         "num_features": model.n_features_in_,
         "num_classes": len(model.classes_),
         "n_estimators": model.n_estimators,

@@ -6,30 +6,30 @@ import pandas as pd
 
 
 PRIORITY_ACTIONS = {
-    "Critical": {
+    "Rất cao": {
         "code": 3,
-        "action": "Immediate Treatment Required - Urgent intervention needed",
+        "action": "Cần điều trị ngay - Cần can thiệp khẩn cấp",
         "urgency_range": (0.80, 1.0),
         "loss_range": (30.0, 80.0),
         "check_days_range": (1, 3),
     },
-    "High": {
+    "Cao": {
         "code": 2,
-        "action": "Schedule Treatment Within 7 Days",
+        "action": "Lên lịch điều trị trong 7 ngày",
         "urgency_range": (0.50, 0.80),
         "loss_range": (15.0, 40.0),
         "check_days_range": (4, 7),
     },
-    "Medium": {
+    "Trung bình": {
         "code": 1,
-        "action": "Monitor and Re-inspect in 14 Days",
+        "action": "Theo dõi và kiểm tra lại sau 14 ngày",
         "urgency_range": (0.20, 0.50),
         "loss_range": (5.0, 20.0),
         "check_days_range": (8, 14),
     },
-    "Low": {
+    "Thấp": {
         "code": 0,
-        "action": "Continue Regular Monitoring",
+        "action": "Tiếp tục theo dõi định kỳ",
         "urgency_range": (0.0, 0.20),
         "loss_range": (0.0, 8.0),
         "check_days_range": (15, 30),
@@ -76,15 +76,15 @@ class RecommendationRuleEngine:
         score = 0.0
         weight = 0.0
 
-        risk_level = str(row.get("risk_level", "Low"))
-        risk_map = {"Low": 0.0, "Medium": 0.35, "High": 0.60}
+        risk_level = str(row.get("risk_level", "Thấp"))
+        risk_map = {"Thấp": 0.0, "Trung bình": 0.35, "Cao": 0.60}
         score += risk_map.get(risk_level, 0.0)
         weight += 0.60
 
-        health_status = str(row.get("health_status", "Healthy"))
-        if health_status == "Diseased":
+        health_status = str(row.get("health_status", "Khỏe mạnh"))
+        if health_status == "Bị bệnh":
             score += 0.25
-        elif health_status == "Monitoring":
+        elif health_status == "Đang theo dõi":
             score += 0.10
         weight += 0.25
 
@@ -108,8 +108,8 @@ class RecommendationRuleEngine:
             score += 0.05
             weight += 0.05
 
-        season = str(row.get("season", "Dry"))
-        if season == "Rainy":
+        season = str(row.get("season", "Khô"))
+        if season == "Mưa":
             score += 0.05
             weight += 0.05
 
@@ -130,22 +130,22 @@ class RecommendationRuleEngine:
 
     def _score_to_priority(self, score: float) -> str:
         if score >= 0.70:
-            return "Critical"
+            return "Rất cao"
         elif score >= 0.40:
-            return "High"
+            return "Cao"
         elif score >= 0.15:
-            return "Medium"
+            return "Trung bình"
         else:
-            return "Low"
+            return "Thấp"
 
     def _compute_urgency(self, priority_score: float, row: Dict[str, Any]) -> float:
         urgency = priority_score
 
-        if str(row.get("health_status", "")) == "Diseased":
+        if str(row.get("health_status", "")) == "Bị bệnh":
             urgency += 0.10
 
-        season = str(row.get("season", "Dry"))
-        if season == "Rainy":
+        season = str(row.get("season", "Khô"))
+        if season == "Mưa":
             urgency += 0.05
 
         humidity = row.get("humidity")
@@ -161,11 +161,11 @@ class RecommendationRuleEngine:
     def _compute_estimated_loss(self, priority_score: float, row: Dict[str, Any]) -> float:
         base_loss = priority_score * 60.0
 
-        if str(row.get("health_status", "")) == "Diseased":
+        if str(row.get("health_status", "")) == "Bị bệnh":
             base_loss += 10.0
 
         disease = str(row.get("predicted_disease", ""))
-        severe_diseases = ["Anthracnose", "Phytophthora", "Stem Rot", "Root Rot", "Fruit Rot"]
+        severe_diseases = ["Thán thư", "Bệnh thối rễ Phytophthora", "Thối thân", "Thối rễ", "Thối quả"]
         if disease in severe_diseases:
             base_loss += 10.0
 
@@ -189,10 +189,10 @@ class RecommendationRuleEngine:
         else:
             base_days = 30
 
-        if str(row.get("season", "Dry")) == "Rainy":
+        if str(row.get("season", "Khô")) == "Mưa":
             base_days = max(base_days - 3, 1)
 
-        if str(row.get("health_status", "")) == "Diseased":
+        if str(row.get("health_status", "")) == "Bị bệnh":
             base_days = max(base_days - 2, 1)
 
         return int(base_days)
@@ -202,40 +202,40 @@ class RecommendationRuleEngine:
             "labels": {
                 "priority": {
                     "type": "categorical",
-                    "values": ["Low", "Medium", "High", "Critical"],
-                    "codes": {"Low": 0, "Medium": 1, "High": 2, "Critical": 3},
-                    "description": "Recommended priority level for action",
+                    "values": ["Thấp", "Trung bình", "Cao", "Rất cao"],
+                    "codes": {"Thấp": 0, "Trung bình": 1, "Cao": 2, "Rất cao": 3},
+                    "description": "Mức độ ưu tiên khuyến nghị cho hành động",
                 },
                 "priority_score": {
                     "type": "numerical",
                     "range": [0.0, 1.0],
-                    "description": "Continuous priority score (0=lowest, 1=highest)",
+                    "description": "Điểm ưu tiên liên tục (0=thấp nhất, 1=cao nhất)",
                 },
                 "recommended_action": {
                     "type": "categorical",
                     "values": [
-                        "Continue Regular Monitoring",
-                        "Monitor and Re-inspect in 14 Days",
-                        "Schedule Treatment Within 7 Days",
-                        "Immediate Treatment Required - Urgent intervention needed",
+                        "Tiếp tục theo dõi định kỳ",
+                        "Theo dõi và kiểm tra lại sau 14 ngày",
+                        "Lên lịch điều trị trong 7 ngày",
+                        "Cần điều trị ngay - Cần can thiệp khẩn cấp",
                     ],
-                    "description": "Recommended action text",
+                    "description": "Hành động khuyến nghị",
                 },
                 "urgency_score": {
                     "type": "numerical",
                     "range": [0.0, 1.0],
-                    "description": "Urgency score (0=not urgent, 1=extremely urgent)",
+                    "description": "Điểm khẩn cấp (0=không khẩn cấp, 1=rất khẩn cấp)",
                 },
                 "estimated_loss_pct": {
                     "type": "numerical",
                     "range": [0.0, 90.0],
-                    "description": "Estimated yield loss percentage if no action taken",
+                    "description": "Tỷ lệ mất mùa ước tính nếu không hành động",
                 },
                 "next_check_days": {
                     "type": "numerical",
                     "range": [1, 30],
-                    "description": "Recommended days until next inspection",
+                    "description": "Số ngày khuyến nghị cho lần kiểm tra tiếp theo",
                 },
             },
-            "rule_version": "1.0.0",
+            "rule_version": "1.0.0-vi",
         }

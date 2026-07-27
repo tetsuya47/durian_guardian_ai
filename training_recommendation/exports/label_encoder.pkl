@@ -1,20 +1,20 @@
 {
   "classes": [
-    "Critical",
-    "High",
-    "Low",
-    "Medium"
+    "Cao",
+    "R\u1ea5t cao",
+    "Th\u1ea5p",
+    "Trung b\u00ecnh"
   ],
   "mapping": {
-    "Low": 0,
-    "Medium": 1,
-    "High": 2,
-    "Critical": 3
+    "Th\u1ea5p": 0,
+    "Trung b\u00ecnh": 1,
+    "Cao": 2,
+    "R\u1ea5t cao": 3
   },
   "inverse_mapping": {
-    "0": "Low",
-    "1": "Medium",
-    "2": "High",
-    "3": "Critical"
+    "0": "Th\u1ea5p",
+    "1": "Trung b\u00ecnh",
+    "2": "Cao",
+    "3": "R\u1ea5t cao"
   }
 }

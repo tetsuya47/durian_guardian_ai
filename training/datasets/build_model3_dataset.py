@@ -16,9 +16,17 @@ from database.config import settings
 from training.utils.logger import Logger
 
 
-SEASON_MAP = {1: "Dry", 2: "Dry", 3: "Dry", 4: "Dry",
-              5: "Rainy", 6: "Rainy", 7: "Rainy", 8: "Rainy",
-              9: "Rainy", 10: "Rainy", 11: "Rainy", 12: "Dry"}
+SEASON_MAP = {1: "Khô", 2: "Khô", 3: "Khô", 4: "Khô",
+              5: "Mưa", 6: "Mưa", 7: "Mưa", 8: "Mưa",
+              9: "Mưa", 10: "Mưa", 11: "Mưa", 12: "Khô"}
+
+# Vietnamese health status values (matching DB schema)
+HEALTH_STATUS_DISEASED = "Bị bệnh"
+
+# Vietnamese risk level labels
+RISK_LEVEL_LOW = "Thấp"
+RISK_LEVEL_MEDIUM = "Trung bình"
+RISK_LEVEL_HIGH = "Cao"
 
 
 class Model3DatasetBuilder:
@@ -43,11 +51,16 @@ class Model3DatasetBuilder:
         fields = {
             "_id": 0, "inspection_code": 1, "tree_id": 1, "farm_id": 1,
             "disease_id": 1, "inspection_date": 1, "temperature": 1,
-            "humidity": 1, "rainfall": 1, "health_status": 1,
-            "predicted_disease": 1, "confidence": 1,
+            "humidity": 1, "rainfall_mm": 1, "rainfall": 1,
+            "health_status": 1, "predicted_disease": 1, "confidence": 1,
         }
         docs = list(self.db.inspections.find({}, fields))
         df = pd.DataFrame(docs)
+        if "rainfall_mm" in df.columns and "rainfall" not in df.columns:
+            df.rename(columns={"rainfall_mm": "rainfall"}, inplace=True)
+        elif "rainfall_mm" in df.columns and "rainfall" in df.columns:
+            df["rainfall"] = df["rainfall"].fillna(df["rainfall_mm"])
+            df.drop(columns=["rainfall_mm"], inplace=True)
         df["inspection_date"] = pd.to_datetime(df["inspection_date"])
         df = df.sort_values(["tree_id", "inspection_date"])
         self.logger.info("Loaded %d inspections", len(df))
@@ -79,12 +92,12 @@ class Model3DatasetBuilder:
         return df
 
     def _compute_season(self, month) -> str:
-        return SEASON_MAP.get(month, "Dry")
+        return SEASON_MAP.get(month, "Khô")
 
     def _compute_risk_level(self, row) -> str:
         score = 0.0
 
-        if row.get("health_status") == "Diseased":
+        if row.get("health_status") == HEALTH_STATUS_DISEASED:
             score += 0.35
 
         if pd.notna(row.get("humidity")):
@@ -123,20 +136,20 @@ class Model3DatasetBuilder:
         if pd.notna(row.get("confidence")) and row["confidence"] < 85:
             score += 0.05
 
-        if row.get("season") == "Rainy":
+        if row.get("season") == "Mưa":
             score += 0.05
 
         if score < 0.20:
-            return "Low"
+            return RISK_LEVEL_LOW
         elif score < 0.50:
-            return "Medium"
+            return RISK_LEVEL_MEDIUM
         else:
-            return "High"
+            return RISK_LEVEL_HIGH
 
     def compute_risk_score(self, row) -> float:
         score = 0.0
 
-        if row.get("health_status") == "Diseased":
+        if row.get("health_status") == HEALTH_STATUS_DISEASED:
             score += 0.35
 
         if pd.notna(row.get("humidity")):
@@ -175,7 +188,7 @@ class Model3DatasetBuilder:
         if pd.notna(row.get("confidence")) and row["confidence"] < 85:
             score += 0.05
 
-        if row.get("season") == "Rainy":
+        if row.get("season") == "Mưa":
             score += 0.05
 
         return min(score, 1.0)

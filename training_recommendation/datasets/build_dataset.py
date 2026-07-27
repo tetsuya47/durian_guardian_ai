@@ -17,9 +17,9 @@ from database.config import settings
 from training.utils.logger import Logger
 from training_recommendation.rules.rule_engine import RecommendationRuleEngine
 
-SEASON_MAP = {1: "Dry", 2: "Dry", 3: "Dry", 4: "Dry",
-              5: "Rainy", 6: "Rainy", 7: "Rainy", 8: "Rainy",
-              9: "Rainy", 10: "Rainy", 11: "Rainy", 12: "Dry"}
+SEASON_MAP = {1: "Khô", 2: "Khô", 3: "Khô", 4: "Khô",
+              5: "Mưa", 6: "Mưa", 7: "Mưa", 8: "Mưa",
+              9: "Mưa", 10: "Mưa", 11: "Mưa", 12: "Khô"}
 
 FEATURE_COLS = [
     "temperature", "humidity", "rainfall", "tree_age", "area_hectare",
@@ -65,11 +65,16 @@ class Model4DatasetBuilder:
         fields = {
             "_id": 0, "inspection_code": 1, "tree_id": 1, "farm_id": 1,
             "inspection_date": 1, "temperature": 1, "humidity": 1,
-            "rainfall": 1, "health_status": 1, "predicted_disease": 1,
-            "confidence": 1,
+            "rainfall": 1, "rainfall_mm": 1,
+            "health_status": 1, "predicted_disease": 1, "confidence": 1,
         }
         docs = list(self.db.inspections.find({}, fields))
         df = pd.DataFrame(docs)
+        if "rainfall_mm" in df.columns and "rainfall" not in df.columns:
+            df.rename(columns={"rainfall_mm": "rainfall"}, inplace=True)
+        elif "rainfall_mm" in df.columns and "rainfall" in df.columns:
+            df["rainfall"] = df["rainfall"].fillna(df["rainfall_mm"])
+            df.drop(columns=["rainfall_mm"], inplace=True)
         df["inspection_date"] = pd.to_datetime(df["inspection_date"])
         df = df.sort_values(["tree_id", "inspection_date"])
         self.logger.info("Loaded %d inspections", len(df))
@@ -285,11 +290,11 @@ class Model4DatasetBuilder:
             for col in ["risk_score", "risk_level"]:
                 df[col] = model3_df[col]
             df["risk_score"] = df["risk_score"].fillna(0.0)
-            df["risk_level"] = df["risk_level"].fillna("Low")
+            df["risk_level"] = df["risk_level"].fillna("Thấp")
         else:
             self.logger.warning("Model 3 features not available, computing fallback risk...")
             df["risk_score"] = 0.0
-            df["risk_level"] = "Low"
+            df["risk_level"] = "Thấp"
 
         self.logger.info("Computing rule-based recommendation labels...")
         labels_list = []

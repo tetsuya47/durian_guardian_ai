@@ -395,7 +395,7 @@ def main():
         joblib.dump(model, str(EXPORTS_DIR / f"{name}.pkl"))
     joblib.dump(preprocessors, str(EXPORTS_DIR / "preprocessor.pkl"))
 
-    priority_codes = {"Low": 0, "Medium": 1, "High": 2, "Critical": 3}
+    priority_codes = {"Thấp": 0, "Trung bình": 1, "Cao": 2, "Rất cao": 3}
     label_encoder_data = {
         "classes": sorted(priority_codes.keys()),
         "mapping": priority_codes,
