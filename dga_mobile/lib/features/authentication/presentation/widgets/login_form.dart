@@ -102,6 +102,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           await localDataSource.saveUserEmail('');
         }
 
+        if (!mounted) return;
         AppSnackbars.showSuccess(context, AppStrings.loginSuccess);
         context.go('/dashboard');
       } else {

@@ -15,7 +15,7 @@ class EnvironmentConfig {
 
   /// Host for real-device testing on LAN.
   /// Change this to your machine's local IP (e.g. '192.168.1.2').
-  static const String deviceHost = 'CHANGE_ME';
+  static const String deviceHost = '192.168.1.12';
   // ─────────────────────────────────────────────────────────────────────────
 
   /// The base URL for the currently active environment.

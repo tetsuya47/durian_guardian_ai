@@ -32,6 +32,7 @@ class DiseaseDetectionPage extends ConsumerWidget {
         imageQuality: 90,
       );
       if (image == null) return;
+      if (!context.mounted) return;
       await _processAndNavigate(context, ref, image);
     } catch (e) {
       if (context.mounted) {

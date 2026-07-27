@@ -51,11 +51,14 @@ class AIFarmStatusCard extends StatelessWidget {
                       style: theme.textTheme.labelMedium,
                     ),
                     AppSpacing.v4,
-                    Text(
-                      '$healthRate%',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.success,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$healthRate%',
+                        style: theme.textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.success,
+                        ),
                       ),
                     ),
                   ],

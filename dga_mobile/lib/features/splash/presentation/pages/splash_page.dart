@@ -5,6 +5,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/storage_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../services/storage_service.dart';
+import '../../../settings/presentation/providers/settings_providers.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -42,7 +43,24 @@ class _SplashPageState extends ConsumerState<SplashPage>
     );
 
     _controller.forward();
-    _navigateAfterDelay();
+    _loadSettingsAndNavigate();
+  }
+
+  Future<void> _loadSettingsAndNavigate() async {
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final result = await repo.getAppSettings();
+      result.when(
+        success: (settings) {
+          ref.read(appSettingsProvider.notifier).state = settings;
+        },
+        failure: (_, __) {},
+        loading: () {},
+        empty: () {},
+      );
+    } catch (_) {}
+
+    await _navigateAfterDelay();
   }
 
   Future<void> _navigateAfterDelay() async {
