@@ -44,6 +44,61 @@ class Collections:
         ]
 
 
+# ── Vietnamese Localization ──────────────────────────────────────────
+
+HEALTH_STATUS_VI: Dict[str, str] = {
+    "Healthy": "Khỏe mạnh",
+    "Diseased": "Bị bệnh",
+    "Monitoring": "Đang theo dõi",
+}
+
+TREE_STATUS_VI: Dict[str, str] = {
+    "Healthy": "Khỏe mạnh",
+    "Diseased": "Bị bệnh",
+    "Monitoring": "Đang theo dõi",
+}
+
+SEVERITY_VI: Dict[str, str] = {
+    "Very Low": "Rất nhẹ",
+    "Low": "Nhẹ",
+    "Medium": "Trung bình",
+    "High": "Nặng",
+    "Critical": "Rất nặng",
+}
+
+RISK_LEVEL_VI: Dict[str, str] = {
+    "Low": "Thấp",
+    "Medium": "Trung bình",
+    "High": "Cao",
+    "Critical": "Rất cao",
+}
+
+ALERT_TYPE_VI: Dict[str, str] = {
+    "High Disease Risk": "Nguy cơ mắc bệnh cao",
+    "Severe Disease": "Bệnh nghiêm trọng",
+    "Rapid Disease Progression": "Bệnh tiến triển nhanh",
+    "Repeated Infection": "Tái nhiễm bệnh",
+    "New Infection": "Phát hiện bệnh mới",
+    "Treatment Reminder": "Nhắc nhở điều trị",
+    "Inspection Reminder": "Nhắc kiểm tra",
+    "AI Confidence Low": "Độ tin cậy AI thấp",
+    "Farm Risk Warning": "Cảnh báo rủi ro trang trại",
+}
+
+ALERT_STATUS_VI: Dict[str, str] = {
+    "unread": "chưa đọc",
+    "read": "đã đọc",
+    "archived": "đã lưu trữ",
+}
+
+ACTION_VI: Dict[str, str] = {
+    "Treatment Applied": "Đã điều trị",
+    "Treatment Scheduled": "Đã lên lịch điều trị",
+    "Observation": "Theo dõi",
+    "Recovered": "Đã phục hồi",
+}
+
+
 def get_collection_validators() -> Dict[str, Dict[str, Any]]:
     """Return MongoDB JSON Schema validators for all collections."""
     return {
@@ -56,8 +111,11 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "_id": {"bsonType": "objectId"},
                     "company_code": {"bsonType": "string", "description": "COMP001-COMP010"},
                     "company_name": {"bsonType": "string", "description": "Company legal name"},
+                    "owner": {"bsonType": ["string", "null"]},
+                    "phone": {"bsonType": ["string", "null"]},
+                    "email": {"bsonType": ["string", "null"]},
                     "district": {"bsonType": "string", "description": "District location"},
-                    "province": {"bsonType": "string", "description": "All in Đắk Lắk"},
+                    "province": {"bsonType": "string", "description": "All in Dak Lak"},
                     "created_at": {"bsonType": "date"},
                 },
             }
@@ -72,7 +130,14 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "farm_code": {"bsonType": "string", "description": "FARM001-FARM010"},
                     "farm_name": {"bsonType": "string", "description": "Farm display name"},
                     "company_id": {"bsonType": "objectId", "description": "Ref companies._id"},
+                    "owner_user_id": {"bsonType": ["objectId", "null"], "description": "Ref users._id (Farm Owner)"},
+                    "manager_user_id": {"bsonType": ["objectId", "null"], "description": "Ref users._id (Company Manager)"},
+                    "owner": {"bsonType": ["string", "null"]},
+                    "phone": {"bsonType": ["string", "null"]},
                     "district": {"bsonType": "string", "description": "District location"},
+                    "commune": {"bsonType": ["string", "null"]},
+                    "latitude": {"bsonType": ["double", "null"]},
+                    "longitude": {"bsonType": ["double", "null"]},
                     "area_hectare": {"bsonType": "double", "minimum": 0},
                     "tree_count": {"bsonType": "int", "minimum": 0},
                     "created_at": {"bsonType": "date"},
@@ -86,8 +151,11 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                 "required": ["farm_id", "zone_name", "tree_count"],
                 "properties": {
                     "_id": {"bsonType": "objectId"},
+                    "zone_code": {"bsonType": "string"},
                     "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
                     "zone_name": {"bsonType": "string", "description": "ZONE_A to ZONE_J"},
+                    "soil_type": {"bsonType": ["string", "null"]},
+                    "irrigation": {"bsonType": ["string", "null"]},
                     "tree_count": {"bsonType": "int", "minimum": 0},
                     "created_at": {"bsonType": "date"},
                 },
@@ -106,7 +174,11 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "variety": {"bsonType": "string", "description": "Monthong/Dona/Musang King/Ri6"},
                     "planting_date": {"bsonType": "date"},
                     "tree_age": {"bsonType": "int", "minimum": 0},
-                    "status": {"enum": ["Healthy", "Monitoring", "Diseased"]},
+                    "status": {"enum": list(TREE_STATUS_VI.values())},
+                    "latitude": {"bsonType": ["double", "null"]},
+                    "longitude": {"bsonType": ["double", "null"]},
+                    "last_inspection": {"bsonType": ["date", "null"]},
+                    "qr_code": {"bsonType": ["string", "null"]},
                     "created_at": {"bsonType": "date"},
                 },
             }
@@ -120,10 +192,12 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "_id": {"bsonType": "objectId"},
                     "user_code": {"bsonType": "string", "description": "USR001-USR050"},
                     "full_name": {"bsonType": "string"},
-                    "role": {"enum": ["Admin", "Company Manager", "Farm Manager", "Inspector", "Technician"]},
+                    "role": {"enum": ["Admin", "Company Manager", "Farm Manager", "Farm Owner", "Inspector", "Technician"]},
                     "email": {"bsonType": ["string", "null"]},
                     "password_hash": {"bsonType": ["string", "null"]},
+                    "refresh_token": {"bsonType": ["string", "null"]},
                     "created_at": {"bsonType": "date"},
+                    "updated_at": {"bsonType": ["date", "null"]},
                 },
             }
         },
@@ -135,7 +209,11 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                 "properties": {
                     "_id": {"bsonType": "objectId"},
                     "code": {"bsonType": "string", "description": "Normalized code from name"},
-                    "name": {"bsonType": "string", "description": "Disease display name"},
+                    "name": {"bsonType": "string", "description": "Disease display name (Vietnamese)"},
+                    "affected_part": {"bsonType": ["string", "null"]},
+                    "severity": {"bsonType": ["string", "null"]},
+                    "description": {"bsonType": ["string", "null"]},
+                    "recommendation": {"bsonType": ["string", "null"]},
                     "created_at": {"bsonType": "date"},
                 },
             }
@@ -154,14 +232,18 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "inspection_code": {"bsonType": "string"},
                     "tree_id": {"bsonType": "objectId", "description": "Ref trees._id"},
                     "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
+                    "zone_id": {"bsonType": ["objectId", "null"]},
                     "disease_id": {"bsonType": ["objectId", "null"], "description": "Ref diseases._id"},
                     "inspection_date": {"bsonType": "date"},
                     "temperature": {"bsonType": "double"},
                     "humidity": {"bsonType": "double"},
-                    "rainfall": {"bsonType": "double", "minimum": 0},
-                    "health_status": {"enum": ["Healthy", "Diseased"]},
-                    "predicted_disease": {"bsonType": "string"},
+                    "rainfall_mm": {"bsonType": "double", "minimum": 0},
+                    "wind_speed": {"bsonType": ["double", "null"]},
+                    "health_status": {"enum": list(HEALTH_STATUS_VI.values())},
+                    "predicted_disease": {"bsonType": "string", "description": "Vietnamese disease name"},
                     "confidence": {"bsonType": "double", "minimum": 0, "maximum": 100},
+                    "severity": {"bsonType": ["string", "null"]},
+                    "remark": {"bsonType": ["string", "null"]},
                     "created_at": {"bsonType": "date"},
                 },
             }
@@ -173,10 +255,23 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                 "required": ["inspection_id", "model", "prediction", "confidence"],
                 "properties": {
                     "_id": {"bsonType": "objectId"},
+                    "detection_code": {"bsonType": ["string", "null"]},
                     "inspection_id": {"bsonType": "objectId", "description": "Ref inspections._id"},
+                    "tree_id": {"bsonType": ["objectId", "null"], "description": "Ref trees._id"},
+                    "farm_id": {"bsonType": ["objectId", "null"], "description": "Ref farms._id"},
+                    "company_id": {"bsonType": ["objectId", "null"], "description": "Ref companies._id"},
                     "model": {"bsonType": "string"},
-                    "prediction": {"bsonType": "string"},
+                    "prediction": {"bsonType": "string", "description": "Vietnamese disease name"},
                     "confidence": {"bsonType": "double", "minimum": 0, "maximum": 100},
+                    "image_path": {"bsonType": ["string", "null"]},
+                    "image_quality": {"bsonType": ["string", "null"]},
+                    "model_version": {"bsonType": ["string", "null"]},
+                    "processing_time_ms": {"bsonType": ["double", "null"]},
+                    "recommendation": {"bsonType": ["string", "null"]},
+                    "lat": {"bsonType": ["double", "null"]},
+                    "lon": {"bsonType": ["double", "null"]},
+                    "captured_at": {"bsonType": ["date", "null"]},
+                    "updated_at": {"bsonType": ["date", "null"]},
                     "created_at": {"bsonType": "date"},
                 },
             }
@@ -189,9 +284,19 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                 "properties": {
                     "_id": {"bsonType": "objectId"},
                     "tree_id": {"bsonType": "objectId", "description": "Ref trees._id"},
-                    "disease": {"bsonType": "string"},
+                    "farm_id": {"bsonType": ["objectId", "null"]},
+                    "company_id": {"bsonType": ["objectId", "null"]},
+                    "disease": {"bsonType": "string", "description": "Vietnamese disease name"},
                     "date": {"bsonType": "date"},
-                    "action": {"bsonType": "string"},
+                    "action": {"bsonType": "string", "description": "Vietnamese action name"},
+                    "severity": {"bsonType": ["string", "null"]},
+                    "symptoms": {"bsonType": ["string", "null"]},
+                    "diagnosis_method": {"bsonType": ["string", "null"]},
+                    "detected_by_user_id": {"bsonType": ["objectId", "null"]},
+                    "detection_result_id": {"bsonType": ["objectId", "null"]},
+                    "resolved_at": {"bsonType": ["date", "null"]},
+                    "resolution_notes": {"bsonType": ["string", "null"]},
+                    "updated_at": {"bsonType": ["date", "null"]},
                     "created_at": {"bsonType": "date"},
                 },
             }
@@ -203,11 +308,26 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                 "required": ["farm_id", "tree_id", "alert_type", "priority", "date"],
                 "properties": {
                     "_id": {"bsonType": "objectId"},
+                    "alert_code": {"bsonType": ["string", "null"]},
                     "farm_id": {"bsonType": "objectId", "description": "Ref farms._id"},
                     "tree_id": {"bsonType": "objectId", "description": "Ref trees._id"},
-                    "alert_type": {"bsonType": "string"},
-                    "priority": {"bsonType": "string"},
+                    "company_id": {"bsonType": ["objectId", "null"]},
+                    "inspection_id": {"bsonType": ["objectId", "null"]},
+                    "detection_result_id": {"bsonType": ["objectId", "null"]},
+                    "disease_history_id": {"bsonType": ["objectId", "null"]},
+                    "disease_id": {"bsonType": ["objectId", "null"]},
+                    "alert_type": {"bsonType": "string", "description": "Vietnamese alert type"},
+                    "alert_level": {"bsonType": ["string", "null"]},
+                    "title": {"bsonType": ["string", "null"]},
+                    "message": {"bsonType": ["string", "null"]},
+                    "recommendation": {"bsonType": ["string", "null"]},
+                    "priority": {"bsonType": "string", "description": "Vietnamese risk level"},
+                    "status": {"bsonType": ["string", "null"]},
+                    "is_read": {"bsonType": ["bool", "null"]},
+                    "acknowledged_by": {"bsonType": ["objectId", "null"]},
+                    "acknowledged_at": {"bsonType": ["date", "null"]},
                     "date": {"bsonType": "date"},
+                    "updated_at": {"bsonType": ["date", "null"]},
                     "created_at": {"bsonType": "date"},
                 },
             }

@@ -67,6 +67,78 @@ DISEASE_NAME_TO_CODE: Dict[str, str] = {
     "Healthy": "healthy",
 }
 
+# ── Vietnamese Localization Mappings ─────────────────────────────────
+
+DISEASE_NAME_EN_TO_VI: Dict[str, str] = {
+    "Healthy": "Khỏe mạnh",
+    "Anthracnose": "Thán thư",
+    "Canker": "Sẹo thân",
+    "Fruit Rot": "Thối quả",
+    "Mealybug": "Rệp sáp",
+    "Pink Disease": "Bệnh hồng thân",
+    "Sooty Mold": "Nấm bồ hóng",
+    "Stem Blight": "Cháy thân",
+    "Stem Cracking Gummosis": "Nứt thân chảy nhựa",
+    "Thrips": "Bọ trĩ",
+    "Yellow Leaf": "Vàng lá",
+    "Leaf Blight": "Cháy lá",
+    "Leaf Spot": "Đốm lá",
+    "Stem Rot": "Thối thân",
+    "Root Rot": "Thối rễ",
+    "Powdery Mildew": "Bệnh phấn trắng",
+    "Rust": "Bệnh gỉ sắt",
+    "Downy Mildew": "Bệnh sương mai",
+    "Phytophthora": "Bệnh thối rễ Phytophthora",
+    "Algae Spot": "Đốm tảo",
+    "Dieback": "Cháy ngọn",
+    "Scale Insect": "Rệp vảy",
+    "Nutrient Deficiency": "Thiếu hụt dinh dưỡng",
+}
+
+HEALTH_STATUS_EN_TO_VI: Dict[str, str] = {
+    "Healthy": "Khỏe mạnh",
+    "Diseased": "Bị bệnh",
+    "Monitoring": "Đang theo dõi",
+}
+
+TREE_STATUS_EN_TO_VI: Dict[str, str] = {
+    "Healthy": "Khỏe mạnh",
+    "Diseased": "Bị bệnh",
+    "Monitoring": "Đang theo dõi",
+}
+
+ALERT_TYPE_EN_TO_VI: Dict[str, str] = {
+    "High Disease Risk": "Nguy cơ mắc bệnh cao",
+    "Severe Disease": "Bệnh nghiêm trọng",
+    "Rapid Disease Progression": "Bệnh tiến triển nhanh",
+    "Repeated Infection": "Tái nhiễm bệnh",
+    "New Infection": "Phát hiện bệnh mới",
+    "Treatment Reminder": "Nhắc nhở điều trị",
+    "Inspection Reminder": "Nhắc kiểm tra",
+    "AI Confidence Low": "Độ tin cậy AI thấp",
+    "Farm Risk Warning": "Cảnh báo rủi ro trang trại",
+}
+
+RISK_LEVEL_EN_TO_VI: Dict[str, str] = {
+    "Low": "Thấp",
+    "Medium": "Trung bình",
+    "High": "Cao",
+    "Critical": "Rất cao",
+}
+
+ACTION_EN_TO_VI: Dict[str, str] = {
+    "Treatment Applied": "Đã điều trị",
+    "Treatment Scheduled": "Đã lên lịch điều trị",
+    "Observation": "Theo dõi",
+    "Recovered": "Đã phục hồi",
+}
+
+ALERT_STATUS_EN_TO_VI: Dict[str, str] = {
+    "unread": "chưa đọc",
+    "read": "đã đọc",
+    "archived": "đã lưu trữ",
+}
+
 # ── Logging ───────────────────────────────────────────────────────────
 
 def _setup_logging(verbose: bool = False) -> None:
@@ -330,6 +402,7 @@ def transform_companies(companies_df: pd.DataFrame) -> List[Dict[str, Any]]:
         name = str(row.get("company_name", "")).strip()
         if not name or name in seen:
             continue
+        now = datetime.now(timezone.utc)
         seen[name] = {
             "_id": ObjectId(),
             "company_code": str(row.get("company_code", "")).strip(),
@@ -339,7 +412,8 @@ def transform_companies(companies_df: pd.DataFrame) -> List[Dict[str, Any]]:
             "email": None,
             "district": str(row.get("district", "")).strip(),
             "province": str(row.get("province", "")).strip(),
-            "created_at": datetime.now(timezone.utc),
+            "created_at": now,
+            "updated_at": now,
         }
 
     companies = list(seen.values())
@@ -465,7 +539,8 @@ def transform_trees(
         variety = str(row.get("variety", "")).strip()
         planting_dt = parse_date(str(row.get("planting_date", "")))
         tree_age = parse_int(str(row.get("tree_age", "")))
-        status = str(row.get("status", "")).strip()
+        status_en = str(row.get("status", "")).strip()
+        status = TREE_STATUS_EN_TO_VI.get(status_en, status_en)
         last_insp = last_insp_by_tree.get(tree_code)
         qr_code = f"QR-{farm_id}-{tree_code}"
 
@@ -514,6 +589,7 @@ def transform_users(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             continue
         seen.add(user_code)
         
+        now = datetime.now(timezone.utc)
         users.append({
             "_id": ObjectId(),
             "user_code": user_code,
@@ -521,7 +597,9 @@ def transform_users(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "role": str(r.get("role", "")).strip(),
             "email": f"{user_code.lower()}@durianguardian.ai",
             "password_hash": None,
-            "created_at": datetime.now(timezone.utc),
+            "refresh_token": "",
+            "created_at": now,
+            "updated_at": now,
         })
     logger.info("Transformed %d unique users", len(users))
     return users
@@ -556,6 +634,9 @@ def transform_diseases_combined(excel_diseases: List[Dict[str, Any]]) -> List[Di
 def transform_detection_results(
     rows: List[Dict[str, Any]],
     inspection_map: Dict[str, ObjectId],
+    tree_map: Dict[str, ObjectId],
+    farm_map: Dict[str, ObjectId],
+    company_map: Dict[str, ObjectId],
     stats: ETLStats,
 ) -> List[Dict[str, Any]]:
     """Transform detection results from Excel rows."""
@@ -569,13 +650,37 @@ def transform_detection_results(
             
         confidence = parse_float(str(r.get("confidence", ""))) or 0.0
         
+        prediction_en = str(r.get("prediction", "")).strip()
+        prediction_vi = DISEASE_NAME_EN_TO_VI.get(prediction_en, prediction_en)
+
+        tree_code = str(r.get("tree_code", "")).strip()
+        tree_oid = tree_map.get(tree_code)
+        farm_code = str(r.get("farm_code", "")).strip()
+        farm_oid = farm_map.get(farm_code)
+        company_code = str(r.get("company_code", "")).strip()
+        company_oid = company_map.get(company_code)
+
+        now = datetime.now(timezone.utc)
         results.append({
             "_id": ObjectId(),
+            "detection_code": f"DET-{len(results)+1:06d}",
             "inspection_id": insp_oid,
-            "model": str(r.get("model", "")).strip(),
-            "prediction": str(r.get("prediction", "")).strip(),
+            "tree_id": tree_oid,
+            "farm_id": farm_oid,
+            "company_id": company_oid,
+            "model": "YOLOv11",
+            "prediction": prediction_vi,
             "confidence": confidence,
-            "created_at": datetime.now(timezone.utc),
+            "image_path": None,
+            "image_quality": None,
+            "model_version": "v1.1",
+            "processing_time_ms": None,
+            "recommendation": None,
+            "lat": None,
+            "lon": None,
+            "captured_at": None,
+            "updated_at": None,
+            "created_at": now,
         })
     logger.info("Transformed %d detection results", len(results))
     return results
@@ -586,6 +691,8 @@ def transform_detection_results(
 def transform_disease_history(
     rows: List[Dict[str, Any]],
     tree_map: Dict[str, ObjectId],
+    farm_map: Dict[str, ObjectId],
+    company_map: Dict[str, ObjectId],
     stats: ETLStats,
 ) -> List[Dict[str, Any]]:
     """Transform disease history from Excel rows."""
@@ -601,14 +708,36 @@ def transform_disease_history(
         if not dt:
             stats.invalid_dates += 1
             continue
-            
+
+        disease_en = str(r.get("disease", "")).strip()
+        disease_vi = DISEASE_NAME_EN_TO_VI.get(disease_en, disease_en)
+
+        action_en = str(r.get("action", "")).strip()
+        action_vi = ACTION_EN_TO_VI.get(action_en, action_en)
+
+        farm_code = str(r.get("farm_code", "")).strip()
+        farm_oid = farm_map.get(farm_code)
+        company_code = str(r.get("company_code", "")).strip()
+        company_oid = company_map.get(company_code)
+
+        now = datetime.now(timezone.utc)
         history.append({
             "_id": ObjectId(),
             "tree_id": tree_oid,
-            "disease": str(r.get("disease", "")).strip(),
+            "farm_id": farm_oid,
+            "company_id": company_oid,
+            "disease": disease_vi,
             "date": dt,
-            "action": str(r.get("action", "")).strip(),
-            "created_at": datetime.now(timezone.utc),
+            "action": action_vi,
+            "severity": None,
+            "symptoms": None,
+            "diagnosis_method": None,
+            "detected_by_user_id": None,
+            "detection_result_id": None,
+            "resolved_at": None,
+            "resolution_notes": None,
+            "updated_at": None,
+            "created_at": now,
         })
     logger.info("Transformed %d disease history records", len(history))
     return history
@@ -620,11 +749,12 @@ def transform_alerts(
     rows: List[Dict[str, Any]],
     farm_map: Dict[str, ObjectId],
     tree_map: Dict[str, ObjectId],
+    company_map: Dict[str, ObjectId],
     stats: ETLStats,
 ) -> List[Dict[str, Any]]:
     """Transform alerts from Excel rows."""
     alerts = []
-    for r in rows:
+    for i, r in enumerate(rows):
         farm_code = str(r.get("farm_code", "")).strip()
         tree_code = str(r.get("tree_code", "")).strip()
         
@@ -642,15 +772,40 @@ def transform_alerts(
         if not dt:
             stats.invalid_dates += 1
             continue
-            
+
+        alert_type_en = str(r.get("alert_type", "")).strip()
+        alert_type_vi = ALERT_TYPE_EN_TO_VI.get(alert_type_en, alert_type_en)
+
+        priority_en = str(r.get("priority", "")).strip()
+        priority_vi = RISK_LEVEL_EN_TO_VI.get(priority_en, priority_en)
+
+        company_code = str(r.get("company_code", "")).strip()
+        company_oid = company_map.get(company_code)
+
+        now = datetime.now(timezone.utc)
         alerts.append({
             "_id": ObjectId(),
+            "alert_code": f"ALT-{i+1:06d}",
             "farm_id": farm_oid,
             "tree_id": tree_oid,
-            "alert_type": str(r.get("alert_type", "")).strip(),
-            "priority": str(r.get("priority", "")).strip(),
+            "company_id": company_oid,
+            "inspection_id": None,
+            "detection_result_id": None,
+            "disease_history_id": None,
+            "disease_id": None,
+            "alert_type": alert_type_vi,
+            "alert_level": priority_vi,
+            "title": f"Cảnh báo: {alert_type_vi}",
+            "message": f"Phát hiện {alert_type_vi} trên cây {tree_code}",
+            "recommendation": None,
+            "priority": priority_vi,
+            "status": "chưa đọc",
+            "is_read": False,
+            "acknowledged_by": None,
+            "acknowledged_at": None,
             "date": dt,
-            "created_at": datetime.now(timezone.utc),
+            "updated_at": None,
+            "created_at": now,
         })
     logger.info("Transformed %d alerts", len(alerts))
     return alerts
@@ -776,7 +931,10 @@ def transform_inspections(
         humidity = parse_float(str(row.get("humidity", "")))
         rainfall = parse_float(str(row.get("rainfall", "")))
 
-        health_status = str(row.get("health_status", "")).strip()
+        health_status_en = str(row.get("health_status", "")).strip()
+        health_status = HEALTH_STATUS_EN_TO_VI.get(health_status_en, health_status_en)
+
+        predicted_vi = DISEASE_NAME_EN_TO_VI.get(raw_disease, raw_disease)
 
         inspections.append({
             "_id": ObjectId(),
@@ -791,7 +949,7 @@ def transform_inspections(
             "rainfall_mm": rainfall,
             "wind_speed": None,
             "confidence": confidence,
-            "predicted_disease": raw_disease,
+            "predicted_disease": predicted_vi,
             "health_status": health_status,
             "severity": None,
             "remark": None,
@@ -1199,15 +1357,21 @@ def run_etl(
     # Detection Results
     logger.info("  Normalizing detection results...")
     inspection_lookup = {insp["inspection_code"]: insp["_id"] for insp in inspections}
-    detection_results = transform_detection_results(det_rows, inspection_lookup, stats)
+    detection_results = transform_detection_results(
+        det_rows, inspection_lookup, tree_lookup_by_code, farm_map, company_map, stats
+    )
 
     # Disease History
     logger.info("  Normalizing disease history...")
-    disease_history = transform_disease_history(his_rows, tree_lookup_by_code, stats)
+    disease_history = transform_disease_history(
+        his_rows, tree_lookup_by_code, farm_map, company_map, stats
+    )
 
     # Alerts
     logger.info("  Normalizing alerts...")
-    alerts = transform_alerts(alerts_rows, farm_map, tree_lookup_by_code, stats)
+    alerts = transform_alerts(
+        alerts_rows, farm_map, tree_lookup_by_code, company_map, stats
+    )
 
     if dry_run:
         logger.info("")
