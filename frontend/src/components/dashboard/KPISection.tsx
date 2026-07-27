@@ -54,13 +54,12 @@ export default function KPISection({
         valueColor="text-red-500"
       />
       <KPICard
-        icon={<TrendingUp className="w-7 h-7 text-emerald-600" />}
-        iconBg="bg-emerald-100"
+        icon={<TrendingUp className="w-7 h-7 text-gray-400" />}
+        iconBg="bg-gray-100"
         title="ƯỚC TÍNH SẢN LƯỢNG"
-        value="18.4"
-        valueSuffix="t"
-        subtitle="Dự báo AI đang chờ"
-        valueColor="text-emerald-600"
+        value="--"
+        subtitle="Sẽ khả dụng trong phiên bản AI"
+        valueColor="text-gray-400"
       />
     </div>
   );

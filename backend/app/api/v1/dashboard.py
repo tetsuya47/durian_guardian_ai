@@ -10,7 +10,7 @@ from app.core.response import success_response
 from app.dashboard.service import DashboardService
 from app.database.mongodb import get_database
 from app.models import UserRole
-from app.schemas.dashboard import DashboardOut
+from app.schemas.dashboard import DashboardOut, FarmDashboardOut, WidgetsOut
 from app.schemas.response_models import SuccessResponse
 
 logger = logging.getLogger(__name__)
@@ -41,3 +41,28 @@ async def get_heatmap(
     result = await service.get_heatmap()
     logger.info("Heatmap fetched for user %s", user_id)
     return success_response(data=result)
+
+
+@router.get("/widgets", response_model=SuccessResponse[WidgetsOut])
+async def get_widgets(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    _=Depends(allow_all),
+):
+    service = DashboardService(db)
+    result = await service.get_widgets()
+    logger.info("Dashboard widgets fetched for user %s", user_id)
+    return success_response(data=result.model_dump())
+
+
+@router.get("/farm/{farm_id}", response_model=SuccessResponse[FarmDashboardOut])
+async def get_farm_dashboard(
+    farm_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    _=Depends(allow_all),
+):
+    service = DashboardService(db)
+    result = await service.get_farm_dashboard(farm_id)
+    logger.info("Farm dashboard fetched for farm %s by user %s", farm_id, user_id)
+    return success_response(data=result.model_dump())

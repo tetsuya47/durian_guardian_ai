@@ -3,6 +3,7 @@ import AppLayout from "@/layouts/AppLayout";
 import LoginPage from "@/pages/auth/Login";
 import RegisterPage from "@/pages/auth/Register";
 import DashboardPage from "@/pages/dashboard/Dashboard";
+import FarmDashboardPage from "@/pages/dashboard/FarmDashboard";
 import CompaniesPage from "@/pages/companies/Companies";
 import FarmsPage from "@/pages/farms/Farms";
 import ZonesPage from "@/pages/zones/Zones";
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <DashboardPage />,
+      },
+      {
+        path: "dashboard/farm/:farmId",
+        element: <FarmDashboardPage />,
       },
       {
         path: "companies",

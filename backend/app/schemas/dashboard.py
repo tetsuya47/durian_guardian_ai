@@ -46,3 +46,128 @@ class DashboardOut(BaseModel):
     recent_detection: list[DetectionBrief]
     alerts: list[AlertBrief]
     risk_trend: list[RiskTrendItem]
+
+
+class WidgetInspection(BaseModel):
+    id: str
+    time: str
+    treeCode: str
+    farm: str
+    zone: str
+    disease: str
+    risk: float
+    inspector: str
+    status: str
+    action: str
+
+
+class WidgetDetection(BaseModel):
+    id: str
+    treeCode: str
+    disease: str
+    confidence: float
+    severity: str
+    farm: str
+    zone: str
+    imageUrl: str | None = None
+    createdAt: str
+
+
+class WidgetPriorityTree(BaseModel):
+    id: int
+    treeId: str
+    riskScore: int
+    status: str
+    farm: str
+    zone: str
+    disease: str
+
+
+class WidgetAlert(BaseModel):
+    id: str
+    treeId: str
+    priority: str
+    title: str
+    content: str
+    createdAt: str
+
+
+class WidgetAlertCounts(BaseModel):
+    high: int
+    medium: int
+    low: int
+
+
+class WidgetFarmOption(BaseModel):
+    id: str
+    name: str
+
+
+class WidgetZoneOption(BaseModel):
+    id: str
+    name: str
+
+
+class WidgetsOut(BaseModel):
+    inspections: list[WidgetInspection]
+    detections: list[WidgetDetection]
+    priorityTrees: list[WidgetPriorityTree]
+    alertCounts: WidgetAlertCounts
+    alerts: list[WidgetAlert]
+    farms: list[WidgetFarmOption]
+    zones: list[WidgetZoneOption]
+
+
+# ── Farm Dashboard DTOs ──────────────────────────────────────────────
+
+
+class FarmDashboardKpi(BaseModel):
+    total_trees: int
+    total_zones: int
+    healthy_percent: float
+    high_risk_trees: int
+    estimated_yield: str
+
+
+class FarmHealthDistribution(BaseModel):
+    healthy: int
+    monitoring: int
+    diseased: int
+
+
+class FarmHeatmapTree(BaseModel):
+    tree_id: str
+    tree_code: str
+    zone_id: str
+    zone_name: str
+    status: str
+
+
+class FarmZone(BaseModel):
+    id: str
+    name: str
+    tree_count: int
+    healthy_count: int
+    diseased_count: int
+    risk_level: str
+
+
+class FarmYield(BaseModel):
+    estimated_yield: str
+    avg_yield_per_tree: str
+    avg_yield_per_hectare: str
+
+
+class FarmAlertSummary(BaseModel):
+    high: int
+    medium: int
+    low: int
+
+
+class FarmDashboardOut(BaseModel):
+    kpi: FarmDashboardKpi
+    health_distribution: FarmHealthDistribution
+    heatmap: list[FarmHeatmapTree]
+    zones: list[FarmZone]
+    yield_data: FarmYield
+    alerts: FarmAlertSummary

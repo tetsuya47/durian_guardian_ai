@@ -54,7 +54,7 @@ function KPICardInner({
       {valueSuffix ? (
         <div style={{ display: "flex", alignItems: "baseline", marginBottom: "4px" }}>
           <span className={`text-[48px] font-bold ${valueColor}`} style={{ lineHeight: "1" }}>{value}</span>
-          <span className={`text-[34px] font-semibold ${valueColor}`} style={{ lineHeight: "1", marginLeft: "4px" }}>{valueSuffix}</span>
+          <span className={`text-[34px] font-semibold ${valueColor}`} style={{ lineHeight: "1", marginLeft: "4px", whiteSpace: "nowrap" }}>{valueSuffix}</span>
         </div>
       ) : (
         <span className={`text-[48px] font-bold ${valueColor}`} style={{ marginBottom: "4px", lineHeight: "48px" }}>

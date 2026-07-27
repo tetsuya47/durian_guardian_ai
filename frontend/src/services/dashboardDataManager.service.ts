@@ -1,28 +1,4 @@
-import { farmService } from "./farm.service";
-import { zoneService } from "./zone.service";
-import { treeService } from "./tree.service";
-import { inspectionService } from "./inspection.service";
-import { detectionResultService } from "./detectionResult.service";
-import { alertService } from "./alert.service";
 import api from "../api";
-import type { Farm } from "../types/farm";
-import type { Zone } from "../types/zone";
-import type { Tree } from "../types/tree";
-import type { Inspection } from "../types/inspection";
-import type { DetectionResult } from "../types/detectionResult";
-import type { Alert } from "../types/alert";
-
-const MAX_DASHBOARD_PAGE_SIZE = 100;
-
-export interface DashboardErrors {
-  farms: string | null;
-  zones: string | null;
-  trees: string | null;
-  alerts: string | null;
-  detections: string | null;
-  inspections: string | null;
-  dashboard: string | null;
-}
 
 export interface BackendKpi {
   total_farms: number;
@@ -44,163 +20,206 @@ export interface HeatmapTree {
   tree_id: string;
   tree_code: string;
   zone_id: string;
+  zone_name: string;
+  farm_id: string;
   status: string;
 }
 
-export interface HeatmapResponse {
-  total: number;
-  data: HeatmapTree[];
+export interface WidgetInspection {
+  id: string;
+  time: string;
+  treeCode: string;
+  farm: string;
+  zone: string;
+  disease: string;
+  risk: number;
+  inspector: string;
+  status: string;
+  action: string;
 }
 
-export interface DashboardData {
-  farms: Farm[];
-  zones: Zone[];
-  trees: Tree[];
-  alerts: Alert[];
-  detections: DetectionResult[];
-  inspections: Inspection[];
-  errors: DashboardErrors;
+export interface WidgetDetection {
+  id: string;
+  treeCode: string;
+  disease: string;
+  confidence: number;
+  severity: string;
+  farm: string;
+  zone: string;
+  imageUrl: string | null;
+  createdAt: string;
+}
+
+export interface WidgetPriorityTree {
+  id: number;
+  treeId: string;
+  riskScore: number;
+  status: string;
+  farm: string;
+  zone: string;
+  disease: string;
+}
+
+export interface WidgetAlertCounts {
+  high: number;
+  medium: number;
+  low: number;
+}
+
+export interface WidgetAlert {
+  id: string;
+  treeId: string;
+  priority: string;
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface WidgetFarmOption {
+  id: string;
+  name: string;
+}
+
+export interface WidgetZoneOption {
+  id: string;
+  name: string;
+}
+
+export interface WidgetsData {
+  inspections: WidgetInspection[];
+  detections: WidgetDetection[];
+  priorityTrees: WidgetPriorityTree[];
+  alertCounts: WidgetAlertCounts;
+  alerts: WidgetAlert[];
+  farms: WidgetFarmOption[];
+  zones: WidgetZoneOption[];
+}
+
+export interface DashboardResult {
   backendKpi: BackendKpi;
   systemOverview: SystemOverviewData;
+}
+
+export interface HeatmapResult {
   heatmapData: HeatmapTree[];
 }
 
-const EMPTY_ERRORS: DashboardErrors = {
-  farms: null, zones: null, trees: null, alerts: null,
-  detections: null, inspections: null, dashboard: null,
+export interface WidgetsResult {
+  widgets: WidgetsData;
+}
+
+const DEFAULT_KPI: BackendKpi = {
+  total_farms: 0, total_trees: 0, healthy_trees: 0, diseased_trees: 0, high_risk_trees: 0,
+};
+const DEFAULT_OVERVIEW: SystemOverviewData = {
+  inspection_today: 0, ai_detection_today: 0, new_alerts_today: 0, pending_review: 0, updated_at: "",
+};
+const DEFAULT_WIDGETS: WidgetsData = {
+  inspections: [], detections: [], priorityTrees: [],
+  alertCounts: { high: 0, medium: 0, low: 0 },
+  alerts: [], farms: [], zones: [],
 };
 
-type PaginatedResponse<T> = T[] & { total?: number };
-
-async function fetchAllPages<T>(
-  firstPage: PaginatedResponse<T>,
-  fetchPage: (page: number) => Promise<T[]>,
-): Promise<T[]> {
-  const total = firstPage.total ?? firstPage.length;
-  if (total <= firstPage.length) return [...firstPage];
-
-  const remainingPages = Math.ceil(total / MAX_DASHBOARD_PAGE_SIZE) - 1;
-  const pagePromises: Promise<T[]>[] = [];
-  for (let p = 2; p <= remainingPages + 1; p++) {
-    pagePromises.push(fetchPage(p).catch(() => [] as T[]));
+export async function loadDashboardCore(): Promise<DashboardResult> {
+  try {
+    const resp = await api.get("/dashboard").then((r) => r.data);
+    return {
+      backendKpi: resp?.kpi ?? DEFAULT_KPI,
+      systemOverview: resp?.system_overview ?? DEFAULT_OVERVIEW,
+    };
+  } catch {
+    return { backendKpi: DEFAULT_KPI, systemOverview: DEFAULT_OVERVIEW };
   }
-  const restPages = await Promise.all(pagePromises);
-  const all: T[] = [...firstPage];
-  for (const page of restPages) {
-    all.push(...page);
+}
+
+export async function loadHeatmap(): Promise<HeatmapResult> {
+  try {
+    const resp = await api.get("/dashboard/heatmap").then((r) => r.data);
+    return { heatmapData: resp?.data ?? [] };
+  } catch {
+    return { heatmapData: [] };
   }
-  return all;
 }
 
-async function fetchAllTreeData(firstPage: PaginatedResponse<Tree>): Promise<Tree[]> {
-  return fetchAllPages(firstPage, (p) =>
-    treeService.get<Tree[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
-  );
-}
-
-async function fetchAllZoneData(firstPage: PaginatedResponse<Zone>): Promise<Zone[]> {
-  return fetchAllPages(firstPage, (p) =>
-    zoneService.get<Zone[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
-  );
-}
-
-async function fetchAllFarmData(firstPage: PaginatedResponse<Farm>): Promise<Farm[]> {
-  return fetchAllPages(firstPage, (p) =>
-    farmService.get<Farm[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
-  );
-}
-
-async function fetchAllInspectionData(firstPage: PaginatedResponse<Inspection>): Promise<Inspection[]> {
-  return fetchAllPages(firstPage, (p) =>
-    inspectionService.get<Inspection[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
-  );
-}
-
-async function fetchAllDetectionData(firstPage: PaginatedResponse<DetectionResult>): Promise<DetectionResult[]> {
-  return fetchAllPages(firstPage, (p) =>
-    detectionResultService.get<DetectionResult[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
-  );
-}
-
-async function fetchAllAlertData(firstPage: PaginatedResponse<Alert>): Promise<Alert[]> {
-  return fetchAllPages(firstPage, (p) =>
-    alertService.get<Alert[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE, page: p } }),
-  );
-}
-
-export async function loadDashboardData(): Promise<DashboardData> {
-  const results = await Promise.allSettled([
-    farmService.get<Farm[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
-    zoneService.get<Zone[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
-    treeService.get<Tree[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
-    inspectionService.get<Inspection[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
-    detectionResultService.get<DetectionResult[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
-    alertService.get<Alert[]>({ params: { per_page: MAX_DASHBOARD_PAGE_SIZE } }),
-    api.get("/dashboard").then((r) => r.data).catch(() => null),
-    api.get("/dashboard/heatmap").then((r) => r.data).catch(() => null),
-  ]);
-
-  const extract = <T>(r: PromiseSettledResult<T>): T => {
-    if (r.status === "fulfilled") return r.value;
-    return [] as unknown as T;
-  };
-  const extractError = (r: PromiseSettledResult<unknown>): string | null => {
-    if (r.status === "rejected") return r.reason instanceof Error ? r.reason.message : String(r.reason);
-    return null;
-  };
-
-  const treesFirstPage = (extract(results[2]) || []) as PaginatedResponse<Tree>;
-  const zonesFirstPage = (extract(results[1]) || []) as PaginatedResponse<Zone>;
-  const farmsFirstPage = (extract(results[0]) || []) as PaginatedResponse<Farm>;
-  const inspectionsFirstPage = (extract(results[3]) || []) as PaginatedResponse<Inspection>;
-  const detectionsFirstPage = (extract(results[4]) || []) as PaginatedResponse<DetectionResult>;
-  const alertsFirstPage = (extract(results[5]) || []) as PaginatedResponse<Alert>;
-
-  const [allTrees, allZones, allFarms] = await Promise.all([
-    fetchAllTreeData(treesFirstPage),
-    fetchAllZoneData(zonesFirstPage),
-    fetchAllFarmData(farmsFirstPage),
-  ]);
-
-  const allInspections = [...inspectionsFirstPage];
-  const allDetections = [...detectionsFirstPage];
-  const allAlerts = [...alertsFirstPage];
-
-  const dashboardResult = results[6];
-  let backendKpi: BackendKpi = { total_farms: 0, total_trees: 0, healthy_trees: 0, diseased_trees: 0, high_risk_trees: 0 };
-  let systemOverview: SystemOverviewData = { inspection_today: 0, ai_detection_today: 0, new_alerts_today: 0, pending_review: 0, updated_at: "" };
-  if (dashboardResult.status === "fulfilled" && dashboardResult.value) {
-    const resp = dashboardResult.value as { kpi?: BackendKpi; system_overview?: SystemOverviewData };
-    backendKpi = resp?.kpi ?? backendKpi;
-    systemOverview = resp?.system_overview ?? systemOverview;
+export async function loadWidgets(): Promise<WidgetsResult> {
+  try {
+    const resp = await api.get("/dashboard/widgets").then((r) => r.data);
+    return {
+      widgets: resp ?? DEFAULT_WIDGETS,
+    };
+  } catch {
+    return { widgets: DEFAULT_WIDGETS };
   }
+}
 
-  const heatmapResult = results[7];
-  let heatmapData: HeatmapTree[] = [];
-  if (heatmapResult.status === "fulfilled" && heatmapResult.value) {
-    const resp = heatmapResult.value as HeatmapResponse;
-    heatmapData = resp?.data ?? [];
+// ── Farm Dashboard ────────────────────────────────────────────────
+
+export interface FarmDashboardKpi {
+  total_trees: number;
+  total_zones: number;
+  healthy_percent: number;
+  high_risk_trees: number;
+  estimated_yield: string;
+}
+
+export interface FarmHealthDistribution {
+  healthy: number;
+  monitoring: number;
+  diseased: number;
+}
+
+export interface FarmHeatmapTree {
+  tree_id: string;
+  tree_code: string;
+  zone_id: string;
+  zone_name: string;
+  status: string;
+}
+
+export interface FarmZone {
+  id: string;
+  name: string;
+  tree_count: number;
+  healthy_count: number;
+  diseased_count: number;
+  risk_level: string;
+}
+
+export interface FarmYield {
+  estimated_yield: string;
+  avg_yield_per_tree: string;
+  avg_yield_per_hectare: string;
+}
+
+export interface FarmAlertSummary {
+  high: number;
+  medium: number;
+  low: number;
+}
+
+export interface FarmDashboardData {
+  kpi: FarmDashboardKpi;
+  health_distribution: FarmHealthDistribution;
+  heatmap: FarmHeatmapTree[];
+  zones: FarmZone[];
+  yield_data: FarmYield;
+  alerts: FarmAlertSummary;
+}
+
+const DEFAULT_FARM_DASHBOARD: FarmDashboardData = {
+  kpi: { total_trees: 0, total_zones: 0, healthy_percent: 0, high_risk_trees: 0, estimated_yield: "--" },
+  health_distribution: { healthy: 0, monitoring: 0, diseased: 0 },
+  heatmap: [],
+  zones: [],
+  yield_data: { estimated_yield: "--", avg_yield_per_tree: "--", avg_yield_per_hectare: "--" },
+  alerts: { high: 0, medium: 0, low: 0 },
+};
+
+export async function loadFarmDashboard(farmId: string): Promise<FarmDashboardData> {
+  try {
+    const resp = await api.get(`/dashboard/farm/${farmId}`).then((r) => r.data);
+    return resp ?? DEFAULT_FARM_DASHBOARD;
+  } catch {
+    return DEFAULT_FARM_DASHBOARD;
   }
-
-  return {
-    farms: allFarms,
-    zones: allZones,
-    trees: allTrees,
-    alerts: allAlerts,
-    detections: allDetections,
-    inspections: allInspections,
-    backendKpi,
-    systemOverview,
-    heatmapData,
-    errors: {
-      ...EMPTY_ERRORS,
-      farms: extractError(results[0]),
-      zones: extractError(results[1]),
-      trees: extractError(results[2]),
-      alerts: extractError(results[5]),
-      detections: extractError(results[4]),
-      inspections: extractError(results[3]),
-      dashboard: extractError(results[6]),
-    },
-  };
 }
