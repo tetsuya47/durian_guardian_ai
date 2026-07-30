@@ -71,12 +71,12 @@ export default function FarmDashboard() {
       zoneTrees.sort((a, b) => (a.tree_code || "").localeCompare(b.tree_code || ""));
       let h = 0, m = 0, d = 0;
       const cells: CellData[] = zoneTrees.map((tree) => {
-        if (tree.status === "Healthy") h++;
-        else if (tree.status === "Monitoring") m++;
+        if (tree.status === "Healthy" || tree.status === "Khỏe mạnh") h++;
+        else if (tree.status === "Monitoring" || tree.status === "Đang theo dõi") m++;
         else d++;
         return {
           id: tree.tree_id,
-          risk: tree.status === "Healthy" ? "healthy" : tree.status === "Monitoring" ? "monitor" : "diseased",
+          risk: tree.status === "Healthy" || tree.status === "Khỏe mạnh" ? "healthy" : tree.status === "Monitoring" || tree.status === "Đang theo dõi" ? "monitor" : "diseased",
           treeId: tree.tree_code || tree.tree_id,
           zone: zoneName,
           riskScore: 0,
@@ -100,8 +100,8 @@ export default function FarmDashboard() {
   const heatmapSummary = useMemo(() => {
     let healthy = 0, monitor = 0, diseased = 0;
     data.heatmap.forEach((t) => {
-      if (t.status === "Healthy") healthy++;
-      else if (t.status === "Monitoring") monitor++;
+      if (t.status === "Healthy" || t.status === "Khỏe mạnh") healthy++;
+      else if (t.status === "Monitoring" || t.status === "Đang theo dõi") monitor++;
       else diseased++;
     });
     return { healthy, monitor, diseased };
@@ -153,7 +153,7 @@ export default function FarmDashboard() {
           </Link>
           <div>
             <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Farm Dashboard</h1>
-            <p className="text-[13px] text-gray-500 font-medium">Phân tích hiệu suất trang trại</p>
+            <p className="text-[13px] text-gray-500 font-medium">{data.season_name ? `${data.season_name}${data.season_year ? ` ${data.season_year}` : ''}` : 'Phân tích hiệu suất trang trại'}</p>
           </div>
         </div>
         <button
@@ -212,12 +212,13 @@ export default function FarmDashboard() {
               valueColor="text-red-500"
             />
             <KPICard
-              icon={<TrendingUp className="w-7 h-7 text-gray-400" />}
-              iconBg="bg-gray-100"
-              title="ƯỚC TÍNH SẢN LƯỢNG"
-              value="--"
-              subtitle="Sẽ khả dụng trong phiên bản AI"
-              valueColor="text-gray-400"
+              icon={<TrendingUp className={`w-7 h-7 ${data.kpi.farm_score != null ? 'text-emerald-600' : 'text-gray-400'}`} />}
+              iconBg={data.kpi.farm_score != null ? 'bg-emerald-100' : 'bg-gray-100'}
+              title="ĐIỂM TRANG TRẠI"
+              value={data.kpi.farm_score != null ? String(data.kpi.farm_score) : '--'}
+              subtitle={data.kpi.overall_status ?? 'Sẽ khả dụng trong phiên bản AI'}
+              subtitleColor={data.kpi.farm_score != null ? (data.kpi.farm_score >= 70 ? '#15803D' : data.kpi.farm_score >= 50 ? '#D97706' : '#DC2626') : undefined}
+              valueColor={data.kpi.farm_score != null ? 'text-emerald-600' : 'text-gray-400'}
             />
           </>
         )}
@@ -343,26 +344,80 @@ export default function FarmDashboard() {
             <Card className="flex flex-col" style={{ height: "280px" }}>
               <SectionTitle
                 icon={<Wheat className="w-5 h-5 text-amber-600" />}
-                title="Sản lượng ước tính"
-                subtitle="Dữ liệu sẽ có khi tích hợp AI"
+                title="Sản lượng thu hoạch"
+                subtitle={data.yield_data.yield_kg != null ? 'Dữ liệu thu hoạch thực tế' : 'Dữ liệu sẽ có khi tích hợp AI'}
                 size="section"
               />
-              <div className="flex-1 flex flex-col items-center justify-center" style={{ gap: "16px" }}>
-                <div className="text-center">
-                  <span className="text-[36px] font-bold text-gray-300">--</span>
-                  <span className="text-[13px] text-gray-400 font-medium ml-1">kg/ha</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 w-full max-w-[240px]">
-                  <div className="text-center p-3 bg-gray-50 rounded-[10px]">
-                    <span className="text-[14px] font-bold text-gray-400 block">--</span>
-                    <span className="text-[11px] text-gray-400 font-medium">kg/cây</span>
+              {data.yield_data.yield_kg != null ? (
+                <div className="flex-1 flex flex-col justify-center" style={{ gap: "6px", padding: "0 16px 12px" }}>
+                  <div className="text-center">
+                    <span className="text-[32px] font-bold text-amber-700">{data.yield_data.yield_kg.toLocaleString()}</span>
+                    <span className="text-[13px] text-gray-500 font-medium ml-1">kg</span>
                   </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-[10px]">
-                    <span className="text-[14px] font-bold text-gray-400 block">--</span>
-                    <span className="text-[11px] text-gray-400 font-medium">kg/ha</span>
+                  <div className="grid grid-cols-2 gap-1 text-center text-[11px]">
+                    {data.yield_data.average_weight != null && (
+                      <div className="p-1.5 bg-gray-50 rounded-[6px]">
+                        <span className="font-bold text-gray-800">{data.yield_data.average_weight}g</span>
+                        <span className="text-gray-400 ml-1">/quả</span>
+                      </div>
+                    )}
+                    {data.yield_data.selling_price != null && (
+                      <div className="p-1.5 bg-gray-50 rounded-[6px]">
+                        <span className="font-bold text-gray-800">{data.yield_data.selling_price.toLocaleString()}đ</span>
+                        <span className="text-gray-400 ml-1">/kg</span>
+                      </div>
+                    )}
+                    {data.yield_data.total_revenue != null && (
+                      <div className="p-1.5 bg-gray-50 rounded-[6px]">
+                        <span className="font-bold text-gray-800">{data.yield_data.total_revenue.toLocaleString()}đ</span>
+                        <span className="text-gray-400 ml-1">doanh thu</span>
+                      </div>
+                    )}
+                    {data.yield_data.buyer && (
+                      <div className="p-1.5 bg-gray-50 rounded-[6px]">
+                        <span className="font-bold text-gray-800 truncate block">{data.yield_data.buyer}</span>
+                        <span className="text-gray-400">người mua</span>
+                      </div>
+                    )}
+                  </div>
+                  {(data.yield_data.grade_a != null || data.yield_data.grade_b != null || data.yield_data.grade_c != null) && (
+                    <div className="flex gap-2 justify-center">
+                      {data.yield_data.grade_a != null && (
+                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[4px]">Loại A {data.yield_data.grade_a}%</span>
+                      )}
+                      {data.yield_data.grade_b != null && (
+                        <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-[4px]">Loại B {data.yield_data.grade_b}%</span>
+                      )}
+                      {data.yield_data.grade_c != null && (
+                        <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-[4px]">Loại C {data.yield_data.grade_c}%</span>
+                      )}
+                    </div>
+                  )}
+                  {(data.kpi.target_yield != null || data.kpi.target_tree_health != null) && (
+                    <div className="flex gap-3 justify-center text-[11px] text-gray-500 font-medium">
+                      {data.kpi.target_yield != null && <span>Mục tiêu: {data.kpi.target_yield.toLocaleString()} kg</span>}
+                      {data.kpi.target_tree_health != null && <span>Sức khỏe: {data.kpi.target_tree_health}%</span>}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center" style={{ gap: "16px" }}>
+                  <div className="text-center">
+                    <span className="text-[36px] font-bold text-gray-300">--</span>
+                    <span className="text-[13px] text-gray-400 font-medium ml-1">kg/ha</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 w-full max-w-[240px]">
+                    <div className="text-center p-3 bg-gray-50 rounded-[10px]">
+                      <span className="text-[14px] font-bold text-gray-400 block">--</span>
+                      <span className="text-[11px] text-gray-400 font-medium">kg/cây</span>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-[10px]">
+                      <span className="text-[14px] font-bold text-gray-400 block">--</span>
+                      <span className="text-[11px] text-gray-400 font-medium">kg/ha</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </Card>
           )}
         </div>

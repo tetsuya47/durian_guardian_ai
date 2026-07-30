@@ -121,35 +121,23 @@ const DEFAULT_WIDGETS: WidgetsData = {
 };
 
 export async function loadDashboardCore(): Promise<DashboardResult> {
-  try {
-    const resp = await api.get("/dashboard").then((r) => r.data);
-    return {
-      backendKpi: resp?.kpi ?? DEFAULT_KPI,
-      systemOverview: resp?.system_overview ?? DEFAULT_OVERVIEW,
-    };
-  } catch {
-    return { backendKpi: DEFAULT_KPI, systemOverview: DEFAULT_OVERVIEW };
-  }
+  const resp = await api.get("/dashboard").then((r) => r.data);
+  return {
+    backendKpi: resp?.kpi ?? DEFAULT_KPI,
+    systemOverview: resp?.system_overview ?? DEFAULT_OVERVIEW,
+  };
 }
 
 export async function loadHeatmap(): Promise<HeatmapResult> {
-  try {
-    const resp = await api.get("/dashboard/heatmap").then((r) => r.data);
-    return { heatmapData: resp?.data ?? [] };
-  } catch {
-    return { heatmapData: [] };
-  }
+  const resp = await api.get("/dashboard/heatmap").then((r) => r.data);
+  return { heatmapData: resp?.data ?? [] };
 }
 
 export async function loadWidgets(): Promise<WidgetsResult> {
-  try {
-    const resp = await api.get("/dashboard/widgets").then((r) => r.data);
-    return {
-      widgets: resp ?? DEFAULT_WIDGETS,
-    };
-  } catch {
-    return { widgets: DEFAULT_WIDGETS };
-  }
+  const resp = await api.get("/dashboard/widgets").then((r) => r.data);
+  return {
+    widgets: resp ?? DEFAULT_WIDGETS,
+  };
 }
 
 // ── Farm Dashboard ────────────────────────────────────────────────
@@ -160,6 +148,14 @@ export interface FarmDashboardKpi {
   healthy_percent: number;
   high_risk_trees: number;
   estimated_yield: string;
+  farm_score?: number;
+  health_score?: number;
+  yield_score?: number;
+  risk_index?: number;
+  overall_status?: string;
+  target_yield?: number;
+  target_tree_health?: number;
+  target_disease_rate?: number;
 }
 
 export interface FarmHealthDistribution {
@@ -189,6 +185,14 @@ export interface FarmYield {
   estimated_yield: string;
   avg_yield_per_tree: string;
   avg_yield_per_hectare: string;
+  yield_kg?: number;
+  average_weight?: number;
+  grade_a?: number;
+  grade_b?: number;
+  grade_c?: number;
+  selling_price?: number;
+  total_revenue?: number;
+  buyer?: string;
 }
 
 export interface FarmAlertSummary {
@@ -204,6 +208,8 @@ export interface FarmDashboardData {
   zones: FarmZone[];
   yield_data: FarmYield;
   alerts: FarmAlertSummary;
+  season_name?: string;
+  season_year?: number;
 }
 
 const DEFAULT_FARM_DASHBOARD: FarmDashboardData = {
@@ -216,10 +222,41 @@ const DEFAULT_FARM_DASHBOARD: FarmDashboardData = {
 };
 
 export async function loadFarmDashboard(farmId: string): Promise<FarmDashboardData> {
-  try {
-    const resp = await api.get(`/dashboard/farm/${farmId}`).then((r) => r.data);
-    return resp ?? DEFAULT_FARM_DASHBOARD;
-  } catch {
-    return DEFAULT_FARM_DASHBOARD;
-  }
+  const resp = await api.get(`/dashboard/farm/${farmId}`).then((r) => r.data);
+  return resp ?? DEFAULT_FARM_DASHBOARD;
+}
+
+// ── Farm Performance (Enterprise Dashboard) ─────────────────────────
+
+export interface FarmPerformanceDTO {
+  average_farm_score: number | null;
+  farms_evaluated: number;
+  total_farms: number;
+  healthy_percent: number | null;
+  high_risk_count: number;
+  total_target_yield: number | null;
+  total_actual_yield: number | null;
+  yield_achievement_pct: number | null;
+  overall_status: string | null;
+  ai_insight: string;
+}
+
+const DEFAULT_FARM_PERFORMANCE: FarmPerformanceDTO = {
+  average_farm_score: null,
+  farms_evaluated: 0,
+  total_farms: 0,
+  healthy_percent: null,
+  high_risk_count: 0,
+  total_target_yield: null,
+  total_actual_yield: null,
+  yield_achievement_pct: null,
+  overall_status: null,
+  ai_insight: "Chưa có dữ liệu hiệu suất trang trại.",
+};
+
+export async function loadFarmPerformance(farmId?: string): Promise<FarmPerformanceDTO> {
+  const params: Record<string, string> = {};
+  if (farmId) params.farm_id = farmId;
+  const resp = await api.get("/dashboard/farm-performance", { params }).then((r) => r.data);
+  return resp ?? DEFAULT_FARM_PERFORMANCE;
 }

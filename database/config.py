@@ -27,7 +27,7 @@ class Settings:
     )
 
     # ── Database ─────────────────────────────────────────────────────
-    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "durian_guardian_ai")
+    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "durian_guardian_ai_1")
 
     # ── Connection Pool ──────────────────────────────────────────────
     MIN_POOL_SIZE: int = int(os.getenv("MIN_POOL_SIZE", "5"))

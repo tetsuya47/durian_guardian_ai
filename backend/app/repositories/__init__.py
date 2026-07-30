@@ -5,6 +5,10 @@ from app.repositories.tree_repository import TreeRepository
 from app.repositories.disease_repository import DiseaseRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.company_repository import CompanyRepository
+from app.repositories.season_repository import SeasonRepository
+from app.repositories.farm_performance_repository import FarmPerformanceRepository
+from app.repositories.farm_target_repository import FarmTargetRepository
+from app.repositories.harvest_repository import HarvestRepository
 
 __all__ = [
     "UserRepository",
@@ -14,4 +18,8 @@ __all__ = [
     "DiseaseRepository",
     "NotificationRepository",
     "CompanyRepository",
+    "SeasonRepository",
+    "FarmPerformanceRepository",
+    "FarmTargetRepository",
+    "HarvestRepository",
 ]

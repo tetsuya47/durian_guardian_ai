@@ -1,6 +1,7 @@
-import { memo } from "react";
-import { useNavigate } from "react-router-dom";
-import { vi, INSPECTION_STATUS_VI } from "../../utils/translate";
+import { memo, useState } from "react";
+import { Eye } from "lucide-react";
+import RecordDetailDrawer from "../common/RecordDetailDrawer";
+import type { DetailSection } from "../common/RecordDetailDrawer";
 
 export interface InspectionRow {
   id: string;
@@ -19,30 +20,43 @@ interface InspectionTableProps {
   data: InspectionRow[];
 }
 
-function riskBadge(score: number): string {
-  if (score >= 90) return "bg-red-100 text-red-700";
-  if (score >= 80) return "bg-amber-100 text-amber-700";
-  return "bg-gray-100 text-gray-600";
+function diseaseBadge(disease: string, risk: number): { label: string; className: string } {
+  if (!disease || disease === "Chưa phát hiện") return { label: "Chưa xác định", className: "bg-gray-100 text-gray-500" };
+  const lower = disease.toLowerCase();
+  if (lower === "khỏe mạnh") return { label: disease, className: "bg-emerald-100 text-emerald-700" };
+  if (risk >= 90) return { label: disease, className: "bg-red-100 text-red-700" };
+  if (risk >= 70) return { label: disease, className: "bg-orange-100 text-orange-700" };
+  return { label: disease, className: "bg-amber-100 text-amber-700" };
 }
 
-function actionBadge(action: string): string {
-  if (action === "Khám hôm nay") return "bg-red-100 text-red-700";
-  if (action === "Theo dõi") return "bg-amber-100 text-amber-700";
-  return "bg-gray-100 text-gray-600";
-}
-
-function statusBadge(status: string): string {
-  const s = status.toLowerCase();
-  if (s === "completed") return "bg-emerald-100 text-emerald-700";
-  if (s === "in_progress" || s === "in progress") return "bg-blue-100 text-blue-700";
-  if (s === "pending") return "bg-yellow-100 text-yellow-700";
-  if (s === "cancelled") return "bg-gray-100 text-gray-500";
-  if (s === "confirmed") return "bg-blue-100 text-blue-700";
-  return "bg-gray-100 text-gray-700";
-}
-
-function statusLabel(status: string): string {
-  return vi(INSPECTION_STATUS_VI, status) || status;
+function buildDrawerSections(row: InspectionRow): DetailSection[] {
+  return [
+    {
+      title: "Thông tin kiểm tra",
+      fields: [
+        { label: "Mã cây", value: row.treeCode },
+        { label: "Trang trại", value: row.farm },
+        { label: "Khu vực", value: row.zone },
+        { label: "Thời gian", value: row.time },
+        { label: "Kết quả AI", value: row.disease },
+      ],
+    },
+    {
+      title: "Kết quả đánh giá",
+      fields: [
+        { label: "Chỉ số rủi ro", value: `${row.risk}%` },
+        { label: "Người kiểm tra", value: row.inspector },
+        {
+          label: "Mức độ",
+          value:
+            row.risk >= 90 ? "Nghiêm trọng" :
+            row.risk >= 70 ? "Cao" :
+            row.risk >= 50 ? "Trung bình" :
+            "Thấp",
+        },
+      ],
+    },
+  ];
 }
 
 function EmptyState() {
@@ -58,67 +72,61 @@ function EmptyState() {
   );
 }
 
+function InspectionCard({ row, onView }: { row: InspectionRow; onView: () => void }) {
+  const badge = diseaseBadge(row.disease, row.risk);
+  return (
+    <div className="flex items-start gap-3 px-3 py-3 rounded-[12px] hover:bg-gray-50 transition-colors duration-150">
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[15px] font-bold text-gray-900 leading-tight truncate">{row.treeCode}</span>
+        </div>
+        <div className="text-[12px] text-gray-500 font-medium truncate">
+          {row.farm} &bull; {row.time}
+        </div>
+        <div>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}>
+            {badge.label}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onView}
+        className="shrink-0 mt-0.5 inline-flex items-center justify-center w-8 h-8 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-[10px] transition-colors"
+        title="Xem chi tiết"
+      >
+        <Eye className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
 function InspectionTableInner({ data }: InspectionTableProps) {
-  const navigate = useNavigate();
+  const [detailItem, setDetailItem] = useState<InspectionRow | null>(null);
 
   if (data.length === 0) return <EmptyState />;
 
   return (
-    <div className="overflow-x-auto" role="table" aria-label="Bản ghi kiểm tra">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200 sticky top-0 bg-white z-10">
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[60px]">Thời gian</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[80px]">Tree Digital ID</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[90px]">Trang trại</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[80px]">Khu vực</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[90px]">Kết quả AI</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[55px]">Risk Index</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[80px]">Người kiểm tra</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[75px]">Trạng thái</th>
-            <th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.5px] pb-2 px-1 w-[85px]">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row) => {
-            const rowBg = row.risk >= 90 ? "bg-red-50" : row.risk >= 80 ? "bg-amber-50" : "";
-            const treeColor = row.risk >= 90 ? "text-red-700" : "text-gray-800";
-            return (
-              <tr
-                key={row.id}
-                className={`border-b border-gray-50 hover:brightness-95 transition-all duration-200 cursor-pointer ${rowBg}`}
-                onClick={() => navigate(`/inspections?search=${encodeURIComponent(row.treeCode)}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter") navigate(`/inspections?search=${encodeURIComponent(row.treeCode)}`); }}
-              >
-                <td className="text-[13px] text-gray-500 whitespace-nowrap px-1 py-1.5">{row.time}</td>
-                <td className={`text-[13px] font-semibold whitespace-nowrap px-1 py-1.5 ${treeColor}`}>{row.treeCode}</td>
-                <td className="text-[13px] text-gray-600 whitespace-nowrap px-1 py-1.5">{row.farm}</td>
-                <td className="text-[13px] text-gray-600 whitespace-nowrap px-1 py-1.5">{row.zone}</td>
-                <td className="text-[13px] text-gray-600 whitespace-nowrap px-1 py-1.5">{row.disease}</td>
-                <td className="px-1 py-1.5">
-                  <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${riskBadge(row.risk)}`}>
-                    {row.risk}%
-                  </span>
-                </td>
-                <td className="text-[13px] text-gray-600 whitespace-nowrap px-1 py-1.5">{row.inspector}</td>
-                <td className="px-1 py-1.5">
-                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusBadge(row.status)}`}>
-                    {statusLabel(row.status)}
-                  </span>
-                </td>
-                <td className="px-1 py-1.5">
-                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${actionBadge(row.action)}`}>
-                    {row.action}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="space-y-0.5">
+        {data.map((row) => (
+          <InspectionCard
+            key={row.id}
+            row={row}
+            onView={() => setDetailItem(row)}
+          />
+        ))}
+      </div>
+
+      {detailItem && (
+        <RecordDetailDrawer
+          title={`Kiểm tra — ${detailItem.treeCode}`}
+          open={!!detailItem}
+          onClose={() => setDetailItem(null)}
+          sections={buildDrawerSections(detailItem)}
+        />
+      )}
+    </>
   );
 }
 

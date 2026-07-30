@@ -23,9 +23,9 @@ function formatTime(iso: string): string {
 }
 
 const METRICS = [
-  { key: "inspection_today" as const, icon: ClipboardCheck, label: "Khám hôm nay", color: "text-blue-600", bg: "bg-blue-100" },
-  { key: "ai_detection_today" as const, icon: BrainCircuit, label: "AI phát hiện", color: "text-violet-600", bg: "bg-violet-100" },
-  { key: "new_alerts_today" as const, icon: Bell, label: "Cảnh báo mới", color: "text-amber-600", bg: "bg-amber-100" },
+  { key: "inspection_today" as const, icon: ClipboardCheck, label: "Tổng lượt kiểm tra", color: "text-blue-600", bg: "bg-blue-100" },
+  { key: "ai_detection_today" as const, icon: BrainCircuit, label: "Tổng AI phát hiện", color: "text-violet-600", bg: "bg-violet-100" },
+  { key: "new_alerts_today" as const, icon: Bell, label: "Tổng cảnh báo", color: "text-amber-600", bg: "bg-amber-100" },
   { key: "pending_review" as const, icon: AlertCircle, label: "Chờ xử lý", color: "text-red-600", bg: "bg-red-100" },
 ] as const;
 
@@ -37,7 +37,7 @@ export default function SystemOverviewCard({ data }: SystemOverviewCardProps) {
           icon={<ClipboardCheck className="w-5 h-5 text-blue-500" />}
           title="Tổng quan hệ thống"
           size="section"
-          subtitle="Thống kê hoạt động hôm nay"
+          subtitle="Thống kê hoạt động tổng quan"
         />
 
         <div className="grid grid-cols-2 gap-2">

@@ -15,8 +15,6 @@ export default function KPISection({
   totalTrees, newTreesThisMonth, healthyPercent,
   farmArea, farmCount, zoneCount, emergencyCount,
 }: KPISectionProps) {
-  const healthStatus = healthyPercent >= 80 ? "Khỏe mạnh" : healthyPercent >= 60 ? "Cần chú ý" : "Nghiêm trọng";
-
   return (
     <div className="grid grid-cols-5" style={{ gap: "20px" }}>
       <KPICard
@@ -41,8 +39,8 @@ export default function KPISection({
         iconBg="bg-emerald-100"
         title="SỨC KHỎE VƯỜN CÂY"
         value={`${healthyPercent}%`}
-        subtitle={healthStatus}
-        subtitleColor={healthyPercent >= 80 ? "#15803D" : healthyPercent >= 60 ? "#D97706" : "#DC2626"}
+        subtitle="Tỷ lệ cây khỏe mạnh"
+        subtitleColor={healthyPercent >= 90 ? "#15803D" : healthyPercent >= 70 ? "#D97706" : "#DC2626"}
         valueColor="text-emerald-600"
       />
       <KPICard

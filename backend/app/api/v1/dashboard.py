@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.dependencies import RoleChecker, get_current_user_id
@@ -10,6 +10,7 @@ from app.core.response import success_response
 from app.dashboard.service import DashboardService
 from app.database.mongodb import get_database
 from app.models import UserRole
+from app.dashboard.dto import FarmPerformanceDTO
 from app.schemas.dashboard import DashboardOut, FarmDashboardOut, WidgetsOut
 from app.schemas.response_models import SuccessResponse
 
@@ -52,6 +53,19 @@ async def get_widgets(
     service = DashboardService(db)
     result = await service.get_widgets()
     logger.info("Dashboard widgets fetched for user %s", user_id)
+    return success_response(data=result.model_dump())
+
+
+@router.get("/farm-performance", response_model=SuccessResponse[FarmPerformanceDTO])
+async def get_farm_performance(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    _=Depends(allow_all),
+    farm_id: str | None = Query(None),
+):
+    service = DashboardService(db)
+    result = await service.get_farm_performance(user_id, farm_id=farm_id)
+    logger.info("Farm performance fetched for user %s", user_id)
     return success_response(data=result.model_dump())
 
 

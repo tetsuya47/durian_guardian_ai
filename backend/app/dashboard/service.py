@@ -9,7 +9,11 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.repositories import (
     FarmRepository,
+    FarmPerformanceRepository,
+    FarmTargetRepository,
+    HarvestRepository,
     NotificationRepository,
+    SeasonRepository,
     TreeRepository,
 )
 from app.schemas import (
@@ -28,6 +32,7 @@ from app.schemas import (
     WidgetFarmOption,
     WidgetZoneOption,
 )
+from app.dashboard.dto import FarmPerformanceDTO
 from app.schemas.dashboard import (
     FarmDashboardOut,
     FarmDashboardKpi,
@@ -47,6 +52,10 @@ class DashboardService:
         self.farm_repo = FarmRepository(db)
         self.tree_repo = TreeRepository(db)
         self.notification_repo = NotificationRepository(db)
+        self.season_repo = SeasonRepository(db)
+        self.farm_perf_repo = FarmPerformanceRepository(db)
+        self.farm_target_repo = FarmTargetRepository(db)
+        self.harvest_repo = HarvestRepository(db)
 
     async def _get_zone_ids_for_farms(self, farm_ids: list[str]) -> list[ObjectId]:
         farm_oids = [ObjectId(fid) for fid in farm_ids if ObjectId.is_valid(fid)]
@@ -62,23 +71,21 @@ class DashboardService:
         total_farms = len(farms)
         farm_ids = [f["id"] for f in farms]
 
-        zone_ids, high_risk_trees = await asyncio.gather(
-            self._get_zone_ids_for_farms(farm_ids),
-            self.db["alerts"].distinct("tree_id", {"priority": "High"}),
-        )
-        high_risk_trees = len(high_risk_trees)
+        zone_ids = await self._get_zone_ids_for_farms(farm_ids)
 
         if zone_ids:
             zone_oid_filter = {"zone_id": {"$in": zone_ids}}
             total_trees, healthy_trees, diseased_trees = await asyncio.gather(
                 self.db["trees"].count_documents(zone_oid_filter),
-                self.db["trees"].count_documents({**zone_oid_filter, "status": "Healthy"}),
-                self.db["trees"].count_documents({**zone_oid_filter, "status": "Diseased"}),
+                self.db["trees"].count_documents({**zone_oid_filter, "status": {"$in": ["Healthy", "Khỏe mạnh"]}}),
+                self.db["trees"].count_documents({**zone_oid_filter, "status": {"$in": ["Diseased", "Bị bệnh"]}}),
             )
         else:
             total_trees = 0
             healthy_trees = 0
             diseased_trees = 0
+
+        high_risk_trees = diseased_trees
 
         recent_detection, alerts, risk_trend, system_overview = await asyncio.gather(
             self._get_recent_detections(),
@@ -102,19 +109,11 @@ class DashboardService:
         )
 
     async def _get_system_overview(self) -> SystemOverview:
-        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-
         (inspection_today, ai_detection_today, new_alerts_today,
          inspected_ids, latest_doc) = await asyncio.gather(
-            self.db["inspections"].count_documents({
-                "inspection_date": {"$gte": today_start},
-            }),
-            self.db["detection_results"].count_documents({
-                "created_at": {"$gte": today_start},
-            }),
-            self.db["alerts"].count_documents({
-                "created_at": {"$gte": today_start},
-            }),
+            self.db["inspections"].count_documents({}),
+            self.db["detection_results"].count_documents({}),
+            self.db["alerts"].count_documents({}),
             self.db["detection_results"].distinct("inspection_id"),
             self.db["alerts"].find_one(
                 sort=[("created_at", -1)],
@@ -382,8 +381,8 @@ class DashboardService:
                     "inspection_date": 1,
                     "created_at": 1,
                     "status": 1,
+                    "predicted_disease": 1,
                     "detection_confidence": {"$ifNull": ["$latest_detection.confidence", 0]},
-                    "detection_prediction": {"$ifNull": ["$latest_detection.prediction", ""]},
                 }
             },
         ]
@@ -408,7 +407,7 @@ class DashboardService:
                     treeCode=doc.get("tree_code", "—"),
                     farm=doc.get("farm_name", "—"),
                     zone=doc.get("zone_name", "—"),
-                    disease=doc.get("detection_prediction") or "Chưa phát hiện",
+                    disease=doc.get("predicted_disease") or "Chưa phát hiện",
                     risk=risk,
                     inspector=doc.get("inspector_name", "—"),
                     status=doc.get("status", "—"),
@@ -423,8 +422,17 @@ class DashboardService:
             {"$limit": 100},
             {
                 "$lookup": {
+                    "from": "inspections",
+                    "localField": "inspection_id",
+                    "foreignField": "_id",
+                    "as": "inspection",
+                }
+            },
+            {"$unwind": {"path": "$inspection", "preserveNullAndEmptyArrays": False}},
+            {
+                "$lookup": {
                     "from": "trees",
-                    "localField": "tree_id",
+                    "localField": "inspection.tree_id",
                     "foreignField": "_id",
                     "as": "tree_info",
                 }
@@ -490,8 +498,17 @@ class DashboardService:
             {"$sort": {"created_at": -1}},
             {
                 "$lookup": {
+                    "from": "inspections",
+                    "localField": "inspection_id",
+                    "foreignField": "_id",
+                    "as": "inspection",
+                }
+            },
+            {"$unwind": {"path": "$inspection", "preserveNullAndEmptyArrays": False}},
+            {
+                "$lookup": {
                     "from": "trees",
-                    "localField": "tree_id",
+                    "localField": "inspection.tree_id",
                     "foreignField": "_id",
                     "as": "tree_info",
                 }
@@ -517,7 +534,7 @@ class DashboardService:
             {"$unwind": {"path": "$farm_info", "preserveNullAndEmptyArrays": True}},
             {
                 "$group": {
-                    "_id": "$tree_id",
+                    "_id": "$inspection.tree_id",
                     "latest_detection": {"$first": "$$ROOT"},
                 }
             },
@@ -628,6 +645,9 @@ class DashboardService:
 
     # ── Farm Dashboard ────────────────────────────────────────────────
 
+    async def _get_latest_farm_season(self, farm_oid: ObjectId) -> dict | None:
+        return await self.season_repo.get_latest_by_farm(farm_oid)
+
     async def get_farm_dashboard(self, farm_id: str) -> FarmDashboardOut:
         farm_oid = ObjectId(farm_id) if ObjectId.is_valid(farm_id) else farm_id
 
@@ -644,13 +664,15 @@ class DashboardService:
             diseased_count,
             high_risk_tree_ids,
             zones_raw,
+            season,
         ) = await asyncio.gather(
             self.db["trees"].count_documents(tree_filter),
-            self.db["trees"].count_documents({**tree_filter, "status": "Healthy"}),
-            self.db["trees"].count_documents({**tree_filter, "status": "Monitoring"}),
-            self.db["trees"].count_documents({**tree_filter, "status": "Diseased"}),
+            self.db["trees"].count_documents({**tree_filter, "status": {"$in": ["Healthy", "Khỏe mạnh"]}}),
+            self.db["trees"].count_documents({**tree_filter, "status": {"$in": ["Monitoring", "Đang theo dõi"]}}),
+            self.db["trees"].count_documents({**tree_filter, "status": {"$in": ["Diseased", "Bị bệnh"]}}),
             self.db["alerts"].distinct("tree_id", {"priority": "High", "tree_id": {"$in": []}}) if not zone_ids else self._get_high_risk_tree_ids_for_farm(zone_ids),
             self._get_farm_zones(farm_oid, zone_ids),
+            self._get_latest_farm_season(farm_oid),
         )
 
         high_risk_count = len(high_risk_tree_ids)
@@ -661,10 +683,49 @@ class DashboardService:
 
         alert_summary = await self._get_farm_alert_summary(zone_ids)
 
+        kpi_kwargs: dict = {}
+        yield_kwargs: dict = {}
+        season_name: str | None = None
+        season_year: int | None = None
+
+        if season:
+            season_oid = ObjectId(season["id"])
+            season_name = season.get("season_name")
+            season_year = season.get("season_year")
+
+            perf, targets_obj, harvest = await asyncio.gather(
+                self.farm_perf_repo.get_by_farm_and_season(farm_oid, season_oid),
+                self.farm_target_repo.get_by_farm_and_season(farm_oid, season_oid),
+                self.harvest_repo.get_latest_by_farm(farm_oid),
+            )
+
+            if perf:
+                kpi_kwargs["farm_score"] = perf.get("farm_score")
+                kpi_kwargs["health_score"] = perf.get("health_score")
+                kpi_kwargs["yield_score"] = perf.get("yield_score")
+                kpi_kwargs["risk_index"] = perf.get("risk_index")
+                kpi_kwargs["overall_status"] = perf.get("overall_status")
+
+            if targets_obj:
+                kpi_kwargs["target_yield"] = targets_obj.get("target_yield")
+                kpi_kwargs["target_tree_health"] = targets_obj.get("target_tree_health")
+                kpi_kwargs["target_disease_rate"] = targets_obj.get("target_disease_rate")
+
+            if harvest:
+                yield_kwargs["yield_kg"] = harvest.get("yield_kg")
+                yield_kwargs["average_weight"] = harvest.get("average_weight")
+                yield_kwargs["grade_a"] = harvest.get("grade_a")
+                yield_kwargs["grade_b"] = harvest.get("grade_b")
+                yield_kwargs["grade_c"] = harvest.get("grade_c")
+                yield_kwargs["selling_price"] = harvest.get("selling_price")
+                yield_kwargs["total_revenue"] = harvest.get("total_revenue")
+                yield_kwargs["buyer"] = harvest.get("buyer")
+
         yield_data = FarmYield(
             estimated_yield="--",
             avg_yield_per_tree="--",
             avg_yield_per_hectare="--",
+            **yield_kwargs,
         )
 
         return FarmDashboardOut(
@@ -674,6 +735,7 @@ class DashboardService:
                 healthy_percent=healthy_pct,
                 high_risk_trees=high_risk_count,
                 estimated_yield="--",
+                **kpi_kwargs,
             ),
             health_distribution=FarmHealthDistribution(
                 healthy=healthy_count,
@@ -684,6 +746,167 @@ class DashboardService:
             zones=zones_raw,
             yield_data=yield_data,
             alerts=alert_summary,
+            season_name=season_name,
+            season_year=season_year,
+        )
+
+    async def _load_farm_performance_data(self, farm_oid: ObjectId) -> dict | None:
+        try:
+            season = await self.db["seasons"].find_one(
+                {"farm_id": farm_oid, "status": "active"},
+                projection={"_id": 1},
+            )
+            if not season:
+                season = await self.db["seasons"].find_one(
+                    {"farm_id": farm_oid},
+                    sort=[("season_year", -1), ("created_at", -1)],
+                    projection={"_id": 1},
+                )
+            if not season:
+                return None
+
+            season_oid = season["_id"]
+            perf, targets_obj, harvest = await asyncio.gather(
+                self.db["farm_performance"].find_one(
+                    {"farm_id": farm_oid, "season_id": season_oid},
+                    projection={"farm_score": 1, "health_score": 1, "overall_status": 1},
+                ),
+                self.db["farm_targets"].find_one(
+                    {"farm_id": farm_oid, "season_id": season_oid},
+                    projection={"target_yield": 1},
+                ),
+                self.db["harvests"].find_one(
+                    {"farm_id": farm_oid},
+                    sort=[("harvest_date", -1)],
+                    projection={"yield_kg": 1},
+                ),
+            )
+
+            result: dict = {}
+            if perf:
+                result["farm_score"] = perf.get("farm_score")
+                result["health_score"] = perf.get("health_score")
+                result["overall_status"] = perf.get("overall_status")
+            if targets_obj:
+                result["target_yield"] = targets_obj.get("target_yield")
+            if harvest:
+                result["yield_kg"] = harvest.get("yield_kg")
+            return result
+        except Exception:
+            logger.warning("Skipping farm %s due to error", farm_oid, exc_info=True)
+            return None
+
+    async def get_farm_performance(self, user_id: str, farm_id: str | None = None) -> FarmPerformanceDTO:
+        if farm_id:
+            farm_oid = ObjectId(farm_id) if ObjectId.is_valid(farm_id) else None
+            if not farm_oid:
+                return FarmPerformanceDTO(total_farms=0)
+
+            farm = await self.db["farms"].find_one(
+                {"_id": farm_oid},
+                projection={"_id": 1},
+            )
+            if not farm:
+                return FarmPerformanceDTO(total_farms=0)
+
+            result = await self._load_farm_performance_data(farm_oid)
+
+            if not result:
+                return FarmPerformanceDTO(total_farms=1)
+
+            farm_score = result.get("farm_score")
+            health_score = result.get("health_score")
+            target_yield = result.get("target_yield")
+            yield_kg = result.get("yield_kg")
+
+            total_target = round(target_yield, 1) if target_yield else None
+            total_actual = round(yield_kg, 1) if yield_kg else None
+            yield_pct = round((total_actual / total_target) * 100, 1) if total_target and total_actual else None
+
+            if farm_score is not None:
+                if farm_score >= 70:
+                    status: str | None = "Tốt"
+                elif farm_score >= 50:
+                    status = "Cảnh báo"
+                else:
+                    status = "Nghiêm trọng"
+            else:
+                status = "Chưa đánh giá"
+
+            return FarmPerformanceDTO(
+                average_farm_score=farm_score,
+                farms_evaluated=1 if farm_score is not None else 0,
+                total_farms=1,
+                healthy_percent=health_score,
+                total_target_yield=total_target,
+                total_actual_yield=total_actual,
+                yield_achievement_pct=yield_pct,
+                overall_status=status,
+            )
+
+        farms, _ = await self.farm_repo.list_by_owner(user_id, page=1, per_page=100)
+        total_farms = len(farms)
+
+        if not farms:
+            return FarmPerformanceDTO(total_farms=0)
+
+        sem = asyncio.Semaphore(5)
+
+        async def _process_farm(farm: dict) -> dict | None:
+            async with sem:
+                farm_oid = ObjectId(farm["id"]) if ObjectId.is_valid(farm["id"]) else None
+                if not farm_oid:
+                    return None
+                return await self._load_farm_performance_data(farm_oid)
+
+        tasks = [_process_farm(farm) for farm in farms]
+        results = await asyncio.gather(*tasks)
+        results = [r for r in results if r is not None]
+
+        farm_scores = [
+            r["farm_score"] for r in results if r.get("farm_score") is not None
+        ]
+        health_scores = [
+            r["health_score"] for r in results if r.get("health_score") is not None
+        ]
+        target_yields = [
+            r["target_yield"] for r in results if r.get("target_yield") is not None
+        ]
+        actual_yields = [
+            r["yield_kg"] for r in results if r.get("yield_kg") is not None
+        ]
+
+        avg_score = round(sum(farm_scores) / len(farm_scores), 1) if farm_scores else None
+        avg_health = round(sum(health_scores) / len(health_scores), 1) if health_scores else None
+        total_target = round(sum(target_yields), 1) if target_yields else None
+        total_actual = round(sum(actual_yields), 1) if actual_yields else None
+        yield_pct = (
+            round((total_actual / total_target) * 100, 1)
+            if total_target and total_actual
+            else None
+        )
+
+        if avg_score is not None:
+            if avg_score >= 70:
+                status: str | None = "Tốt"
+            elif avg_score >= 50:
+                status = "Cảnh báo"
+            else:
+                status = "Nghiêm trọng"
+        elif total_farms > 0:
+            status = "Chưa đánh giá"
+        else:
+            status = None
+
+        return FarmPerformanceDTO(
+            average_farm_score=avg_score,
+            farms_evaluated=len(farm_scores),
+            total_farms=total_farms,
+            healthy_percent=avg_health,
+            total_target_yield=total_target,
+            total_actual_yield=total_actual,
+            yield_achievement_pct=yield_pct,
+            overall_status=status,
         )
 
     async def _get_high_risk_tree_ids_for_farm(self, zone_ids: list[ObjectId]) -> list:
@@ -730,7 +953,7 @@ class DashboardService:
                         "$size": {
                             "$filter": {
                                 "input": "$trees",
-                                "cond": {"$eq": ["$$this.status", "Healthy"]},
+                                "cond": {"$in": ["$$this.status", ["Healthy", "Khỏe mạnh"]]},
                             }
                         }
                     },
@@ -738,7 +961,7 @@ class DashboardService:
                         "$size": {
                             "$filter": {
                                 "input": "$trees",
-                                "cond": {"$eq": ["$$this.status", "Diseased"]},
+                                "cond": {"$in": ["$$this.status", ["Diseased", "Bị bệnh"]]},
                             }
                         }
                     },

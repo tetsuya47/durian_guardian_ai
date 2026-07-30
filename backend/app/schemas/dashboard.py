@@ -127,6 +127,14 @@ class FarmDashboardKpi(BaseModel):
     healthy_percent: float
     high_risk_trees: int
     estimated_yield: str
+    farm_score: float | None = None
+    health_score: float | None = None
+    yield_score: float | None = None
+    risk_index: float | None = None
+    overall_status: str | None = None
+    target_yield: float | None = None
+    target_tree_health: float | None = None
+    target_disease_rate: float | None = None
 
 
 class FarmHealthDistribution(BaseModel):
@@ -156,6 +164,14 @@ class FarmYield(BaseModel):
     estimated_yield: str
     avg_yield_per_tree: str
     avg_yield_per_hectare: str
+    yield_kg: float | None = None
+    average_weight: float | None = None
+    grade_a: float | None = None
+    grade_b: float | None = None
+    grade_c: float | None = None
+    selling_price: float | None = None
+    total_revenue: float | None = None
+    buyer: str | None = None
 
 
 class FarmAlertSummary(BaseModel):
@@ -171,3 +187,5 @@ class FarmDashboardOut(BaseModel):
     zones: list[FarmZone]
     yield_data: FarmYield
     alerts: FarmAlertSummary
+    season_name: str | None = None
+    season_year: int | None = None

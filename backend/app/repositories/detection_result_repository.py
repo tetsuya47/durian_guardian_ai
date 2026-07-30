@@ -28,7 +28,7 @@ class DetectionResultRepository(BaseRepository):
             {
                 "$lookup": {
                     "from": "trees",
-                    "localField": "tree_id",
+                    "localField": "inspection_info.tree_id",
                     "foreignField": "_id",
                     "as": "tree_info",
                 }

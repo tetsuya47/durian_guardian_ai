@@ -1,0 +1,38 @@
+from __future__ import annotations
+
+from bson import ObjectId
+from motor.motor_asyncio import AsyncIOMotorDatabase
+
+from app.repositories.base import BaseRepository
+
+
+class HarvestRepository(BaseRepository):
+    def __init__(self, db: AsyncIOMotorDatabase) -> None:
+        super().__init__(db, "harvests")
+
+    async def get_latest_by_farm(self, farm_oid: ObjectId) -> dict | None:
+        cursor = (
+            self.collection.find({"farm_id": farm_oid})
+            .sort("harvest_date", -1)
+            .limit(1)
+        )
+        docs = await cursor.to_list(length=1)
+        if docs:
+            return self._serialize(docs[0])
+        return None
+
+    async def get_by_farm_and_season(
+        self, farm_oid: ObjectId, season_oid: ObjectId
+    ) -> dict | None:
+        doc = await self.collection.find_one(
+            {"farm_id": farm_oid, "season_id": season_oid}
+        )
+        if doc:
+            return self._serialize(doc)
+        return None
+
+    async def list_by_farm(self, farm_oid: ObjectId) -> list[dict]:
+        docs, _ = await self.list(
+            {"farm_id": farm_oid}, page=1, per_page=100
+        )
+        return docs

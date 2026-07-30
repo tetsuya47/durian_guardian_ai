@@ -20,6 +20,7 @@ import HeatmapCard from "../../components/dashboard/HeatmapCard";
 import AgronomistPanel from "../../components/dashboard/AgronomistPanel";
 import TreeDistributionCard from "../../components/dashboard/TreeDistributionCard";
 import RealtimeInspectionCard from "../../components/dashboard/RealtimeInspectionCard";
+import FarmPerformanceCard from "../../components/dashboard/FarmPerformanceCard";
 import { KPISkeleton, CardSkeleton, DashboardSkeleton } from "../../components/dashboard/Shared/SkeletonCard";
 import type { CellData, ZoneSection } from "../../components/dashboard/HeatmapGrid";
 import type { InspectionRow } from "../../components/dashboard/InspectionTable";
@@ -69,7 +70,7 @@ export default function DashboardPage() {
         setBackendKpi(backendKpi);
         setSystemOverview(systemOverview);
       })
-      .catch(() => {})
+      .catch(() => setError("Không thể tải dữ liệu KPI"))
       .finally(() => setDashboardLoading(false));
   };
 
@@ -78,7 +79,7 @@ export default function DashboardPage() {
     setError(null);
     loadHeatmap()
       .then(({ heatmapData }) => { setHeatmapTrees(heatmapData); })
-      .catch(() => {})
+      .catch(() => setError("Không thể tải dữ liệu bản đồ nhiệt"))
       .finally(() => setHeatmapLoading(false));
   };
 
@@ -87,7 +88,7 @@ export default function DashboardPage() {
     setError(null);
     loadWidgets()
       .then(({ widgets }) => { setWidgets(widgets); })
-      .catch(() => {})
+      .catch(() => setError("Không thể tải dữ liệu widget"))
       .finally(() => setWidgetsLoading(false));
   };
 
@@ -138,8 +139,8 @@ export default function DashboardPage() {
   const heatmapSummary = useMemo(() => {
     let healthy = 0, monitor = 0, diseased = 0;
     filteredHeatmapTrees.forEach((t) => {
-      if (t.status === "Healthy") healthy++;
-      else if (t.status === "Monitoring") monitor++;
+      if (t.status === "Healthy" || t.status === "Khỏe mạnh") healthy++;
+      else if (t.status === "Monitoring" || t.status === "Đang theo dõi") monitor++;
       else diseased++;
     });
     return { healthy, monitor, diseased };
@@ -172,12 +173,12 @@ export default function DashboardPage() {
       zoneTrees.sort((a, b) => (a.tree_code || "").localeCompare(b.tree_code || ""));
       let h = 0, m = 0, d = 0;
       const cells: CellData[] = zoneTrees.map((tree) => {
-        if (tree.status === "Healthy") h++;
-        else if (tree.status === "Monitoring") m++;
+        if (tree.status === "Healthy" || tree.status === "Khỏe mạnh") h++;
+        else if (tree.status === "Monitoring" || tree.status === "Đang theo dõi") m++;
         else d++;
         return {
           id: tree.tree_id,
-          risk: tree.status === "Healthy" ? "healthy" : tree.status === "Monitoring" ? "monitor" : "diseased",
+          risk: tree.status === "Healthy" || tree.status === "Khỏe mạnh" ? "healthy" : tree.status === "Monitoring" || tree.status === "Đang theo dõi" ? "monitor" : "diseased",
           treeId: tree.tree_code || tree.tree_id,
           zone: zoneName,
           riskScore: 0,
@@ -308,21 +309,30 @@ export default function DashboardPage() {
           />
         )}
 
-        {/* ROW 2-4 COL 3: Agronomist Panel — renders as soon as /dashboard/widgets resolves */}
-        <div className="lg:row-span-2">
-          {widgetsLoading ? (
-            <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse h-12 w-full mb-2" /><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
-          ) : (
-            <AgronomistPanel
-              priorityTrees={filteredPriorityTrees}
-              farmStatus={farmStatus}
-              kpiHealthyCount={kpiHealthyCount}
-              kpiMonitoringCount={kpiMonitoringCount}
-              kpiDiseasedCount={kpiDiseasedCount}
-              alertCounts={filteredAlertCounts}
-              highRiskCount={filteredHighRiskCount}
-            />
-          )}
+        {/* ROW 2-4 COL 3: AI Agronomist (60%) + Inspection Log (40%) */}
+        <div className="lg:row-span-2 flex flex-col" style={{ gap: "20px" }}>
+          <div style={{ flex: 6, minHeight: 0 }}>
+            {widgetsLoading ? (
+              <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse h-12 w-full mb-2" /><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
+            ) : (
+              <AgronomistPanel
+                priorityTrees={filteredPriorityTrees}
+                farmStatus={farmStatus}
+                kpiHealthyCount={kpiHealthyCount}
+                kpiMonitoringCount={kpiMonitoringCount}
+                kpiDiseasedCount={kpiDiseasedCount}
+                alertCounts={filteredAlertCounts}
+                highRiskCount={filteredHighRiskCount}
+              />
+            )}
+          </div>
+          <div style={{ flex: 4, minHeight: 0 }}>
+            {widgetsLoading ? (
+              <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
+            ) : (
+              <RealtimeInspectionCard data={filteredInspectionRows} />
+            )}
+          </div>
         </div>
 
         {/* ROW 3 COL 1: Tree Distribution — renders as soon as /dashboard resolves */}
@@ -332,12 +342,8 @@ export default function DashboardPage() {
           <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
         )}
 
-        {/* ROW 3 COL 2: Inspection Table — renders as soon as /dashboard/widgets resolves */}
-        {widgetsLoading ? (
-          <CardSkeleton><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
-        ) : (
-          <RealtimeInspectionCard data={filteredInspectionRows} onRefresh={fetchAll} />
-        )}
+        {/* ROW 3 COL 2: Farm Performance */}
+        <FarmPerformanceCard />
       </div>
     </div>
   );

@@ -19,20 +19,8 @@ class FarmRepository(BaseRepository):
         self, owner_id: str, page: int = 1, per_page: int = 20, keyword: str | None = None
     ) -> tuple[list[dict], int]:
         import re
-        from bson import ObjectId
 
-        db = self.collection.database
-        user = await db["users"].find_one({"_id": ObjectId(owner_id)})
-
-        if not user:
-            return [], 0
-
-        user_company = user.get("company_id")
-        if user_company:
-            filter_query: dict = {"company_id": user_company}
-        else:
-            filter_query = {}
-
+        filter_query: dict = {}
         if keyword:
             filter_query["farm_name"] = {"$regex": re.escape(keyword), "$options": "i"}
         return await self.list(
