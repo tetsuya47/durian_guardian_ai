@@ -9,6 +9,8 @@ import '../../features/authentication/presentation/pages/onboarding_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/disease_detection/presentation/pages/disease_detection_page.dart';
 import '../../features/history/presentation/pages/history_page.dart';
+import '../../features/history/presentation/pages/compare_page.dart';
+import '../../features/history/presentation/pages/leaderboard_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/recommendation/presentation/pages/recommendation_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -100,6 +102,21 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: HistoryPage(),
             ),
+            routes: [
+              GoRoute(
+                path: 'compare',
+                name: 'history-compare',
+                builder: (context, state) {
+                  final initialTreeName = state.uri.queryParameters['treeName'];
+                  return ComparePage(initialTreeName: initialTreeName);
+                },
+              ),
+              GoRoute(
+                path: 'leaderboard',
+                name: 'history-leaderboard',
+                builder: (context, state) => const LeaderboardPage(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/profile',

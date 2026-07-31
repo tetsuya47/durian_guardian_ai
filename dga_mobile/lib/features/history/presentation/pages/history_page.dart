@@ -43,6 +43,16 @@ class HistoryPage extends ConsumerWidget {
             : null,
         actions: [
           IconButton(
+            tooltip: 'So sánh Trước & Sau',
+            icon: const Icon(Icons.compare_arrows_outlined),
+            onPressed: () => context.push('/history/compare'),
+          ),
+          IconButton(
+            tooltip: 'Thi đua & Thống kê',
+            icon: const Icon(Icons.emoji_events_outlined),
+            onPressed: () => context.push('/history/leaderboard'),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(historyRawLogsProvider),
           ),

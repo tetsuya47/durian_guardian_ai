@@ -52,7 +52,7 @@ logger = logging.getLogger("durian_guardian.etl")
 
 # ── Constants ────────────────────────────────────────────────────────
 
-CSV_PATH = "D:/Ten_Classes_of_Durian_Leaf_Diseases/DGA_seed_dataset_10000.csv"
+CSV_PATH = "D:/Code/Ai_For_Life/durian_guardian_ai/dataset/DGA_seed_dataset_10000.csv"
 
 DISEASE_NAME_TO_CODE: Dict[str, str] = {
     "Anthracnose": "anthracnose_disease",
@@ -267,7 +267,7 @@ def extract_excel() -> ExcelExtract:
     list of inspection-joined flat-row dicts is also included so that
     existing callers (run_etl, transform_*) continue to work unchanged.
     """
-    excel_path = r"D:\data\DGA_Enterprise_Dataset.xlsx"
+    excel_path = r"D:\Code\Ai_For_Life\durian_guardian_ai\dataset\DGA_Enterprise_Dataset.xlsx"
     logger.info("Extracting data from Excel: %s", excel_path)
 
     # ── Read each sheet individually ───────────────────────────────────
@@ -1654,7 +1654,7 @@ def run_etl(
     rows = extract_excel()
     stats.csv_rows = len(rows)
 
-    excel_path = "D:\\data\\DGA_Enterprise_Dataset.xlsx"
+    excel_path = "D:/Code/Ai_For_Life/durian_guardian_ai/dataset/DGA_Enterprise_Dataset.xlsx"
     logger.info("Reading additional sheets from Excel: %s", excel_path)
     xls = pd.ExcelFile(excel_path)
 
