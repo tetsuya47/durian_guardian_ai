@@ -26,7 +26,7 @@ export default function HeatmapCard({ sections, lastUpdated, summaryCounts, onRe
   return (
     <Card className="flex flex-col" padding={false} style={{ height: "100%", overflow: "hidden" }}>
       <div className="flex flex-col flex-1 min-h-0" style={{ padding: "10px" }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: "4px" }}>
+        <div className="flex flex-wrap items-center justify-between gap-2 xl:flex-nowrap xl:gap-0" style={{ marginBottom: "4px" }}>
           <div className="flex items-center gap-2.5">
             <Map className="w-5 h-5 text-emerald-600" aria-hidden="true" />
             <div>
@@ -74,7 +74,7 @@ export default function HeatmapCard({ sections, lastUpdated, summaryCounts, onRe
           <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-[4px] whitespace-nowrap">Nguy cơ cao {summaryCounts.diseased}</span>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
           <HeatmapGrid sections={sections} />
         </div>
 

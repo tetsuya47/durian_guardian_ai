@@ -49,6 +49,13 @@ class InspectionService:
         serialized_docs = [serialize_inspection(doc) for doc in docs if doc is not None]
         return serialized_docs, total
 
+    async def get_kpi_stats(self) -> dict:
+        stats = await self.repo.get_kpi_stats()
+        total = stats["total_inspections"]
+        healthy = stats["healthy_inspections"]
+        stats["pass_rate"] = round(healthy / total * 100) if total else 0
+        return stats
+
     async def get_inspection(self, id: str) -> dict:
         inspection = await self.repo.get_by_id(id)
         if not inspection:

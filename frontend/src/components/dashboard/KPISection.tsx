@@ -16,7 +16,7 @@ export default function KPISection({
   farmArea, farmCount, zoneCount, emergencyCount,
 }: KPISectionProps) {
   return (
-    <div className="grid grid-cols-5" style={{ gap: "20px" }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" style={{ gap: "20px" }}>
       <KPICard
         icon={<Trees className="w-7 h-7 text-emerald-600" />}
         iconBg="bg-emerald-100"

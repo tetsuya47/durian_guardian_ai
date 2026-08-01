@@ -47,6 +47,20 @@ class UserRepository(BaseRepository):
     async def count_all(self) -> int:
         return await self.collection.count_documents({})
 
+    async def get_kpi_stats(self) -> dict:
+        total_users = await self.collection.count_documents({})
+        total_admins = await self.collection.count_documents({"role": "Admin"})
+        total_inspectors = await self.collection.count_documents({"role": "Inspector"})
+        total_managers = await self.collection.count_documents(
+            {"role": {"$in": ["Company Manager", "Farm Manager"]}}
+        )
+        return {
+            "total_users": total_users,
+            "total_admins": total_admins,
+            "total_inspectors": total_inspectors,
+            "total_managers": total_managers,
+        }
+
     async def exists_by_user_code(self, user_code: str) -> bool:
         return await self.collection.find_one({"user_code": user_code}) is not None
 

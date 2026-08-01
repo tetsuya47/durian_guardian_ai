@@ -173,7 +173,7 @@ export default function FarmDashboard() {
       )}
 
       {/* ROW 1: KPI Cards */}
-      <div className="grid grid-cols-5" style={{ gap: "20px" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" style={{ gap: "20px" }}>
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => <KPISkeleton key={i} />)
         ) : (
@@ -231,7 +231,7 @@ export default function FarmDashboard() {
           <CardSkeleton><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full h-full" /></CardSkeleton>
         ) : (
           <div className="lg:col-span-2">
-            <Card className="flex flex-col" padding={false} style={{ height: "480px", overflow: "hidden" }}>
+            <Card className="flex flex-col lg:h-[480px]" padding={false} style={{ minHeight: "480px", overflow: "hidden" }}>
               <div className="flex flex-col flex-1 min-h-0" style={{ padding: "10px" }}>
                 <div className="flex items-center gap-2.5" style={{ marginBottom: "4px" }}>
                   <MapPin className="w-5 h-5 text-emerald-600" />
@@ -247,7 +247,7 @@ export default function FarmDashboard() {
                   <span className="text-[11px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-[4px] whitespace-nowrap">Nguy cơ cao {heatmapSummary.diseased}</span>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
                   <HeatmapGrid sections={zoneSections} />
                 </div>
 
@@ -298,7 +298,7 @@ export default function FarmDashboard() {
                         <span className="text-[13px] font-bold text-gray-600">{idx + 1}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
                           <span className="text-[13px] font-bold text-gray-900 truncate">{zone.name}</span>
                           <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${riskColor(zone.risk_level)}`}>
                             {zone.risk_level}

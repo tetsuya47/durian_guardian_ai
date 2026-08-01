@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface PaginationProps {
@@ -9,12 +10,40 @@ interface PaginationProps {
 }
 
 export default function Pagination({ page, totalPages, total, perPage, onChange }: PaginationProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   if (totalPages <= 1) return null;
 
   const startItem = (page - 1) * perPage + 1;
   const endItem = Math.min(page * perPage, total);
 
   const getPageNumbers = (): (number | "...")[] => {
+    if (isMobile) {
+      if (totalPages <= 3) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+      const pages: (number | "...")[] = [1];
+      if (page > 2) {
+        pages.push(page === 3 ? 2 : "...");
+      }
+      if (page > 1 && page < totalPages) {
+        pages.push(page);
+      }
+      if (page < totalPages - 1) {
+        pages.push(page === totalPages - 2 ? totalPages - 1 : "...");
+      }
+      pages.push(totalPages);
+      return pages;
+    }
+
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
@@ -56,7 +85,7 @@ export default function Pagination({ page, totalPages, total, perPage, onChange 
         {" "}<span className="ml-1">mục</span>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center gap-1 overflow-x-auto">
         <button
           onClick={() => onChange(1)}
           disabled={page <= 1}

@@ -46,6 +46,7 @@ async def list_trees(
         per_page=per_page,
     )
     total_pages = (total + per_page - 1) // per_page
+    stats = await service.get_kpi_stats()
     logger.info("List trees: user=%s, total=%d", user_id, total)
     return success_response(
         data={
@@ -54,6 +55,7 @@ async def list_trees(
             "page": page,
             "per_page": per_page,
             "total_pages": total_pages,
+            "stats": stats,
         }
     )
 

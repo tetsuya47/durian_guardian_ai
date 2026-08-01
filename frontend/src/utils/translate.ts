@@ -54,6 +54,11 @@ export const ROLE_VI: Record<string, string> = {
   "Farm Manager": "Quản lý trang trại",
   Inspector: "Kiểm tra viên",
   Technician: "Kỹ thuật viên",
+  farmer: "Chủ trang trại",
+  "Farm Owner": "Chủ trang trại",
+  enterprise_admin: "Quản trị viên",
+  field_technician: "Kiểm tra viên",
+  farm_manager: "Quản lý",
 };
 
 export const ALERT_TYPE_VI: Record<string, string> = {
@@ -95,6 +100,16 @@ export const DISEASE_VI: Record<string, string> = {
 export const USER_STATUS_VI: Record<string, string> = {
   Active: "Hoạt động",
   Inactive: "Ngừng hoạt động",
+  ACTIVE: "Hoạt động",
+};
+
+export const NCR_STATUS_VI: Record<string, string> = {
+  pending: "Chờ xử lý",
+  waiting_source_consent: "Chờ đồng ý của người gửi",
+  waiting_target_consent: "Chờ đồng ý của người nhận",
+  contact_shared: "Đã chia sẻ liên hệ",
+  rejected: "Bị từ chối",
+  cancelled: "Đã hủy",
 };
 
 export const INSPECTION_STATUS_VI: Record<string, string> = {

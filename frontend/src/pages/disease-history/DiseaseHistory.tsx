@@ -32,6 +32,12 @@ export default function DiseaseHistoryPage() {
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [kpiStats, setKpiStats] = useState<{
+    total_records?: number;
+    processed_records?: number;
+    unprocessed_records?: number;
+    unique_diseases?: number;
+  } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -65,12 +71,13 @@ export default function DiseaseHistoryPage() {
     };
     if (searchQuery) params.keyword = searchQuery;
 
-    diseaseHistoryService.get<DiseaseHistory[] & { total?: number; total_pages?: number }>({ params })
+    diseaseHistoryService.get<DiseaseHistory[] & { total?: number; total_pages?: number; stats?: { total_records?: number; processed_records?: number; unprocessed_records?: number; unique_diseases?: number } }>({ params })
       .then((data) => {
         const arr = data as unknown as DiseaseHistory[];
         setHistory(arr);
         setTotalRecords((data as any).total ?? arr.length);
         setTotalPages((data as any).total_pages ?? Math.ceil(((data as any).total ?? arr.length) / perPage));
+        setKpiStats(data.stats ?? null);
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : "Không thể tải chi tiết lịch sử bệnh.";
@@ -96,7 +103,7 @@ export default function DiseaseHistoryPage() {
       if (searchQuery) params.keyword = searchQuery;
 
       Promise.allSettled([
-        diseaseHistoryService.get<DiseaseHistory[] & { total?: number; total_pages?: number }>({ params }),
+        diseaseHistoryService.get<DiseaseHistory[] & { total?: number; total_pages?: number; stats?: { total_records?: number; processed_records?: number; unprocessed_records?: number; unique_diseases?: number } }>({ params }),
       ])
         .then(([historyResult]) => {
           if (historyResult.status === "fulfilled") {
@@ -105,6 +112,7 @@ export default function DiseaseHistoryPage() {
             setHistory(arr);
             setTotalRecords((historyData as any).total ?? arr.length);
             setTotalPages((historyData as any).total_pages ?? Math.ceil(((historyData as any).total ?? arr.length) / perPage));
+            setKpiStats(historyData.stats ?? null);
           } else {
             const msg = historyResult.reason instanceof Error ? historyResult.reason.message : "Không thể tải chi tiết lịch sử bệnh.";
             setError(msg);
@@ -201,11 +209,11 @@ export default function DiseaseHistoryPage() {
 
   const filteredHistory = history;
 
-  const processedCount = history.filter((h) =>
+  const processedCount = kpiStats?.processed_records ?? history.filter((h) =>
     h.action && h.action.toLowerCase().includes("treatment")
   ).length;
-  const unprocessedCount = history.length - processedCount;
-  const uniqueDiseases = new Set(history.map((h) => h.disease).filter(Boolean)).size;
+  const unprocessedCount = kpiStats?.unprocessed_records ?? (history.length - processedCount);
+  const uniqueDiseases = kpiStats?.unique_diseases ?? new Set(history.map((h) => h.disease).filter(Boolean)).size;
 
   const columns = [
     { key: "disease", label: "Tên bệnh", width: "1fr" },

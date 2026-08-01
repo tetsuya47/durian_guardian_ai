@@ -2,7 +2,7 @@
 Index Definitions
 =================
 
-MongoDB index specifications for all 14 collections.
+MongoDB index specifications for all 15 collections.
 Optimized for production query patterns.
 """
 
@@ -101,5 +101,16 @@ def get_index_specs() -> Dict[str, List[Dict[str, Any]]]:
             {"keys": [("farm_id", 1), ("season_id", 1)], "name": "idx_performance_farm_season"},
             {"keys": [("overall_status", 1)], "name": "idx_performance_status"},
             {"keys": [("farm_score", -1)], "name": "idx_performance_score_desc"},
+        ],
+        Collections.NEIGHBOR_CONTACT_REQUESTS: [
+            {"keys": [("request_code", 1)], "name": "idx_ncr_request_code", "unique": True},
+            {"keys": [("source_farm_id", 1)], "name": "idx_ncr_source_farm"},
+            {"keys": [("target_farm_id", 1)], "name": "idx_ncr_target_farm"},
+            {"keys": [("source_user_id", 1)], "name": "idx_ncr_source_user"},
+            {"keys": [("target_user_id", 1)], "name": "idx_ncr_target_user"},
+            {"keys": [("inspection_id", 1)], "name": "idx_ncr_inspection"},
+            {"keys": [("status", 1)], "name": "idx_ncr_status"},
+            {"keys": [("created_at", -1)], "name": "idx_ncr_created_at"},
+            {"keys": [("expires_at", 1)], "name": "idx_ncr_expires_at"},
         ],
     }

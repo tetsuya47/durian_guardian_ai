@@ -12,9 +12,7 @@ interface StatCardProps {
 export default function StatCard({ title, value, subtitle, icon: Icon, color = "text-[#1E8449]", compact = false }: StatCardProps) {
   if (compact) {
     return (
-      <div className="bg-white border border-gray-100 rounded-[18px] p-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-gray-300 hover:shadow-md transition-all duration-200 flex items-center gap-3"
-        style={{ height: "80px" }}
-      >
+      <div className="bg-white border border-gray-100 rounded-[18px] p-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-gray-300 hover:shadow-md transition-all duration-200 flex items-center gap-3 min-h-[76px]">
         <div className={`w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center ${color} flex-shrink-0`}>
           <Icon className="w-4 h-4" />
         </div>

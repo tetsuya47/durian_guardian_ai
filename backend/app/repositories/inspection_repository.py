@@ -90,3 +90,21 @@ class InspectionRepository(BaseRepository):
 
     async def get_by_id(self, id: str) -> dict[str, Any] | None:
         return await self.get(id)
+
+    async def get_kpi_stats(self) -> dict:
+        from datetime import datetime, time, timedelta
+
+        total_inspections = await self.collection.count_documents({})
+        healthy = await self.collection.count_documents(
+            {"health_status": {"$in": ["Healthy", "Khỏe mạnh"]}}
+        )
+        today_start = datetime.combine(datetime.utcnow().date(), time.min)
+        today_end = today_start + timedelta(days=1)
+        today = await self.collection.count_documents(
+            {"inspection_date": {"$gte": today_start, "$lt": today_end}}
+        )
+        return {
+            "total_inspections": total_inspections,
+            "healthy_inspections": healthy,
+            "today_inspections": today,
+        }

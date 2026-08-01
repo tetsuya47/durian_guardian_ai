@@ -21,6 +21,8 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
+const HIDDEN_MENU_PATHS = new Set(["/detection-results", "/diseases"]);
+
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
@@ -45,7 +47,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         collapsed ? "max-lg:-translate-x-full" : "max-lg:translate-x-0"
       }`}
       style={{
-        width: collapsed ? "80px" : "280px",
+        width: collapsed ? "80px" : "min(280px, 85vw)",
         backgroundColor: "#0F3D2E",
       }}
     >
@@ -61,31 +63,33 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Middle Menu */}
       <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.path === "/dashboard"
-              ? currentPath === "/" || currentPath === "/dashboard"
-              : currentPath === item.path || currentPath.startsWith(item.path + "/");
-          return (
-            <Link
-              key={item.label}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-colors truncate ${
-                isActive
-                  ? "bg-[#1E8449] text-white font-semibold shadow-[0_2px_8px_rgba(30,132,73,0.2)]"
-                  : "text-emerald-100/70 hover:text-white hover:bg-emerald-950/20"
-              }`}
-            >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && (
-                <span className="text-sm font-medium leading-none">
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+        {menuItems
+          .filter((item) => !HIDDEN_MENU_PATHS.has(item.path))
+          .map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.path === "/dashboard"
+                ? currentPath === "/" || currentPath === "/dashboard"
+                : currentPath === item.path || currentPath.startsWith(item.path + "/");
+            return (
+              <Link
+                key={item.label}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-colors truncate ${
+                  isActive
+                    ? "bg-[#1E8449] text-white font-semibold shadow-[0_2px_8px_rgba(30,132,73,0.2)]"
+                    : "text-emerald-100/70 hover:text-white hover:bg-emerald-950/20"
+                }`}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && (
+                  <span className="text-sm font-medium leading-none">
+                    {item.label}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
       </nav>
 
       {/* Bottom Collapse Button */}

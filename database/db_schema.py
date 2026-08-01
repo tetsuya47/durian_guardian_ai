@@ -3,7 +3,7 @@ Schema Definitions
 ==================
 
 Collection names, JSON Schema validators, and type hints
-for all 14 MongoDB collections in Durian Guardian AI.
+for all 15 MongoDB collections in Durian Guardian AI.
 
 Validators match the EXACT document structure produced
 by the Excel ETL pipeline — never reject valid data.
@@ -29,6 +29,7 @@ class Collections:
     HARVESTS: str = "harvests"
     FARM_TARGETS: str = "farm_targets"
     FARM_PERFORMANCE: str = "farm_performance"
+    NEIGHBOR_CONTACT_REQUESTS: str = "neighbor_contact_requests"
 
     @classmethod
     def all(cls) -> List[str]:
@@ -37,6 +38,7 @@ class Collections:
             cls.USERS, cls.DISEASES, cls.INSPECTIONS,
             cls.DETECTION_RESULTS, cls.DISEASE_HISTORY, cls.ALERTS,
             cls.SEASONS, cls.HARVESTS, cls.FARM_TARGETS, cls.FARM_PERFORMANCE,
+            cls.NEIGHBOR_CONTACT_REQUESTS,
         ]
 
     @classmethod
@@ -137,7 +139,6 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "company_id": {"bsonType": "objectId", "description": "Ref companies._id"},
                     "owner_user_id": {"bsonType": ["objectId", "null"], "description": "Ref users._id (Farm Owner)"},
                     "manager_user_id": {"bsonType": ["objectId", "null"], "description": "Ref users._id (Company Manager)"},
-                    "owner": {"bsonType": ["string", "null"]},
                     "phone": {"bsonType": ["string", "null"]},
                     "district": {"bsonType": "string", "description": "District location"},
                     "commune": {"bsonType": ["string", "null"]},
@@ -201,6 +202,18 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "email": {"bsonType": ["string", "null"]},
                     "password_hash": {"bsonType": ["string", "null"]},
                     "refresh_token": {"bsonType": ["string", "null"]},
+                    "phone": {"bsonType": ["string", "null"], "description": "Phone number"},
+                    "status": {"bsonType": ["string", "null"], "description": "Account status"},
+                    "address": {
+                        "bsonType": ["object", "null"],
+                        "description": "User address",
+                        "properties": {
+                            "province": {"bsonType": ["string", "null"]},
+                            "district": {"bsonType": ["string", "null"]},
+                            "ward": {"bsonType": ["string", "null"]},
+                            "detail": {"bsonType": ["string", "null"]},
+                        },
+                    },
                     "created_at": {"bsonType": "date"},
                     "updated_at": {"bsonType": ["date", "null"]},
                 },
@@ -421,6 +434,51 @@ def get_collection_validators() -> Dict[str, Dict[str, Any]]:
                     "last_calculated": {"bsonType": "date"},
                     "created_at": {"bsonType": "date"},
                     "updated_at": {"bsonType": ["date", "null"]},
+                },
+            }
+        },
+        Collections.NEIGHBOR_CONTACT_REQUESTS: {
+            "$jsonSchema": {
+                "bsonType": "object",
+                "title": "Neighbor Contact Request Validation",
+                "required": [
+                    "request_code",
+                    "source_farm_id",
+                    "target_farm_id",
+                    "source_user_id",
+                    "target_user_id",
+                    "status",
+                    "source_consent",
+                    "target_consent",
+                    "contact_shared",
+                    "created_at",
+                    "updated_at",
+                ],
+                "properties": {
+                    "_id": {"bsonType": "objectId"},
+                    "request_code": {"bsonType": "string", "description": "NCR000001"},
+                    "source_farm_id": {"bsonType": "objectId", "description": "Ref farms._id (source)"},
+                    "target_farm_id": {"bsonType": "objectId", "description": "Ref farms._id (target)"},
+                    "source_user_id": {"bsonType": "objectId", "description": "Ref users._id (source)"},
+                    "target_user_id": {"bsonType": "objectId", "description": "Ref users._id (target)"},
+                    "inspection_id": {"bsonType": ["objectId", "null"], "description": "Ref inspections._id"},
+                    "detection_result_id": {"bsonType": ["objectId", "null"], "description": "Ref detection_results._id"},
+                    "reason": {
+                        "bsonType": ["object", "null"],
+                        "properties": {
+                            "type": {"bsonType": "string", "description": "e.g. Disease Spread Risk"},
+                        },
+                    },
+                    "status": {
+                        "enum": ["pending", "waiting_target_consent", "waiting_source_consent", "contact_shared", "rejected", "cancelled"],
+                    },
+                    "source_consent": {"bsonType": "bool"},
+                    "target_consent": {"bsonType": "bool"},
+                    "contact_shared": {"bsonType": "bool"},
+                    "shared_at": {"bsonType": ["date", "null"]},
+                    "expires_at": {"bsonType": ["date", "null"]},
+                    "created_at": {"bsonType": "date"},
+                    "updated_at": {"bsonType": "date"},
                 },
             }
         },

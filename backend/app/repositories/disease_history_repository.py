@@ -74,3 +74,16 @@ class DiseaseHistoryRepository(BaseRepository):
 
     async def get_by_id(self, id: str) -> dict[str, Any] | None:
         return await self.get(id)
+
+    async def get_kpi_stats(self) -> dict:
+        total_records = await self.collection.count_documents({})
+        processed = await self.collection.count_documents(
+            {"action": {"$in": ["Treatment Applied", "Đã điều trị"]}}
+        )
+        unique_diseases = len(await self.collection.distinct("disease"))
+        return {
+            "total_records": total_records,
+            "processed_records": processed,
+            "unprocessed_records": total_records - processed,
+            "unique_diseases": unique_diseases,
+        }

@@ -9,8 +9,8 @@ export default function DashboardHeader({ loading, onRefresh }: DashboardHeaderP
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <h1 className="text-[32px] font-bold text-gray-900 tracking-tight leading-tight">Bảng điều khiển</h1>
-        <p className="text-[18px] text-gray-500 font-medium mt-0.5">Durian Guardian AI — Hệ thống hoạt động</p>
+        <h1 className="text-[24px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">Bảng điều khiển</h1>
+        <p className="text-[14px] md:text-[18px] text-gray-500 font-medium mt-0.5">Durian Guardian AI — Hệ thống hoạt động</p>
       </div>
       <div className="flex items-center">
         <button

@@ -142,6 +142,8 @@ def seed_farm_owners(db) -> Dict[str, int]:
                 "password_hash": hash_password(fo_data["password"]),
                 "role": "Farm Owner",
                 "refresh_token": "",
+                "status": None,
+                "address": None,
                 "created_at": now,
                 "updated_at": now,
             }
@@ -160,7 +162,6 @@ def seed_farm_owners(db) -> Dict[str, int]:
             {
                 "$set": {
                     "owner_user_id": fo_user["_id"],
-                    "owner": fo_user["full_name"],
                 }
             },
         )

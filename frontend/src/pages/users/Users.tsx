@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Building2,
@@ -7,7 +8,8 @@ import {
   Edit2,
   Trash2,
   Eye,
-  Plus
+  Plus,
+  UserCog
 } from "lucide-react";
 import Toolbar from "../../components/common/Toolbar";
 import StatCard from "../../components/common/StatCard";
@@ -25,6 +27,7 @@ import { formatDateTime } from "../../utils/dateFormatter";
 import { vi, ROLE_VI, USER_STATUS_VI } from "../../utils/translate";
 
 export default function UsersPage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,12 @@ export default function UsersPage() {
 
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [kpiStats, setKpiStats] = useState<{
+    total_users?: number;
+    total_admins?: number;
+    total_inspectors?: number;
+    total_managers?: number;
+  } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("All");
@@ -68,12 +77,13 @@ export default function UsersPage() {
     };
     if (searchQuery) params.keyword = searchQuery;
 
-    userService.get<User[] & { total?: number; total_pages?: number }>({ params })
+    userService.get<User[] & { total?: number; total_pages?: number; stats?: { total_users?: number; total_admins?: number; total_inspectors?: number; total_managers?: number } }>({ params })
       .then((data) => {
         const arr = data as unknown as User[];
         setUsers(arr);
         setTotalUsers((data as any).total ?? arr.length);
         setTotalPages((data as any).total_pages ?? Math.ceil(((data as any).total ?? arr.length) / perPage));
+        setKpiStats(data.stats ?? null);
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : "Không thể tải chi tiết người dùng.";
@@ -98,7 +108,7 @@ export default function UsersPage() {
       };
 
       Promise.allSettled([
-        userService.get<User[] & { total?: number; total_pages?: number }>({ params }),
+        userService.get<User[] & { total?: number; total_pages?: number; stats?: { total_users?: number; total_admins?: number; total_inspectors?: number; total_managers?: number } }>({ params }),
         companyService.get(),
       ])
         .then(([usersResult, companiesResult]) => {
@@ -108,6 +118,7 @@ export default function UsersPage() {
             setUsers(arr);
             setTotalUsers((usersData as any).total ?? arr.length);
             setTotalPages((usersData as any).total_pages ?? Math.ceil(((usersData as any).total ?? arr.length) / perPage));
+            setKpiStats(usersData.stats ?? null);
           } else {
             const msg = usersResult.reason instanceof Error ? usersResult.reason.message : "Không thể tải chi tiết người dùng.";
             setError(msg);
@@ -147,10 +158,21 @@ export default function UsersPage() {
         return "Resolved";
       case "Farm Manager":
         return "Info";
+      case "farmer":
+      case "Farm Owner":
+        return "Info";
       case "Technician":
       default:
         return "Pending";
     }
+  };
+
+  const isFarmOwner = (row: User) => {
+    return row.db_role === "Farm Owner" || row.role === "Farm Owner";
+  };
+
+  const handleOverviewClick = (row: User) => {
+    navigate(`/users/${row._id}`);
   };
 
   const handleAddClick = () => {
@@ -246,9 +268,9 @@ export default function UsersPage() {
     return matchesRole && matchesCompany && matchesStatus;
   });
 
-  const totalAdmins = users.filter((u) => u.role === "Admin").length;
-  const totalInspectors = users.filter((u) => u.role === "Inspector").length;
-  const totalManagers = users.filter((u) => u.role === "Company Manager" || u.role === "Farm Manager").length;
+  const totalAdmins = kpiStats?.total_admins ?? users.filter((u) => u.db_role === "Admin").length;
+  const totalInspectors = kpiStats?.total_inspectors ?? users.filter((u) => u.db_role === "Inspector").length;
+  const totalManagers = kpiStats?.total_managers ?? users.filter((u) => u.db_role === "Company Manager" || u.db_role === "Farm Manager").length;
 
   const columns = [
     { key: "user_code", label: "Mã người dùng", width: "120px" },
@@ -257,7 +279,7 @@ export default function UsersPage() {
     { key: "role", label: "Vai trò", width: "160px" },
     { key: "company_id", label: "Công ty", width: "1fr" },
     { key: "created_at", label: "Ngày tạo", width: "140px" },
-    { key: "actions", label: "Thao tác", width: "130px", className: "text-right" },
+    { key: "actions", label: "Thao tác", width: "190px", className: "text-right" },
   ];
 
   const tableRows = filteredUsers.map((row) => ({
@@ -274,6 +296,16 @@ export default function UsersPage() {
     created_at: <span className="text-gray-500">{formatDateTime(row.created_at)}</span>,
     actions: (
       <div className="flex items-center justify-end gap-2 pr-6">
+        {isFarmOwner(row) && (
+          <button
+            onClick={() => handleOverviewClick(row)}
+            type="button"
+            title="Tổng quan hoạt động"
+            className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-[#1E8449] hover:border-[#1E8449]/20 transition-all"
+          >
+            <UserCog className="w-4 h-4" />
+          </button>
+        )}
         <button
           onClick={() => handleViewClick(row)}
           type="button"

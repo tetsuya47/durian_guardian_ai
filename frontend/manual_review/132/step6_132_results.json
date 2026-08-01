@@ -1,0 +1,179 @@
+{
+  "viewports": [],
+  "routeChecks": [],
+  "totalChecks": 22,
+  "passed": 0,
+  "failed": 0,
+  "failures": [],
+  "screenshots": [],
+  "nav": {
+    "name": "sidebar-clickthrough",
+    "checks": [
+      {
+        "label": "Bảng điều khiển",
+        "path": "/dashboard",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Công ty",
+        "path": "/companies",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Trang trại",
+        "path": "/farms",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Khu vực",
+        "path": "/zones",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Cây",
+        "path": "/trees",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Người dùng",
+        "path": "/users",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Kiểm tra",
+        "path": "/inspections",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Lịch sử phát sinh bệnh",
+        "path": "/disease-history",
+        "ok": true,
+        "detail": "over=0/0"
+      },
+      {
+        "label": "Cảnh báo",
+        "path": "/alerts",
+        "ok": true,
+        "detail": "over=0/0"
+      }
+    ]
+  },
+  "headerFooter": {
+    "headerOk": true,
+    "footerOk": true
+  },
+  "drawerDesktop": {
+    "name": "edit-drawer-desktop",
+    "checks": [
+      {
+        "name": "drawer-opens-without-overflow",
+        "ok": true,
+        "detail": "{\"hasOverlay\":true,\"bad\":[],\"vw\":1440}"
+      }
+    ]
+  },
+  "treesTest": {
+    "name": "trees-detail+pagination",
+    "checks": [
+      {
+        "name": "detail-drawer",
+        "ok": true,
+        "detail": "{\"bad\":0,\"text\":false}"
+      },
+      {
+        "name": "pagination-to-page2",
+        "ok": true,
+        "detail": "{\"bad\":0}"
+      }
+    ]
+  },
+  "dashTest": {
+    "name": "dashboard-desktop",
+    "checks": [
+      {
+        "name": "dashboard-rendered",
+        "ok": true,
+        "detail": "{\"hasKpi\":true,\"hasHeatmap\":true,\"heatScrollable\":true,\"hasChart\":true,\"svgCount\":88,\"cardCount\":6198}"
+      }
+    ]
+  },
+  "mobileSidebar": {
+    "name": "mobile-sidebar",
+    "checks": [
+      {
+        "name": "sidebar-closed-default",
+        "ok": true,
+        "detail": "matrix(1, 0, 0, 1, -80, 0)"
+      },
+      {
+        "name": "sidebar-opens-on-mobile",
+        "ok": false,
+        "detail": "{\"transform\":\"matrix(1, 0, 0, 1, 0, 0)\",\"hasBackdrop\":true,\"bad\":0}"
+      }
+    ]
+  },
+  "drawerMobile": {
+    "name": "edit-drawer-mobile",
+    "checks": [
+      {
+        "name": "drawer-opens-without-overflow",
+        "ok": true,
+        "detail": "{\"bad\":0}"
+      }
+    ]
+  },
+  "heatmapMobile": {
+    "name": "heatmap-mobile-scroll",
+    "checks": [
+      {
+        "name": "heatmap-scrollable",
+        "ok": true,
+        "detail": "[{\"cls\":\"flex items-center gap-4 mb-2 overflow-x-auto\",\"over\":4},{\"cls\":\"flex-1 min-h-0 overflow-x-auto overflow-y-auto\",\"over\":81}]"
+      }
+    ]
+  },
+  "overviewMobile": {
+    "name": "farmer-overview-mobile",
+    "checks": [
+      {
+        "name": "overview-sections",
+        "ok": false,
+        "detail": "{\"profile\":false,\"farm\":false,\"neighbor\":false,\"timeline\":false}"
+      },
+      {
+        "name": "back-navigation",
+        "ok": false,
+        "detail": "http://localhost:5173/users/6a6d9357b9a0ef641ae50967"
+      }
+    ]
+  },
+  "authTest": {
+    "name": "auth-pages-320",
+    "checks": [
+      {
+        "name": "login-overflow",
+        "ok": true,
+        "detail": "{\"docOverflow\":0,\"mainOverflow\":0,\"bad\":[],\"scrollables\":[]}"
+      },
+      {
+        "name": "register-overflow",
+        "ok": true,
+        "detail": "{\"docOverflow\":0,\"mainOverflow\":0,\"bad\":[],\"scrollables\":[]}"
+      },
+      {
+        "name": "auth-console-errors",
+        "ok": true,
+        "detail": "{\"pe\":[],\"ce\":[]}"
+      }
+    ]
+  },
+  "passedChecks": 19,
+  "results": []
+}

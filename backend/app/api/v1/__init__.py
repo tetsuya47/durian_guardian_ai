@@ -16,6 +16,7 @@ from app.api.v1.detection_results import router as detection_results_router
 from app.api.v1.disease_history import router as disease_history_router
 from app.api.v1.diseases import router as diseases_router
 from app.api.v1.alerts import router as alerts_router
+from app.api.v1.admin import router as admin_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -35,3 +36,4 @@ api_router.include_router(detection_results_router)
 api_router.include_router(disease_history_router)
 api_router.include_router(diseases_router)
 api_router.include_router(alerts_router)
+api_router.include_router(admin_router)

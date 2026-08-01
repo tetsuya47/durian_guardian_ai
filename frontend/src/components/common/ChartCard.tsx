@@ -10,8 +10,7 @@ interface ChartCardProps {
 export default function ChartCard({ title, subtitle, footer, children }: ChartCardProps) {
   return (
     <div
-      className="bg-white border border-gray-100 rounded-[18px] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-gray-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
-      style={{ height: "320px" }}
+      className="bg-white border border-gray-100 rounded-[18px] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-gray-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between h-[280px] sm:h-[320px]"
     >
       {/* Title & Subtitle */}
       <div>

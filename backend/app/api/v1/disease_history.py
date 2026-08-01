@@ -27,8 +27,15 @@ async def list_disease_history(
 ):
     service = DiseaseHistoryService(db)
     items, total = await service.list_disease_history(page, per_page, keyword=keyword)
+    stats = await service.get_kpi_stats()
     return success_response(
-        data={"items": items, "total": total, "page": page, "per_page": per_page}
+        data={
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "stats": stats,
+        }
     )
 
 

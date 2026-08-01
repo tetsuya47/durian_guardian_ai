@@ -264,11 +264,11 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-5" style={{ gridTemplateRows: "auto 520px 420px" }}>
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-5 lg:[grid-template-rows:auto_450px_420px]">
         {/* ROW 1: KPI — renders as soon as /dashboard resolves */}
         <div className="lg:col-span-3">
           {dashboardLoading ? (
-            <div className="grid grid-cols-5" style={{ gap: "20px" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" style={{ gap: "20px" }}>
               {Array.from({ length: 5 }).map((_, i) => <KPISkeleton key={i} />)}
             </div>
           ) : (
@@ -285,11 +285,13 @@ export default function DashboardPage() {
         </div>
 
         {/* ROW 2-3 COL 1: System Overview — renders as soon as /dashboard resolves */}
-        {dashboardLoading ? (
-          <CardSkeleton><div className="flex-1 grid grid-cols-2 gap-2"><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /></div></CardSkeleton>
-        ) : (
-          <SystemOverviewCard data={systemOverview} />
-        )}
+        <div className="lg:self-start">
+          {dashboardLoading ? (
+            <CardSkeleton><div className="flex-1 grid grid-cols-2 gap-2"><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /></div></CardSkeleton>
+          ) : (
+            <SystemOverviewCard data={systemOverview} />
+          )}
+        </div>
 
         {/* ROW 2-3 COL 2: Heatmap — renders as soon as /dashboard/heatmap resolves */}
         {heatmapLoading ? (
@@ -309,9 +311,9 @@ export default function DashboardPage() {
           />
         )}
 
-        {/* ROW 2-4 COL 3: AI Agronomist (60%) + Inspection Log (40%) */}
+        {/* ROW 2 COL 3: AI Agronomist + ROW 3 COL 3: Inspection Log */}
         <div className="lg:row-span-2 flex flex-col" style={{ gap: "20px" }}>
-          <div style={{ flex: 6, minHeight: 0 }}>
+          <div className="lg:h-[450px] min-h-0">
             {widgetsLoading ? (
               <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse h-12 w-full mb-2" /><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
             ) : (
@@ -326,7 +328,7 @@ export default function DashboardPage() {
               />
             )}
           </div>
-          <div style={{ flex: 4, minHeight: 0 }}>
+          <div className="flex-1 min-h-0">
             {widgetsLoading ? (
               <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
             ) : (

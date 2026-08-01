@@ -18,6 +18,7 @@ _DB_TO_API_ROLE: dict[str, str] = {
     "Farm Manager": UserRole.farm_manager.value,
     "Inspector": UserRole.field_technician.value,
     "Technician": UserRole.farmer.value,
+    "Farm Owner": UserRole.farmer.value,
 }
 
 _API_TO_DB_ROLE: dict[str, str] = {v: k for k, v in _DB_TO_API_ROLE.items()}
