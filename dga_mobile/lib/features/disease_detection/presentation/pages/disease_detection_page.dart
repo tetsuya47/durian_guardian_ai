@@ -20,6 +20,7 @@ import '../widgets/image_preview_card.dart';
 import '../widgets/image_selector_buttons.dart';
 import '../widgets/instructions_card.dart';
 import '../widgets/quick_recommendations_card.dart';
+import '../../../history/presentation/providers/history_providers.dart';
 
 class DiseaseDetectionPage extends ConsumerWidget {
   const DiseaseDetectionPage({super.key});
@@ -93,29 +94,30 @@ class DiseaseDetectionPage extends ConsumerWidget {
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
   }
 
-  void _startAnalysis(WidgetRef ref, ImageInfoEntity imageInfo) async {
-    ref.read(detectionStateProvider.notifier).state = 'analyzing';
-    ref.read(selectedImageProvider.notifier).state = imageInfo;
-    ref.read(detectionErrorMessageProvider.notifier).state = null;
+  void _startAnalysis(BuildContext context, WidgetRef ref, ImageInfoEntity imageInfo) async {
+    final container = ProviderScope.containerOf(context);
+    container.read(detectionStateProvider.notifier).state = 'analyzing';
+    container.read(selectedImageProvider.notifier).state = imageInfo;
+    container.read(detectionErrorMessageProvider.notifier).state = null;
 
     try {
-      final repo = ref.read(diseaseDetectionRepositoryProvider);
+      final repo = container.read(diseaseDetectionRepositoryProvider);
       final result = await repo.detectDisease(imageInfo);
       result.when(
         success: (data) {
-          ref.read(detectionResultProvider.notifier).state = data;
-          ref.read(detectionStateProvider.notifier).state = 'success';
+          container.read(detectionResultProvider.notifier).state = data;
+          container.read(detectionStateProvider.notifier).state = 'success';
         },
         failure: (msg, err) {
-          ref.read(detectionErrorMessageProvider.notifier).state = msg;
-          ref.read(detectionStateProvider.notifier).state = 'error';
+          container.read(detectionErrorMessageProvider.notifier).state = msg;
+          container.read(detectionStateProvider.notifier).state = 'error';
         },
         loading: () {},
         empty: () {},
       );
     } catch (e) {
-      ref.read(detectionErrorMessageProvider.notifier).state = 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.';
-      ref.read(detectionStateProvider.notifier).state = 'error';
+      container.read(detectionErrorMessageProvider.notifier).state = 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.';
+      container.read(detectionStateProvider.notifier).state = 'error';
     }
   }
 
@@ -138,7 +140,10 @@ class DiseaseDetectionPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.history_outlined),
-            onPressed: () => context.go('/history'),
+            onPressed: () {
+              ref.invalidate(historyRawLogsProvider);
+              context.go('/history');
+            },
           ),
         ],
       ),
@@ -169,16 +174,79 @@ class DiseaseDetectionPage extends ConsumerWidget {
 
     if (state == 'error') {
       final errorMsg = ref.watch(detectionErrorMessageProvider);
-      return Center(
-        child: ErrorState(
-          description: errorMsg ?? AppStrings.cannotReadImage,
-          onRetry: () {
-            if (selectedImage != null) {
-              _startAnalysis(ref, selectedImage);
-            } else {
-              _reset(ref);
-            }
-          },
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 72,
+                color: Colors.redAccent,
+              ),
+              AppSpacing.v16,
+              Text(
+                'Không thể phân tích ảnh',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
+                ),
+              ),
+              AppSpacing.v8,
+              Text(
+                errorMsg ?? AppStrings.cannotReadImage,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+              ),
+              AppSpacing.v24,
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _reset(ref);
+                    context.push('/camera-simulator');
+                  },
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: const Text('Chụp ảnh lại (Máy ảnh)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              AppSpacing.v12,
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    _reset(ref);
+                    _openGallery(context, ref);
+                  },
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Chọn ảnh mới từ thư viện', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              AppSpacing.v12,
+              if (selectedImage != null)
+                TextButton.icon(
+                  onPressed: () {
+                    _startAnalysis(context, ref, selectedImage);
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Thử chẩn đoán lại ảnh này'),
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -202,7 +270,8 @@ class DiseaseDetectionPage extends ConsumerWidget {
             ActionButtons(
               onReScan: () => _reset(ref),
               onSave: () {
-                AppSnackbars.showInfo(context, 'Kết quả chẩn đoán đã hiển thị trên màn hình.');
+                ref.invalidate(historyRawLogsProvider);
+                AppSnackbars.showSuccess(context, 'Đã lưu kết quả chẩn đoán vào lịch sử thành công!');
               },
             ),
           ],

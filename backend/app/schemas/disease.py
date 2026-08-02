@@ -16,6 +16,12 @@ class DetectionResponse(BaseModel):
     image_url: str
     detection: DetectionResult
     created_at: datetime
+    heatmap_url: str | None = None
+    overlay_url: str | None = None
+    risk_level: str | None = None
+    risk_probability: float | None = None
+    recommendation: str | None = None
+    processing_time_ms: float | None = None
 
 
 class DiseaseHistoryOut(BaseModel):

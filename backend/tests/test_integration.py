@@ -1531,7 +1531,7 @@ class TestHistory:
 
 class TestAI:
     @pytest.mark.asyncio
-    async def test_image_quality(self, client: AsyncClient):
+    async def test_image_quality(self, client: AsyncClient, valid_leaf_image_bytes: bytes):
         from bson import ObjectId
         from app.core.security import create_access_token, hash_password
         from app.database.mongodb import MongoDBManager
@@ -1555,7 +1555,7 @@ class TestAI:
 
         r = await client.post(
             "/api/v1/ai/image-quality",
-            files={"file": ("test.jpg", b"fake-image-bytes", "image/jpeg")},
+            files={"file": ("test.jpg", valid_leaf_image_bytes, "image/jpeg")},
             headers=h,
         )
         body = assert_envelope(r, status_code=200)
@@ -1622,11 +1622,7 @@ class TestAI:
         assert_envelope(r, status_code=400, success=False)
 
     @pytest.mark.asyncio
-    async def test_detect_disease_valid_tree(self, client: AsyncClient):
-        """KNOWN BUG: AIService.detect_disease writes to 'diseases' collection via
-        DiseaseRepository but with wrong field names (disease_name, severity, confidence,
-        image_url) that don't match the disease_history MongoDB validator.
-        This causes a WriteError (500) instead of a proper response."""
+    async def test_detect_disease_valid_tree(self, client: AsyncClient, valid_leaf_image_bytes: bytes):
         from bson import ObjectId
         from app.core.security import create_access_token, hash_password
         from app.database.mongodb import MongoDBManager
@@ -1649,22 +1645,51 @@ class TestAI:
         h = {"Authorization": f"Bearer {token}"}
         chain = await create_full_chain(client, h)
 
-        from pymongo.errors import WriteError
-        try:
-            r = await client.post(
-                "/api/v1/ai/detect",
-                data={"tree_id": chain["tree_id"]},
-                files={"file": ("leaf.jpg", b"fake-image", "image/jpeg")},
-                headers=h,
-            )
-            # If response comes back, it should be 500
-            assert r.status_code == 500
-            body = r.json()
-            assert body["success"] is False
-        except WriteError:
-            # Known bug confirmed: ASGITransport lets WriteError escape
-            # when AIService writes invalid schema to disease_history
-            pass
+        r = await client.post(
+            "/api/v1/ai/detect",
+            data={"tree_id": chain["tree_id"]},
+            files={"file": ("leaf.jpg", valid_leaf_image_bytes, "image/jpeg")},
+            headers=h,
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        assert "detection" in body["data"]
+
+    @pytest.mark.asyncio
+    async def test_detect_disease_non_durian(self, client: AsyncClient, non_durian_image_bytes: bytes):
+        from bson import ObjectId
+        from app.core.security import create_access_token, hash_password
+        from app.database.mongodb import MongoDBManager
+
+        db = MongoDBManager.get_db()
+        uid = ObjectId()
+        now = datetime.now(timezone.utc)
+        await db["users"].insert_one(
+            {
+                "_id": uid,
+                "user_code": "USR8054",
+                "full_name": "AI Detect Non-Durian",
+                "email": "ainondurian@test.com",
+                "password_hash": hash_password("pass123"),
+                "role": "Admin",
+                "created_at": now,
+            }
+        )
+        token = create_access_token(sub=str(uid), role="Admin")
+        h = {"Authorization": f"Bearer {token}"}
+        chain = await create_full_chain(client, h)
+
+        r = await client.post(
+            "/api/v1/ai/detect",
+            data={"tree_id": chain["tree_id"]},
+            files={"file": ("car.jpg", non_durian_image_bytes, "image/jpeg")},
+            headers=h,
+        )
+        assert r.status_code == 400
+        body = r.json()
+        assert body["success"] is False
+        assert "Không phát hiện lá hoặc bộ phận cây sầu riêng" in body["message"]
 
 
 # ═══════════════════════════════════════════════════════════

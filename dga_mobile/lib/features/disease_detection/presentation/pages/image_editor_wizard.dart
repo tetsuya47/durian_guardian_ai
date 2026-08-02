@@ -41,32 +41,31 @@ class _ImageEditorWizardState extends ConsumerState<ImageEditorWizard> {
   }
 
   void _startAIPrediction(ImageInfoEntity selectedImage) async {
-    ref.read(detectionStateProvider.notifier).state = 'analyzing';
-    if (!mounted) return;
-    context.go('/disease-detection');
+    final container = ProviderScope.containerOf(context);
+    container.read(detectionStateProvider.notifier).state = 'analyzing';
+    container.read(detectionErrorMessageProvider.notifier).state = null;
+
+    // Navigate trước để hiển thị loading spinner ngay lập tức
+    if (mounted) context.go('/disease-detection');
 
     try {
-      final repo = ref.read(diseaseDetectionRepositoryProvider);
+      final repo = container.read(diseaseDetectionRepositoryProvider);
       final result = await repo.detectDisease(selectedImage);
-      if (!mounted) return;
       result.when(
         success: (data) {
-          ref.read(detectionResultProvider.notifier).state = data;
-          ref.read(detectionStateProvider.notifier).state = 'success';
-          if (mounted) AppSnackbars.showSuccess(context, 'Chẩn đoán hoàn tất!');
+          container.read(detectionResultProvider.notifier).state = data;
+          container.read(detectionStateProvider.notifier).state = 'success';
         },
         failure: (msg, err) {
-          ref.read(detectionErrorMessageProvider.notifier).state = msg;
-          ref.read(detectionStateProvider.notifier).state = 'error';
-          if (mounted) AppSnackbars.showError(context, msg);
+          container.read(detectionErrorMessageProvider.notifier).state = msg;
+          container.read(detectionStateProvider.notifier).state = 'error';
         },
         loading: () {},
         empty: () {},
       );
     } catch (e) {
-      ref.read(detectionErrorMessageProvider.notifier).state = 'Không thể đọc hoặc phân tích tệp ảnh này.';
-      ref.read(detectionStateProvider.notifier).state = 'error';
-      if (mounted) AppSnackbars.showError(context, 'Không thể đọc hoặc phân tích tệp ảnh này.');
+      container.read(detectionErrorMessageProvider.notifier).state = 'Không thể đọc hoặc phân tích tệp ảnh này.';
+      container.read(detectionStateProvider.notifier).state = 'error';
     }
   }
 

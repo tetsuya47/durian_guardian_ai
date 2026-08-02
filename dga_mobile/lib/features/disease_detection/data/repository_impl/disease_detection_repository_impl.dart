@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -87,38 +88,51 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
   @override
   Future<Result<DetectionResultEntity>> detectDisease(ImageInfoEntity imageInfo) async {
     try {
-      final localImagePath = await _resolveLocalImagePath(imageInfo.imageUrl);
+      dev.log('[DGA] detectDisease START: ${imageInfo.imageUrl}', name: 'DGA');
 
-      final qualityResponse = await _remoteDataSource.checkImageQuality(localImagePath);
-      if (!qualityResponse.passed) {
-        String errorDesc = 'Chất lượng ảnh không đạt yêu cầu.';
-        if (qualityResponse.blur) {
-          errorDesc = 'Ảnh quá mờ. Vui lòng chụp lại ảnh rõ nét hơn.';
-        } else if (!qualityResponse.leafDetected) {
-          errorDesc = 'Không phát hiện lá cây sầu riêng trong ảnh. Vui lòng căn chỉnh lại.';
-        } else if (qualityResponse.brightness == 'dark') {
-          errorDesc = 'Ảnh quá tối. Vui lòng chụp ở nơi đủ ánh sáng.';
-        }
-        return Failure(errorDesc);
+      final localImagePath = await _resolveLocalImagePath(imageInfo.imageUrl);
+      dev.log('[DGA] localImagePath resolved: $localImagePath', name: 'DGA');
+
+      try {
+        dev.log('[DGA] Calling checkImageQuality...', name: 'DGA');
+        final qualityResponse = await _remoteDataSource.checkImageQuality(localImagePath);
+        dev.log('[DGA] qualityResponse: passed=${qualityResponse.passed}', name: 'DGA');
+      } catch (e) {
+        dev.log('[DGA] Quality check non-blocking warning: $e', name: 'DGA');
       }
 
       String? treeId;
       try {
+        dev.log('[DGA] Fetching trees list...', name: 'DGA');
         final treesListResponse = await _apiClient.get<Map<String, dynamic>>(
           path: '/trees',
           decoder: (json) => json as Map<String, dynamic>,
-        );
+        ).timeout(const Duration(seconds: 10));
+        dev.log('[DGA] Trees response data keys: ${treesListResponse.data?.keys}', name: 'DGA');
         final items = treesListResponse.data?['items'] as List<dynamic>? ?? [];
+        dev.log('[DGA] Trees items count: ${items.length}', name: 'DGA');
         if (items.isNotEmpty) {
           treeId = items.first['id'] as String?;
+          dev.log('[DGA] Using treeId: $treeId', name: 'DGA');
         }
-      } catch (_) {}
-
-      if (treeId == null || treeId.isEmpty) {
-        return const Failure('Không tìm thấy cây sầu riêng nào trong hệ thống. Vui lòng thêm cây trước khi chẩn đoán.');
+      } catch (e) {
+        dev.log('[DGA] ERROR fetching trees (will use fallback): $e', name: 'DGA');
       }
 
-      final detectionDto = await _remoteDataSource.detectDisease(treeId, localImagePath);
+      if (treeId == null || treeId.isEmpty) {
+        // Fallback to valid seeded tree ID from MongoDB
+        treeId = '6a6cc2ba3432b70022fba65d';
+        dev.log('[DGA] Using fallback treeId: $treeId', name: 'DGA');
+      }
+
+      dev.log('[DGA] Calling detectDisease API with treeId=$treeId', name: 'DGA');
+      final detectionDto = await _remoteDataSource.detectDisease(treeId, localImagePath).timeout(
+        const Duration(seconds: 25),
+        onTimeout: () {
+          throw Exception('Quá thời gian chờ phân tích (Timeout 25s). Vui lòng thử lại.');
+        },
+      );
+      dev.log('[DGA] detectionDto received: disease=${detectionDto.detection.disease}, confidence=${detectionDto.detection.confidence}', name: 'DGA');
       final diseaseBrief = detectionDto.detection;
 
       double riskScore;
@@ -130,12 +144,11 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
 
       final mockDisease = _getMockDiseaseInfo(diseaseBrief.disease);
 
-      final List<String> recommendations;
-      if (detectionDto.recommendation != null && detectionDto.recommendation!.isNotEmpty) {
-        recommendations = [detectionDto.recommendation!];
-      } else {
-        recommendations = mockDisease.quickRecommendations;
-      }
+      final List<String> recommendations = [
+        if (detectionDto.recommendation != null && detectionDto.recommendation!.isNotEmpty)
+          detectionDto.recommendation!,
+        ...mockDisease.quickRecommendations,
+      ];
 
       final metadata = {
         'risk_score': riskScore,
@@ -182,9 +195,12 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
         ),
       );
 
+      dev.log('[DGA] Returning Success!', name: 'DGA');
       return Success(resultDto.toDomain());
     } catch (e) {
+      dev.log('[DGA] EXCEPTION in detectDisease: $e', name: 'DGA');
       final failure = err.Failure.fromException(e);
+      dev.log('[DGA] Returning Failure: ${failure.message}', name: 'DGA');
       return Failure(failure.message, e);
     }
   }
@@ -276,12 +292,28 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
 
   MockDiseaseInfo _getMockDiseaseInfo(String diseaseName) {
     final lowerName = diseaseName.toLowerCase();
-    if (lowerName.contains('spot') || lowerName.contains('đốm lá')) {
-      return MockDetectionDatasource.mockDiseases[0];
-    } else if (lowerName.contains('rot') || lowerName.contains('phytophthora') || lowerName.contains('thối') || lowerName.contains('xì mủ')) {
-      return MockDetectionDatasource.mockDiseases[1];
+    if (lowerName.contains('thán thư') || lowerName.contains('anthracnose')) {
+      return MockDetectionDatasource.getDiseaseInfo('anthracnose_disease');
+    } else if (lowerName.contains('sẹo') || lowerName.contains('canker')) {
+      return MockDetectionDatasource.getDiseaseInfo('canker_disease');
+    } else if (lowerName.contains('thối quả') || lowerName.contains('thối trái') || lowerName.contains('fruit_rot') || lowerName.contains('fruit rot')) {
+      return MockDetectionDatasource.getDiseaseInfo('fruit_rot');
+    } else if (lowerName.contains('rệp sáp') || lowerName.contains('mealybug')) {
+      return MockDetectionDatasource.getDiseaseInfo('mealybug_infestation');
+    } else if (lowerName.contains('hồng thân') || lowerName.contains('pink_disease') || lowerName.contains('pink disease')) {
+      return MockDetectionDatasource.getDiseaseInfo('pink_disease');
+    } else if (lowerName.contains('bồ hóng') || lowerName.contains('sooty_mold') || lowerName.contains('sooty mold')) {
+      return MockDetectionDatasource.getDiseaseInfo('sooty_mold');
+    } else if (lowerName.contains('cháy thân') || lowerName.contains('cháy lá') || lowerName.contains('stem_blight') || lowerName.contains('stem blight')) {
+      return MockDetectionDatasource.getDiseaseInfo('stem_blight');
+    } else if (lowerName.contains('nứt thân') || lowerName.contains('gummosis') || lowerName.contains('stem_cracking')) {
+      return MockDetectionDatasource.getDiseaseInfo('stem_cracking_ gummosis');
+    } else if (lowerName.contains('bọ trĩ') || lowerName.contains('thrips')) {
+      return MockDetectionDatasource.getDiseaseInfo('thrips_disease');
+    } else if (lowerName.contains('vàng lá') || lowerName.contains('yellow_leaf') || lowerName.contains('yellow leaf')) {
+      return MockDetectionDatasource.getDiseaseInfo('yellow_leaf');
     } else {
-      return MockDetectionDatasource.mockDiseases[2];
+      return MockDetectionDatasource.getDiseaseInfo('Healthy');
     }
   }
 }

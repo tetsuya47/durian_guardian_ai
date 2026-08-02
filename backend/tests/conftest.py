@@ -69,3 +69,29 @@ async def test_user_token(db: AsyncIOMotorDatabase) -> tuple[str, str]:
 async def auth_headers(test_user_token) -> dict[str, str]:
     token, _ = test_user_token
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def valid_leaf_image_bytes() -> bytes:
+    import cv2
+    import numpy as np
+    np.random.seed(42)
+    noise = np.random.randint(-20, 20, (300, 300, 3), dtype=np.int16)
+    base = np.zeros((300, 300, 3), dtype=np.int16)
+    base[:, :] = (30, 150, 40)
+    img = np.clip(base + noise, 0, 255).astype(np.uint8)
+    _, buffer = cv2.imencode(".jpg", img)
+    return buffer.tobytes()
+
+
+@pytest.fixture
+def non_durian_image_bytes() -> bytes:
+    import cv2
+    import numpy as np
+    np.random.seed(42)
+    noise = np.random.randint(-20, 20, (300, 300, 3), dtype=np.int16)
+    base = np.zeros((300, 300, 3), dtype=np.int16)
+    base[:, :] = (220, 100, 30)
+    img = np.clip(base + noise, 0, 255).astype(np.uint8)
+    _, buffer = cv2.imencode(".jpg", img)
+    return buffer.tobytes()

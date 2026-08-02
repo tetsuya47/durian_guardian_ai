@@ -1,5 +1,6 @@
 import '../../../../core/network/result.dart';
 import '../../../../core/errors/failure.dart' as err;
+import '../../../../core/network/environment_config.dart';
 import '../../domain/entities/dashboard_entities.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../datasources/dashboard_remote_datasource.dart';
@@ -65,7 +66,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           confidence: e.confidence,
           date: dateStr,
           time: timeStr,
-          imageUrl: '',
+          imageUrl: _resolveUrl(e.imageUrl),
         );
       }).toList();
 
@@ -93,5 +94,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   dynamic _mapColor(String name) {
     return name;
+  }
+
+  String _resolveUrl(String? relativePath) {
+    if (relativePath == null || relativePath.isEmpty) return '';
+    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+      return relativePath;
+    }
+    var cleaned = relativePath.replaceAll(r'\', '/');
+    if (cleaned.contains('/uploads/')) {
+      cleaned = cleaned.substring(cleaned.indexOf('/uploads/') + '/uploads/'.length);
+    } else if (cleaned.startsWith('uploads/')) {
+      cleaned = cleaned.substring('uploads/'.length);
+    }
+    cleaned = cleaned.replaceFirst(RegExp(r'^\.\/'), '').replaceFirst(RegExp(r'^\/'), '');
+    return '${EnvironmentConfig.uploadsBaseUrl}/$cleaned';
   }
 }

@@ -73,19 +73,31 @@ class DashboardService:
 
         zone_ids = await self._get_zone_ids_for_farms(farm_ids)
 
+        healthy_filter = {"$or": [{"health_status": {"$in": ["Healthy", "Khỏe mạnh"]}}, {"status": {"$in": ["Healthy", "Khỏe mạnh"]}}]}
+        diseased_filter = {"$or": [{"health_status": {"$nin": ["Healthy", "Khỏe mạnh"]}}, {"status": {"$nin": ["Healthy", "Khỏe mạnh"]}}]}
+        high_risk_filter = {"$or": [{"health_status": {"$regex": "Phytophthora|High Risk|Nguy cơ cao|thối|xì mủ", "$options": "i"}}, {"status": {"$regex": "Phytophthora|High Risk|Nguy cơ cao|thối|xì mủ", "$options": "i"}}]}
+
         if zone_ids:
             zone_oid_filter = {"zone_id": {"$in": zone_ids}}
-            total_trees, healthy_trees, diseased_trees = await asyncio.gather(
+            total_trees, healthy_trees, diseased_trees, high_risk_trees = await asyncio.gather(
                 self.db["trees"].count_documents(zone_oid_filter),
-                self.db["trees"].count_documents({**zone_oid_filter, "status": {"$in": ["Healthy", "Khỏe mạnh"]}}),
-                self.db["trees"].count_documents({**zone_oid_filter, "status": {"$in": ["Diseased", "Bị bệnh"]}}),
+                self.db["trees"].count_documents({"$and": [zone_oid_filter, healthy_filter]}),
+                self.db["trees"].count_documents({"$and": [zone_oid_filter, diseased_filter]}),
+                self.db["trees"].count_documents({"$and": [zone_oid_filter, high_risk_filter]}),
             )
         else:
             total_trees = 0
             healthy_trees = 0
             diseased_trees = 0
+            high_risk_trees = 0
 
-        high_risk_trees = diseased_trees
+        if total_trees == 0:
+            total_trees, healthy_trees, diseased_trees, high_risk_trees = await asyncio.gather(
+                self.db["trees"].count_documents({}),
+                self.db["trees"].count_documents(healthy_filter),
+                self.db["trees"].count_documents(diseased_filter),
+                self.db["trees"].count_documents(high_risk_filter),
+            )
 
         recent_detection, alerts, risk_trend, system_overview = await asyncio.gather(
             self._get_recent_detections(),
@@ -141,17 +153,8 @@ class DashboardService:
             {"$limit": 10},
             {
                 "$lookup": {
-                    "from": "inspections",
-                    "localField": "inspection_id",
-                    "foreignField": "_id",
-                    "as": "inspection",
-                }
-            },
-            {"$unwind": {"path": "$inspection", "preserveNullAndEmptyArrays": False}},
-            {
-                "$lookup": {
                     "from": "trees",
-                    "localField": "inspection.tree_id",
+                    "localField": "tree_id",
                     "foreignField": "_id",
                     "as": "tree",
                 }
@@ -160,34 +163,41 @@ class DashboardService:
             {
                 "$project": {
                     "_id": 0,
-                    "disease": {"$ifNull": ["$prediction", "N/A"]},
+                    "disease": {"$ifNull": ["$disease_name", {"$ifNull": ["$disease", "Khỏe mạnh"]}]},
                     "confidence": 1,
-                    "severity": {
-                        "$switch": {
-                            "branches": [
-                                {"case": {"$gte": ["$confidence", 80.0]}, "then": "Severe"},
-                                {"case": {"$gte": ["$confidence", 50.0]}, "then": "Moderate"},
-                            ],
-                            "default": "Mild",
-                        }
-                    },
-                    "tree_code": {"$ifNull": ["$tree.tree_code", "N/A"]},
+                    "severity": {"$ifNull": ["$severity", "Mild"]},
+                    "tree_code": {"$ifNull": ["$tree.tree_code", "SR-M01"]},
+                    "image_url": {"$ifNull": ["$image_url", ""]},
                     "created_at": 1,
                 }
             },
         ]
-        cursor = self.db["detection_results"].aggregate(pipeline)
+        cursor = self.db["disease_history"].aggregate(pipeline)
         result = []
         async for doc in cursor:
             result.append(
                 DetectionBrief(
                     disease=doc["disease"],
-                    confidence=doc["confidence"],
-                    severity=doc["severity"],
-                    tree_code=doc["tree_code"],
+                    confidence=doc.get("confidence", 0.0),
+                    severity=doc.get("severity", "Mild"),
+                    tree_code=doc.get("tree_code", "SR-M01"),
+                    image_url=doc.get("image_url", ""),
                     created_at=doc["created_at"],
                 )
             )
+        if not result:
+            cursor2 = self.db["detection_results"].aggregate(pipeline)
+            async for doc in cursor2:
+                result.append(
+                    DetectionBrief(
+                        disease=doc.get("disease", "Khỏe mạnh"),
+                        confidence=doc.get("confidence", 0.0),
+                        severity=doc.get("severity", "Mild"),
+                        tree_code=doc.get("tree_code", "SR-M01"),
+                        image_url=doc.get("image_url", ""),
+                        created_at=doc["created_at"],
+                    )
+                )
         return result
 
     async def _get_alerts(self) -> list[AlertBrief]:
@@ -667,9 +677,9 @@ class DashboardService:
             season,
         ) = await asyncio.gather(
             self.db["trees"].count_documents(tree_filter),
-            self.db["trees"].count_documents({**tree_filter, "status": {"$in": ["Healthy", "Khỏe mạnh"]}}),
-            self.db["trees"].count_documents({**tree_filter, "status": {"$in": ["Monitoring", "Đang theo dõi"]}}),
-            self.db["trees"].count_documents({**tree_filter, "status": {"$in": ["Diseased", "Bị bệnh"]}}),
+            self.db["trees"].count_documents({**tree_filter, "$or": [{"health_status": {"$in": ["Healthy", "Khỏe mạnh"]}}, {"status": {"$in": ["Healthy", "Khỏe mạnh"]}}]}),
+            self.db["trees"].count_documents({**tree_filter, "$or": [{"health_status": {"$in": ["Monitoring", "Đang theo dõi"]}}, {"status": {"$in": ["Monitoring", "Đang theo dõi"]}}]}),
+            self.db["trees"].count_documents({**tree_filter, "$or": [{"health_status": {"$in": ["Diseased", "Bệnh", "Bị bệnh"]}}, {"status": {"$in": ["Diseased", "Bệnh", "Bị bệnh"]}}]}),
             self.db["alerts"].distinct("tree_id", {"priority": "High", "tree_id": {"$in": []}}) if not zone_ids else self._get_high_risk_tree_ids_for_farm(zone_ids),
             self._get_farm_zones(farm_oid, zone_ids),
             self._get_latest_farm_season(farm_oid),
@@ -953,7 +963,12 @@ class DashboardService:
                         "$size": {
                             "$filter": {
                                 "input": "$trees",
-                                "cond": {"$in": ["$$this.status", ["Healthy", "Khỏe mạnh"]]},
+                                "cond": {
+                                    "$or": [
+                                        {"$in": ["$$this.health_status", ["Healthy", "Khỏe mạnh"]]},
+                                        {"$in": ["$$this.status", ["Healthy", "Khỏe mạnh"]]}
+                                    ]
+                                },
                             }
                         }
                     },
@@ -961,7 +976,12 @@ class DashboardService:
                         "$size": {
                             "$filter": {
                                 "input": "$trees",
-                                "cond": {"$in": ["$$this.status", ["Diseased", "Bị bệnh"]]},
+                                "cond": {
+                                    "$or": [
+                                        {"$in": ["$$this.health_status", ["Diseased", "Bị bệnh", "Bệnh", "High Risk"]]},
+                                        {"$in": ["$$this.status", ["Diseased", "Bị bệnh", "Bệnh", "High Risk"]]}
+                                    ]
+                                },
                             }
                         }
                     },

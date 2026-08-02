@@ -185,13 +185,13 @@ class DiseaseHistoryRecordDto {
 
   factory DiseaseHistoryRecordDto.fromJson(Map<String, dynamic> json) {
     return DiseaseHistoryRecordDto(
-      id: json['id'] as String? ?? '',
+      id: json['id'] as String? ?? json['_id'] as String? ?? '',
       treeId: json['tree_id'] as String? ?? '',
-      diseaseName: json['disease_name'] as String? ?? '',
+      diseaseName: json['disease_name'] as String? ?? json['disease'] as String? ?? '',
       severity: json['severity'] as String? ?? 'low',
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
       imageUrl: json['image_url'] as String? ?? '',
-      createdAt: json['created_at'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? json['date'] as String? ?? '',
     );
   }
 

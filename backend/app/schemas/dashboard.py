@@ -10,6 +10,7 @@ class DetectionBrief(BaseModel):
     confidence: float
     severity: str
     tree_code: str
+    image_url: str | None = None
     created_at: datetime
 
 

@@ -7,6 +7,7 @@ import '../../domain/repositories/history_repository.dart';
 import '../datasources/history_remote_datasource.dart';
 import '../models/history_dtos.dart';
 import '../models/history_mappers.dart';
+import '../../../../core/network/environment_config.dart';
 
 class HistoryRepositoryImpl implements HistoryRepository {
   final HistoryRemoteDataSource _remoteDataSource;
@@ -20,80 +21,96 @@ class HistoryRepositoryImpl implements HistoryRepository {
       final trees = await _remoteDataSource.getTrees();
       final List<HistoryLogDto> allLogs = [];
 
-      // Query histories in parallel for all trees
-      final futures = trees.map((tree) async {
-        final treeId = tree['id'] as String?;
-        final treeCode = tree['tree_code'] as String? ?? 'Cây chưa đặt tên';
-        if (treeId == null || treeId.isEmpty) return;
-
-        try {
-          final historyResponse = await _remoteDataSource.getTreeHistory(treeId);
-          for (final record in historyResponse.diseaseHistory) {
-            String dateStr = '';
-            String timeStr = '';
-            try {
-              final parsed = DateTime.parse(record.createdAt).toLocal();
-              dateStr = '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
-              timeStr = '${parsed.hour.toString().padLeft(2, '0')}:${parsed.minute.toString().padLeft(2, '0')}';
-            } catch (_) {
-              dateStr = record.createdAt;
-            }
-
-            // ─── Resolve risk score, recommendations & weather ───
-            double riskVal = 50.0;
-            List<String> recommendations = _getMockRecommendations(record.diseaseName);
-            double temperature = 0;
-            double humidity = 0;
-
-            final cacheKey = 'metadata_${treeId}_${record.createdAt}';
-            final cachedString = _storageService.getString(cacheKey);
-            if (cachedString != null && cachedString.isNotEmpty) {
-              try {
-                final cachedMeta = json.decode(cachedString) as Map<String, dynamic>;
-                riskVal = (cachedMeta['risk_score'] as num?)?.toDouble() ?? 50.0;
-                recommendations = (cachedMeta['recommendations'] as List<dynamic>?)
-                        ?.map((e) => e as String)
-                        .toList() ??
-                    recommendations;
-                temperature = (cachedMeta['temperature'] as num?)?.toDouble() ?? 0;
-                humidity = (cachedMeta['humidity'] as num?)?.toDouble() ?? 0;
-              } catch (_) {}
-            } else {
-              // Fallback default calculation matching server state
-              final lowerDisease = record.diseaseName.toLowerCase();
-              if (lowerDisease.contains('healthy') || lowerDisease.contains('không phát hiện')) {
-                riskVal = 20.0;
-              } else if (lowerDisease.contains('rot') || lowerDisease.contains('phytophthora') || lowerDisease.contains('thối') || lowerDisease.contains('xì mủ')) {
-                riskVal = 90.0;
-              }
-            }
-
-            allLogs.add(
-              HistoryLogDto(
-                id: record.id,
-                treeName: treeCode,
-                imageUrl: record.imageUrl,
-                diseaseName: _translateDisease(record.diseaseName),
-                confidence: record.confidence,
-                severity: _translateSeverity(record.severity),
-                date: dateStr,
-                time: timeStr,
-                inspectorName: 'Hệ thống AI',
-                weather: HistoryWeatherDto(
-                  temperature: temperature,
-                  humidity: humidity,
-                ),
-                recommendations: recommendations,
-                riskScore: riskVal,
-              ),
-            );
-          }
-        } catch (_) {
-          // Suppress errors for a single tree, continue loading other trees
+      final treeMap = <String, String>{};
+      for (final tree in trees) {
+        final id = tree['id'] as String?;
+        final code = tree['tree_code'] as String? ?? 'Cây chưa đặt tên';
+        if (id != null && id.isNotEmpty) {
+          treeMap[id] = code;
         }
-      });
+      }
+      const fallbackTreeId = '6a6cc2ba3432b70022fba65d';
+      if (!treeMap.containsKey(fallbackTreeId)) {
+        treeMap[fallbackTreeId] = 'Cây sầu riêng #01 (Mặc định)';
+      }
 
-      await Future.wait(futures);
+      // Query histories in parallel for target trees (up to 150 sampled trees + fallback)
+      final entries = treeMap.entries.toList();
+      final targetEntries = entries.length > 150 ? entries.sublist(0, 150) : entries;
+      const batchSize = 30;
+      for (var i = 0; i < targetEntries.length; i += batchSize) {
+        final batch = targetEntries.sublist(i, i + batchSize > targetEntries.length ? targetEntries.length : i + batchSize);
+        final futures = batch.map((entry) async {
+          final treeId = entry.key;
+          final treeCode = entry.value;
+          try {
+            final historyResponse = await _remoteDataSource.getTreeHistory(treeId);
+            for (final record in historyResponse.diseaseHistory) {
+              String dateStr = '';
+              String timeStr = '';
+              try {
+                final parsed = DateTime.parse(record.createdAt).toLocal();
+                dateStr = '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
+                timeStr = '${parsed.hour.toString().padLeft(2, '0')}:${parsed.minute.toString().padLeft(2, '0')}';
+              } catch (_) {
+                dateStr = record.createdAt;
+              }
+
+              // ─── Resolve risk score, recommendations & weather ───
+              double riskVal = 50.0;
+              List<String> recommendations = _getMockRecommendations(record.diseaseName);
+              double temperature = 0;
+              double humidity = 0;
+
+              final cacheKey = 'metadata_${treeId}_${record.createdAt}';
+              final cachedString = _storageService.getString(cacheKey);
+              if (cachedString != null && cachedString.isNotEmpty) {
+                try {
+                  final cachedMeta = json.decode(cachedString) as Map<String, dynamic>;
+                  riskVal = (cachedMeta['risk_score'] as num?)?.toDouble() ?? 50.0;
+                  recommendations = (cachedMeta['recommendations'] as List<dynamic>?)
+                          ?.map((e) => e as String)
+                          .toList() ??
+                      recommendations;
+                  temperature = (cachedMeta['temperature'] as num?)?.toDouble() ?? 0;
+                  humidity = (cachedMeta['humidity'] as num?)?.toDouble() ?? 0;
+                } catch (_) {}
+              } else {
+                // Fallback default calculation matching server state
+                final lowerDisease = record.diseaseName.toLowerCase();
+                if (lowerDisease.contains('healthy') || lowerDisease.contains('không phát hiện')) {
+                  riskVal = 20.0;
+                } else if (lowerDisease.contains('rot') || lowerDisease.contains('phytophthora') || lowerDisease.contains('thối') || lowerDisease.contains('xì mủ')) {
+                  riskVal = 90.0;
+                }
+              }
+
+              allLogs.add(
+                HistoryLogDto(
+                  id: record.id,
+                  treeName: treeCode,
+                  imageUrl: _resolveUrl(record.imageUrl),
+                  diseaseName: _translateDisease(record.diseaseName),
+                  confidence: record.confidence,
+                  severity: _translateSeverity(record.severity),
+                  date: dateStr,
+                  time: timeStr,
+                  inspectorName: 'Hệ thống AI',
+                  weather: HistoryWeatherDto(
+                    temperature: temperature,
+                    humidity: humidity,
+                  ),
+                  recommendations: recommendations,
+                  riskScore: riskVal,
+                ),
+              );
+            }
+          } catch (_) {
+            // Suppress errors for a single tree, continue loading other trees
+          }
+        });
+        await Future.wait(futures);
+      }
 
       // Sort logs descending by date/time (or raw createdAt)
       allLogs.sort((a, b) {
@@ -182,5 +199,20 @@ class HistoryRepositoryImpl implements HistoryRepository {
         'Kiểm tra định kỳ hàng tuần để phát hiện sớm sâu bệnh.'
       ];
     }
+  }
+
+  String _resolveUrl(String? relativePath) {
+    if (relativePath == null || relativePath.isEmpty) return '';
+    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+      return relativePath;
+    }
+    var cleaned = relativePath.replaceAll(r'\', '/');
+    if (cleaned.contains('/uploads/')) {
+      cleaned = cleaned.substring(cleaned.indexOf('/uploads/') + '/uploads/'.length);
+    } else if (cleaned.startsWith('uploads/')) {
+      cleaned = cleaned.substring('uploads/'.length);
+    }
+    cleaned = cleaned.replaceFirst(RegExp(r'^\.\/'), '').replaceFirst(RegExp(r'^\/'), '');
+    return '${EnvironmentConfig.uploadsBaseUrl}/$cleaned';
   }
 }

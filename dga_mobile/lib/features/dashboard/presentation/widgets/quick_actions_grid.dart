@@ -13,7 +13,7 @@ class QuickActionsGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: FeatureTile(
@@ -36,7 +36,7 @@ class QuickActionsGrid extends StatelessWidget {
         ),
         AppSpacing.v12,
         Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: FeatureTile(

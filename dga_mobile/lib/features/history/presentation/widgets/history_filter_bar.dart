@@ -70,6 +70,7 @@ class HistoryFilterBar extends ConsumerWidget {
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: activeTimeFilter,
+                    isExpanded: true,
                     icon: const Icon(Icons.arrow_drop_down),
                     onChanged: (val) {
                       if (val != null) {
@@ -79,7 +80,11 @@ class HistoryFilterBar extends ConsumerWidget {
                     items: timeFilters.map((time) {
                       return DropdownMenuItem<String>(
                         value: time,
-                        child: Text('Thời gian: $time', style: theme.textTheme.bodyMedium),
+                        child: Text(
+                          'Thời gian: $time',
+                          style: theme.textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                   ),
@@ -98,6 +103,7 @@ class HistoryFilterBar extends ConsumerWidget {
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: activeSort,
+                    isExpanded: true,
                     icon: const Icon(Icons.sort),
                     onChanged: (val) {
                       if (val != null) {
@@ -112,7 +118,11 @@ class HistoryFilterBar extends ConsumerWidget {
                     ].map((sort) {
                       return DropdownMenuItem<String>(
                         value: sort,
-                        child: Text('Sắp xếp: $sort', style: theme.textTheme.bodyMedium),
+                        child: Text(
+                          'Sắp xếp: $sort',
+                          style: theme.textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                   ),

@@ -18,11 +18,11 @@ def _user_id_from_headers(headers: dict[str, str]) -> str:
 
 @pytest.mark.asyncio
 async def test_image_quality(
-    client: AsyncClient, auth_headers: dict[str, str]
+    client: AsyncClient, auth_headers: dict[str, str], valid_leaf_image_bytes: bytes
 ):
     resp = await client.post(
         "/api/v1/ai/image-quality",
-        files={"file": ("test.jpg", b"fake-image-bytes", "image/jpeg")},
+        files={"file": ("test.jpg", valid_leaf_image_bytes, "image/jpeg")},
         headers=auth_headers,
     )
     assert resp.status_code == 200
@@ -33,6 +33,22 @@ async def test_image_quality(
     assert body["data"]["brightness"] == "good"
     assert body["data"]["leaf_detected"] is True
     assert body["data"]["passed"] is True
+
+
+@pytest.mark.asyncio
+async def test_image_quality_non_durian(
+    client: AsyncClient, auth_headers: dict[str, str], non_durian_image_bytes: bytes
+):
+    resp = await client.post(
+        "/api/v1/ai/image-quality",
+        files={"file": ("non_durian.jpg", non_durian_image_bytes, "image/jpeg")},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert body["data"]["leaf_detected"] is False
+    assert body["data"]["passed"] is False
 
 
 @pytest.mark.asyncio

@@ -72,7 +72,6 @@ class _ComparePageState extends ConsumerState<ComparePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final logsAsync = ref.watch(historyRawLogsProvider);
 
     return Scaffold(
@@ -121,7 +120,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                   elevation: 2,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.s),
                     child: Row(
                       children: [
                         const Icon(Icons.park_outlined, color: Colors.green),
@@ -169,14 +168,20 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                           AppSpacing.v4,
                           DropdownButtonFormField<HistoryLogEntity>(
                             value: _beforeLog,
+                            isExpanded: true,
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                             items: treeLogs.map((log) {
                               return DropdownMenuItem<HistoryLogEntity>(
                                 value: log,
-                                child: Text('${log.date} ${log.time}'),
+                                child: Text(
+                                  '${log.date} ${log.time}',
+                                  style: const TextStyle(fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               );
                             }).toList(),
                             onChanged: (val) {
@@ -197,14 +202,20 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                           AppSpacing.v4,
                           DropdownButtonFormField<HistoryLogEntity>(
                             value: _afterLog,
+                            isExpanded: true,
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                             items: treeLogs.map((log) {
                               return DropdownMenuItem<HistoryLogEntity>(
                                 value: log,
-                                child: Text('${log.date} ${log.time}'),
+                                child: Text(
+                                  '${log.date} ${log.time}',
+                                  style: const TextStyle(fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               );
                             }).toList(),
                             onChanged: (val) {
@@ -242,7 +253,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                               decoration: BoxDecoration(
                                 color: _beforeLog!.diseaseName.contains('Khỏe mạnh') || _beforeLog!.diseaseName.contains('Không phát hiện')
                                     ? Colors.green.withAlpha(30)
-                                    : Colors.red.withAlpha(30),
+                                    : Colors.amber.withAlpha(30),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -252,7 +263,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                                   fontWeight: FontWeight.bold,
                                   color: _beforeLog!.diseaseName.contains('Khỏe mạnh') || _beforeLog!.diseaseName.contains('Không phát hiện')
                                       ? Colors.green[800]
-                                      : Colors.red[800],
+                                      : Colors.amber[900],
                                 ),
                               ),
                             ),
@@ -278,7 +289,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                               decoration: BoxDecoration(
                                 color: _afterLog!.diseaseName.contains('Khỏe mạnh') || _afterLog!.diseaseName.contains('Không phát hiện')
                                     ? Colors.green.withAlpha(30)
-                                    : Colors.red.withAlpha(30),
+                                    : Colors.amber.withAlpha(30),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -288,7 +299,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                                   fontWeight: FontWeight.bold,
                                   color: _afterLog!.diseaseName.contains('Khỏe mạnh') || _afterLog!.diseaseName.contains('Không phát hiện')
                                       ? Colors.green[800]
-                                      : Colors.red[800],
+                                      : Colors.amber[900],
                                 ),
                               ),
                             ),
@@ -316,7 +327,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                         'Mức độ nặng',
                         _beforeLog!.severity,
                         _afterLog!.severity,
-                        customColorB: _beforeLog!.severity == 'Nặng' ? Colors.red : Colors.grey[800],
+                        customColorB: _beforeLog!.severity == 'Nặng' ? Colors.amber[900] : Colors.grey[800],
                         customColorA: _afterLog!.severity == 'Nhẹ' ? Colors.green : Colors.grey[800],
                       ),
                       _buildTableRow(
@@ -328,7 +339,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
                         'Điểm nguy cơ',
                         '${_beforeLog!.riskScore.toStringAsFixed(0)}%',
                         '${_afterLog!.riskScore.toStringAsFixed(0)}%',
-                        customColorB: _beforeLog!.riskScore >= 70 ? Colors.red : Colors.grey[800],
+                        customColorB: _beforeLog!.riskScore >= 70 ? Colors.amber[900] : Colors.grey[800],
                         customColorA: _afterLog!.riskScore < 40 ? Colors.green : Colors.grey[800],
                       ),
                       _buildTableRow(

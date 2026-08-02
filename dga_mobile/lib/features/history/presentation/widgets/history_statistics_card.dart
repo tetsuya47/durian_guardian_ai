@@ -44,7 +44,7 @@ class HistoryStatisticsCard extends StatelessWidget {
             children: [
               Expanded(child: _buildStatItem(context, label: AppStrings.totalScans, value: '$total', color: theme.colorScheme.primary)),
               Expanded(child: _buildStatItem(context, label: AppStrings.filterHealthy, value: '$healthy', color: AppColors.success)),
-              Expanded(child: _buildStatItem(context, label: AppStrings.filterDiseased, value: '$diseased', color: AppColors.error)),
+              Expanded(child: _buildStatItem(context, label: AppStrings.filterDiseased, value: '$diseased', color: AppColors.warning)),
               Expanded(child: _buildStatItem(context, label: AppStrings.diseaseRate, value: '$rate%', color: AppColors.warning)),
             ],
           ),

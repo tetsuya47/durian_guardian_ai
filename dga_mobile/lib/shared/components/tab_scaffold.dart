@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'bottom_navigation_bar.dart';
+import '../../features/history/presentation/providers/history_providers.dart';
 
-class TabScaffold extends StatelessWidget {
+class TabScaffold extends ConsumerWidget {
   final Widget child;
 
   const TabScaffold({
@@ -19,7 +21,7 @@ class TabScaffold extends StatelessWidget {
     return 0; // Default to Dashboard
   }
 
-  void _onTabTapped(BuildContext context, int index) {
+  void _onTabTapped(BuildContext context, WidgetRef ref, int index) {
     switch (index) {
       case 0:
         context.go('/dashboard');
@@ -31,6 +33,7 @@ class TabScaffold extends StatelessWidget {
         context.go('/recommendation');
         break;
       case 3:
+        ref.invalidate(historyRawLogsProvider);
         context.go('/history');
         break;
       case 4:
@@ -40,12 +43,12 @@ class TabScaffold extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: child,
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _getCurrentIndex(context),
-        onTap: (index) => _onTabTapped(context, index),
+        onTap: (index) => _onTabTapped(context, ref, index),
       ),
     );
   }

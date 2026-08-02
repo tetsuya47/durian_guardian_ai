@@ -14,8 +14,13 @@ class DiseaseRepository(BaseRepository):
     ) -> tuple[list[dict], int]:
         from bson import ObjectId
         tree_oid = ObjectId(tree_id) if ObjectId.is_valid(tree_id) else tree_id
+        filter_query = (
+            {"$or": [{"tree_id": tree_oid}, {"tree_id": str(tree_id)}]}
+            if isinstance(tree_oid, ObjectId)
+            else {"tree_id": tree_id}
+        )
         return await self.list(
-            filter_query={"tree_id": tree_oid},
+            filter_query=filter_query,
             page=page,
             per_page=per_page,
             sort=[("created_at", -1)],
@@ -24,8 +29,13 @@ class DiseaseRepository(BaseRepository):
     async def get_latest_by_tree(self, tree_id: str) -> dict | None:
         from bson import ObjectId
         tree_oid = ObjectId(tree_id) if ObjectId.is_valid(tree_id) else tree_id
+        filter_query = (
+            {"$or": [{"tree_id": tree_oid}, {"tree_id": str(tree_id)}]}
+            if isinstance(tree_oid, ObjectId)
+            else {"tree_id": tree_id}
+        )
         cursor = (
-            self.collection.find({"tree_id": tree_oid})
+            self.collection.find(filter_query)
             .sort("created_at", -1)
             .limit(1)
         )

@@ -228,6 +228,7 @@ class DetectionBriefDto {
   final double confidence;
   final String severity;
   final String treeCode;
+  final String imageUrl;
   final String createdAt;
 
   const DetectionBriefDto({
@@ -235,6 +236,7 @@ class DetectionBriefDto {
     required this.confidence,
     required this.severity,
     required this.treeCode,
+    required this.imageUrl,
     required this.createdAt,
   });
 
@@ -244,6 +246,7 @@ class DetectionBriefDto {
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
       severity: json['severity'] as String? ?? '',
       treeCode: json['tree_code'] as String? ?? '',
+      imageUrl: json['image_url'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
     );
   }
@@ -254,6 +257,7 @@ class DetectionBriefDto {
       'confidence': confidence,
       'severity': severity,
       'tree_code': treeCode,
+      'image_url': imageUrl,
       'created_at': createdAt,
     };
   }

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_spacing.dart';
-import '../providers/history_providers.dart';
 
 class LeaderboardPage extends ConsumerStatefulWidget {
   const LeaderboardPage({super.key});
@@ -78,28 +77,28 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
   // Dữ liệu mock thống kê dịch bệnh theo phân khu
   final Map<String, List<Map<String, dynamic>>> _zoneDiseaseStats = {
     'Khu A': [
-      {'disease': 'Khỏe mạnh', 'percentage': 75.0, 'count': 45, 'color': Colors.green},
-      {'disease': 'Bệnh đốm lá', 'percentage': 15.0, 'count': 9, 'color': Colors.orange},
-      {'disease': 'Sâu đục quả', 'percentage': 10.0, 'count': 6, 'color': Colors.red},
+      {'disease': 'Khỏe mạnh', 'percentage': 75.0, 'count': 45, 'color': Colors.teal},
+      {'disease': 'Bệnh đốm lá', 'percentage': 15.0, 'count': 9, 'color': Colors.amber[700]},
+      {'disease': 'Sâu đục quả', 'percentage': 10.0, 'count': 6, 'color': Colors.deepOrange},
     ],
     'Khu B': [
-      {'disease': 'Khỏe mạnh', 'percentage': 50.0, 'count': 30, 'color': Colors.green},
-      {'disease': 'Bệnh thối rễ', 'percentage': 30.0, 'count': 18, 'color': Colors.red},
-      {'disease': 'Bệnh xì mủ thân', 'percentage': 20.0, 'count': 12, 'color': Colors.orange},
+      {'disease': 'Khỏe mạnh', 'percentage': 50.0, 'count': 30, 'color': Colors.teal},
+      {'disease': 'Bệnh thối rễ', 'percentage': 30.0, 'count': 18, 'color': Colors.deepOrange},
+      {'disease': 'Bệnh xì mủ thân', 'percentage': 20.0, 'count': 12, 'color': Colors.amber[700]},
     ],
     'Khu C': [
-      {'disease': 'Khỏe mạnh', 'percentage': 90.0, 'count': 54, 'color': Colors.green},
-      {'disease': 'Bệnh đốm lá', 'percentage': 10.0, 'count': 6, 'color': Colors.orange},
+      {'disease': 'Khỏe mạnh', 'percentage': 90.0, 'count': 54, 'color': Colors.teal},
+      {'disease': 'Bệnh đốm lá', 'percentage': 10.0, 'count': 6, 'color': Colors.amber[700]},
     ],
     'Khu D': [
-      {'disease': 'Khỏe mạnh', 'percentage': 60.0, 'count': 36, 'color': Colors.green},
-      {'disease': 'Sâu đục quả', 'percentage': 25.0, 'count': 15, 'color': Colors.red},
+      {'disease': 'Khỏe mạnh', 'percentage': 60.0, 'count': 36, 'color': Colors.teal},
+      {'disease': 'Sâu đục quả', 'percentage': 25.0, 'count': 15, 'color': Colors.deepOrange},
       {'disease': 'Bệnh phấn trắng', 'percentage': 15.0, 'count': 9, 'color': Colors.blue},
     ],
     'Khu E': [
-      {'disease': 'Khỏe mạnh', 'percentage': 40.0, 'count': 24, 'color': Colors.green},
-      {'disease': 'Bệnh xì mủ thân', 'percentage': 35.0, 'count': 21, 'color': Colors.red},
-      {'disease': 'Bệnh thối rễ', 'percentage': 25.0, 'count': 15, 'color': Colors.orange},
+      {'disease': 'Khỏe mạnh', 'percentage': 40.0, 'count': 24, 'color': Colors.teal},
+      {'disease': 'Bệnh xì mủ thân', 'percentage': 35.0, 'count': 21, 'color': Colors.deepOrange},
+      {'disease': 'Bệnh thối rễ', 'percentage': 25.0, 'count': 15, 'color': Colors.amber[700]},
     ],
   };
 
@@ -180,8 +179,6 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thống Kê & Thi Đua'),
@@ -231,13 +228,13 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 2,
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             child: Row(
               children: [
                 // Rank badge
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: rankColor,
                     shape: BoxShape.circle,
@@ -245,63 +242,74 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
                   child: Center(
                     child: Text(
                       rank.toString(),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
                 ),
-                AppSpacing.h16,
+                AppSpacing.h8,
 
                 // Zone & Manager details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            item['zone'],
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          AppSpacing.h8,
-                          Text(
-                            '(${item['variety']})',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                          ),
-                        ],
+                      Text.rich(
+                        TextSpan(
+                          text: '${item['zone']} ',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          children: [
+                            TextSpan(
+                              text: '(${item['variety']})',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.normal),
+                            ),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       AppSpacing.v4,
-                      Text('Quản lý: ${item['manager']}', style: TextStyle(color: Colors.grey[700], fontSize: 14)),
+                      Text(
+                        'Quản lý: ${item['manager']}',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       AppSpacing.v4,
                       Row(
                         children: [
-                          Icon(Icons.health_and_safety_outlined, size: 16, color: Colors.green[700]),
+                          Icon(Icons.health_and_safety_outlined, size: 14, color: Colors.green[700]),
                           AppSpacing.h4,
-                          Text(
-                            'Tỷ lệ khỏe mạnh: ${item['healthy_rate']}',
-                            style: TextStyle(color: Colors.green[800], fontSize: 12, fontWeight: FontWeight.w500),
+                          Expanded(
+                            child: Text(
+                              'Khỏe mạnh: ${item['healthy_rate']}',
+                              style: TextStyle(color: Colors.green[800], fontSize: 12, fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
+                AppSpacing.h8,
 
                 // Care score & action button
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         '${item['score']} đ',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[800], fontSize: 14),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[800], fontSize: 13),
                       ),
                     ),
-                    AppSpacing.v8,
+                    AppSpacing.v4,
                     InkWell(
                       onTap: () => _showContactDialog(context, item),
                       child: Text(
@@ -309,7 +317,7 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
                         style: TextStyle(
                           color: Colors.green[700],
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 11,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -325,7 +333,6 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
   }
 
   Widget _buildDiseaseStatsTab() {
-    final theme = Theme.of(context);
     final stats = _zoneDiseaseStats[_selectedZone] ?? [];
 
     return SingleChildScrollView(
@@ -337,7 +344,7 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.s),
               child: Row(
                 children: [
                   const Icon(Icons.grid_view_outlined, color: Colors.green),
@@ -372,13 +379,17 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
 
           // Zone summary status card
           Card(
-            color: Colors.green[50],
+            color: (_selectedZone == 'Khu B' || _selectedZone == 'Khu E') ? Colors.amber[50] : Colors.teal[50],
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.green[700], size: 28),
+                  Icon(
+                    Icons.info_outline,
+                    color: (_selectedZone == 'Khu B' || _selectedZone == 'Khu E') ? Colors.amber[800] : Colors.teal[700],
+                    size: 28,
+                  ),
                   AppSpacing.h12,
                   Expanded(
                     child: Column(
@@ -386,12 +397,19 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
                       children: [
                         Text(
                           'Đánh giá chung $_selectedZone:',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[900], fontSize: 15),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: (_selectedZone == 'Khu B' || _selectedZone == 'Khu E') ? Colors.amber[900] : Colors.teal[900],
+                            fontSize: 15,
+                          ),
                         ),
                         AppSpacing.v4,
                         Text(
                           _getZoneSummaryText(),
-                          style: TextStyle(color: Colors.green[900], height: 1.3),
+                          style: TextStyle(
+                            color: (_selectedZone == 'Khu B' || _selectedZone == 'Khu E') ? Colors.amber[900] : Colors.teal[900],
+                            height: 1.3,
+                          ),
                         ),
                       ],
                     ),
@@ -422,19 +440,21 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
               return Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                          ),
-                          AppSpacing.h8,
-                          Text(disease, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        ],
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                       ),
+                      AppSpacing.h8,
+                      Expanded(
+                        child: Text(
+                          disease,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      AppSpacing.h8,
                       Text('$count cây (${percentage.toStringAsFixed(0)}%)'),
                     ],
                   ),

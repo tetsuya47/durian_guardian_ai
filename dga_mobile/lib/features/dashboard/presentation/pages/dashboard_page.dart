@@ -36,17 +36,13 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(dashboardDataProvider);
             await ref.read(dashboardDataProvider.future);
           },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: dashboardAsync.when(
-              data: (data) => Column(
+          child: dashboardAsync.when(
+            data: (data) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (data.alerts.isNotEmpty) ...[
-                    DashboardAlertsCard(alerts: data.alerts),
-                    AppSpacing.v20,
-                  ],
                   AIFarmStatusCard(status: data.farmStatus),
                   AppSpacing.v20,
                   const SectionHeader(title: AppStrings.quickStats),
@@ -62,7 +58,11 @@ class DashboardPage extends ConsumerWidget {
                   RecentInspectionsList(inspections: data.recentInspections),
                 ],
               ),
-              loading: () => Column(
+            ),
+            loading: () => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
                 children: [
                   SkeletonLoading.card(height: 140),
                   AppSpacing.v20,
@@ -96,7 +96,13 @@ class DashboardPage extends ConsumerWidget {
                   ),
                 ],
               ),
-              error: (err, stack) => Center(
+            ),
+            error: (err, stack) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                height: MediaQuery.of(context).size.height * 0.7,
                 child: ErrorState(
                   title: AppStrings.error,
                   description: AppStrings.cannotLoadDashboard,

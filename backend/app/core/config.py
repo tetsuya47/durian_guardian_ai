@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     MONGODB_URL: str = "mongodb://localhost:27017"
-    MONGODB_DB_NAME: str = "durian_guardian_ai_1"
+    MONGODB_DB_NAME: str = "durian_guardian_ai"
 
     JWT_SECRET_KEY: str = "change-this-to-a-secure-random-string"
     JWT_ALGORITHM: str = "HS256"
