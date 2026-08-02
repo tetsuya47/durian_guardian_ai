@@ -25,9 +25,10 @@ import argparse
 import csv
 import logging
 import math
+import random
 import sys
 import time
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 import pandas as pd
 
@@ -374,6 +375,7 @@ class ETLStats:
         self.harvests_loaded: int = 0
         self.farm_targets_loaded: int = 0
         self.farm_performance_loaded: int = 0
+        self.neighbor_contact_requests_loaded: int = 0
 
         self.companies_removed_duplicates: int = 0
         self.farms_removed_duplicates: int = 0
@@ -451,7 +453,6 @@ def transform_farms(
             "farm_code": farm_id,
             "farm_name": str(row.get("farm_name", "")).strip(),
             "company_id": company_map.get(company_code),
-            "owner": owner_info.get("owner_name"),
             "owner_user_id": owner_info.get("owner_user_id"),
             "phone": None,
             "district": str(row.get("district", "")).strip(),
@@ -601,6 +602,7 @@ def transform_users(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         seen.add(user_code)
         
         now = datetime.now(timezone.utc)
+        phone_raw = str(r.get("phone", "")).strip()
         users.append({
             "_id": ObjectId(),
             "user_code": user_code,
@@ -609,6 +611,9 @@ def transform_users(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "email": f"{user_code.lower()}@durianguardian.ai",
             "password_hash": None,
             "refresh_token": "",
+            "phone": phone_raw if phone_raw else None,
+            "status": None,
+            "address": None,
             "created_at": now,
             "updated_at": now,
         })
@@ -661,11 +666,245 @@ def generate_farm_owner_users(existing_users: List[Dict[str, Any]]) -> List[Dict
             "password_hash": default_password_hash,
             "role": "Farm Owner",
             "refresh_token": "",
+            "status": None,
+            "address": None,
             "created_at": now,
             "updated_at": now,
         })
     logger.info("Generated %d Farm Owner users", len(fo_users))
     return fo_users
+
+
+# ── Vietnamese Phone Prefixes ──────────────────────────────────────
+
+VIETNAMESE_PHONE_PREFIXES: List[str] = [
+    "032", "033", "034", "035", "036", "037", "038", "039",
+    "070", "076", "077", "078", "079",
+    "081", "082", "083", "084", "085", "086", "088", "089",
+    "090", "091", "093", "094", "096", "097", "098", "099",
+]
+
+# ── Vietnamese Ward / Hamlet names for address generation ──────────
+
+WARD_NAMES: List[str] = [
+    "Thị trấn Liên Sơn", "Xã Ea Bhốk", "Xã Ea Hu", "Xã Ea Kly", "Xã Ea Ktur",
+    "Xã Ea Tiêu", "Xã Ea Tul", "Xã Cư Ni", "Xã Ea Đar", "Xã Ea M'nang",
+    "Xã Ea Puk", "Xã Ea Tam", "Xã Ea Tân", "Xã Hòa Phú", "Xã Hòa Khánh",
+    "Xã Hòa Thắng", "Xã Vụ Bổn", "Xã Bình Hòa", "Xã Bình Minh", "Xã Độc Lập",
+    "Xã Pơng Drang", "Xã Ea Uy", "Xã Cư Mốt", "Xã Cư M'lan", "Xã Ea Yông",
+    "Xã Ea Hiu", "Xã Ea Rớt", "Xã Cư Pui", "Xã Krông Na", "Thị trấn Krông Năng",
+    "Thị trấn Ea Kar", "Thị trấn Krông Pắc", "Thị trấn Buôn Hồ", "Thị trấn Phước An",
+    "Xã Ea Sơn", "Xã Ea Súp", "Thị trấn Ea Súp", "Xã Cư K'Bang", "Xã Ea Bông",
+    "Xã Ea Lốp", "Xã Ea H'leo", "Thị trấn Ea H'leo", "Xã Ea Khal", "Xã Ea Ral",
+    "Xã Cư A Mung", "Xã Cuôr Knia", "Xã Ea Drơng", "Xã Ea Lao", "Xã Ea Ly",
+    "Xã Ea M'đoan", "Xã Ea Nam", "Xã Ea Nuôl", "Xã Ea Ô", "Xã Ea Pôk",
+    "Xã Ea Rôk", "Xã Ea Sin", "Xã Ea Tir", "Xã Ea Toh",
+]
+
+DETAIL_NAMES: List[str] = [
+    "Thôn 1", "Thôn 2", "Thôn 3", "Thôn 4", "Thôn 5",
+    "Thôn 6", "Thôn 7", "Thôn 8", "Thôn 9", "Thôn 10",
+    "Buôn A", "Buôn B", "Buôn C", "Buôn D", "Buôn E",
+    "Buôn F", "Buôn G", "Buôn H", "Buôn J", "Buôn K",
+    "Tổ dân phố 1", "Tổ dân phố 2", "Tổ dân phố 3",
+    "Ấp Thanh Bình", "Ấp Hòa Thuận", "Ấp Phú Lợi",
+    "Xóm Hồng Thái", "Xóm Tân Lập", "Xóm Bình Minh",
+]
+
+# ── ENRICH: User Contact Info ──────────────────────────────────────
+
+def enrich_users_with_contact_info(
+    users: List[Dict[str, Any]],
+    farms: List[Dict[str, Any]],
+    companies: List[Dict[str, Any]],
+) -> None:
+    """Generate phone, status, address for every user in-place."""
+    rng = random.Random(42)
+    used_phones: set = set()
+
+    # Build farm lookup by owner_user_id
+    farm_by_owner: Dict[Any, Dict[str, Any]] = {}
+    for f in farms:
+        uid = f.get("owner_user_id")
+        if uid:
+            farm_by_owner[uid] = f
+
+    # Build company lookup by company_id
+    company_by_id: Dict[Any, Dict[str, Any]] = {}
+    for c in companies:
+        company_by_id[c["_id"]] = c
+
+    for u in users:
+        # ── phone ──
+        user_num = int(u["user_code"].replace("USR", ""))
+        prefix = VIETNAMESE_PHONE_PREFIXES[user_num % len(VIETNAMESE_PHONE_PREFIXES)]
+        suffix = 1000000 + (user_num * 100003) % 9000000
+        phone = f"{prefix}{suffix:07d}"
+        while phone in used_phones:
+            suffix = (suffix + 99991) % 9000000
+            phone = f"{prefix}{suffix:07d}"
+        used_phones.add(phone)
+        u["phone"] = phone
+
+        # ── status ──
+        u["status"] = "ACTIVE"
+
+        # ── address ──
+        farm = farm_by_owner.get(u["_id"])
+        if farm:
+            company = company_by_id.get(farm.get("company_id"))
+            province = company["province"] if company else "Đắk Lắk"
+            district = farm.get("district", "")
+            ward = rng.choice(WARD_NAMES)
+            detail = rng.choice(DETAIL_NAMES)
+            u["address"] = {
+                "province": province,
+                "district": district,
+                "ward": ward,
+                "detail": detail,
+            }
+        else:
+            u["address"] = None
+
+
+# ── GENERATE: Neighbor Contact Requests ────────────────────────────
+
+def generate_neighbor_contact_requests(
+    farms: List[Dict[str, Any]],
+    users: List[Dict[str, Any]],
+    inspections: List[Dict[str, Any]],
+    detection_results: List[Dict[str, Any]],
+    stats: ETLStats,
+) -> List[Dict[str, Any]]:
+    """Generate 25 realistic neighbor contact requests using existing data."""
+    rng = random.Random(42)
+
+    # Build farm lookup
+    farm_by_id: Dict[Any, Dict[str, Any]] = {}
+    for f in farms:
+        farm_by_id[f["_id"]] = f
+
+    # Build owner_user_id -> farm mapping
+    farms_with_owner = [f for f in farms if f.get("owner_user_id")]
+    if len(farms_with_owner) < 2:
+        logger.warning("Not enough farms with owners to generate neighbor requests")
+        return []
+
+    # Build user lookup
+    user_by_id: Dict[Any, Dict[str, Any]] = {}
+    for u in users:
+        user_by_id[u["_id"]] = u
+
+    # Build inspection lookup by inspection_code
+    insp_by_code: Dict[str, Dict[str, Any]] = {}
+    for ins in inspections:
+        insp_by_code[ins["inspection_code"]] = ins
+
+    # Build detection result lookup by inspection_id
+    det_by_insp_id: Dict[Any, List[Dict[str, Any]]] = {}
+    for dr in detection_results:
+        insp_id = dr.get("inspection_id")
+        if insp_id:
+            det_by_insp_id.setdefault(insp_id, []).append(dr)
+
+    # Status distribution (total 25)
+    status_distribution = [
+        ("pending", 7),
+        ("waiting_target_consent", 5),
+        ("waiting_source_consent", 5),
+        ("contact_shared", 4),
+        ("rejected", 3),
+        ("cancelled", 2),
+    ]
+    # Flatten into list of statuses
+    statuses: List[str] = []
+    for status, count in status_distribution:
+        statuses.extend([status] * count)
+    rng.shuffle(statuses)
+
+    # Build all possible ordered farm pairs (source != target)
+    all_pairs: List[tuple] = []
+    for src_farm in farms_with_owner:
+        for tgt_farm in farms_with_owner:
+            if src_farm["_id"] == tgt_farm["_id"]:
+                continue
+            all_pairs.append((
+                src_farm["_id"], tgt_farm["_id"],
+                src_farm, tgt_farm,
+            ))
+    rng.shuffle(all_pairs)
+    pairs = all_pairs[:min(len(all_pairs), len(statuses))]
+
+    if not pairs:
+        logger.warning("Could not build any farm pairs for neighbor requests")
+        return []
+
+    now = datetime.now(timezone.utc)
+    requests: List[Dict[str, Any]] = []
+
+    for i, (src_farm_id, tgt_farm_id, src_farm, tgt_farm) in enumerate(pairs):
+        if i >= len(statuses):
+            break
+
+        status = statuses[i]
+        src_user_id = src_farm["owner_user_id"]
+        tgt_user_id = tgt_farm["owner_user_id"]
+
+        # Pick a random inspection from the source farm's trees
+        src_inspections = [ins for ins in inspections if ins.get("farm_id") == src_farm_id]
+        if not src_inspections:
+            continue
+        inspection = rng.choice(src_inspections)
+        insp_id = inspection["_id"]
+
+        # Find a detection result for this inspection
+        det_results = det_by_insp_id.get(insp_id, [])
+        det_result_id = det_results[0]["_id"] if det_results else None
+
+        # Consent logic
+        source_consent = False
+        target_consent = False
+        contact_shared = False
+        shared_at = None
+
+        if status == "waiting_target_consent":
+            source_consent = True
+        elif status == "waiting_source_consent":
+            target_consent = True
+        elif status == "contact_shared":
+            source_consent = True
+            target_consent = True
+            contact_shared = True
+            shared_at = now - timedelta(hours=rng.randint(1, 48))
+
+        created_at = now - timedelta(hours=rng.randint(1, 72) + i * 2)
+        expires_at = created_at + timedelta(days=30)
+
+        request_code = f"NCR{(i + 1):06d}"
+
+        req = {
+            "_id": ObjectId(),
+            "request_code": request_code,
+            "source_farm_id": src_farm_id,
+            "target_farm_id": tgt_farm_id,
+            "source_user_id": src_user_id,
+            "target_user_id": tgt_user_id,
+            "inspection_id": insp_id,
+            "detection_result_id": det_result_id,
+            "reason": {"type": "Disease Spread Risk"},
+            "status": status,
+            "source_consent": source_consent,
+            "target_consent": target_consent,
+            "contact_shared": contact_shared,
+            "shared_at": shared_at,
+            "expires_at": expires_at,
+            "created_at": created_at,
+            "updated_at": created_at,
+        }
+        requests.append(req)
+
+    logger.info("Generated %d neighbor contact requests", len(requests))
+    return requests
 
 
 # ── TRANSFORM: Combined Diseases ─────────────────────────────────────
@@ -1369,6 +1608,31 @@ def create_collections_and_indexes(
     return stats
 
 
+# ── LOAD: Neighbor Contact Requests ────────────────────────────────
+
+def load_neighbor_contact_requests(
+    db: Database,
+    requests: List[Dict[str, Any]],
+    stats: ETLStats,
+) -> None:
+    """Insert neighbor contact requests into MongoDB."""
+    if not requests:
+        return
+    try:
+        result = db.neighbor_contact_requests.insert_many(requests, ordered=False)
+        stats.neighbor_contact_requests_loaded = len(result.inserted_ids)
+    except DuplicateKeyError:
+        count = 0
+        for r in requests:
+            try:
+                db.neighbor_contact_requests.insert_one(r)
+                count += 1
+            except DuplicateKeyError:
+                pass
+        stats.neighbor_contact_requests_loaded = count
+    logger.info("Inserted %d neighbor contact requests", stats.neighbor_contact_requests_loaded)
+
+
 # ── LOAD: Insert Documents ───────────────────────────────────────────
 
 def load_documents(
@@ -1389,6 +1653,7 @@ def load_documents(
     harvests: Optional[List[Dict]] = None,
     farm_targets: Optional[List[Dict]] = None,
     farm_performance: Optional[List[Dict]] = None,
+    neighbor_contact_requests: Optional[List[Dict]] = None,
 ) -> None:
     # Check if any collection already contains documents
     for coll_name in Collections.all():
@@ -1632,6 +1897,10 @@ def load_documents(
     if farm_performance:
         load_farm_performance(db, farm_performance, stats)
 
+    # ── 15. Insert neighbor contact requests ────────────────────────
+    if neighbor_contact_requests:
+        load_neighbor_contact_requests(db, neighbor_contact_requests, stats)
+
 
 # ── MAIN ETL ─────────────────────────────────────────────────────────
 
@@ -1691,7 +1960,7 @@ def run_etl(
     fo_users = generate_farm_owner_users(users)
     users.extend(fo_users)
 
-    # Build farm_owner_map: company_code -> {owner_user_id, owner_name}
+    # Build farm_owner_map: company_code -> {owner_user_id}
     farms_by_company_code = {f["farm_code"]: f for f in rows.farms_df.to_dict("records")}
     fo_by_company: Dict[str, Dict[str, Any]] = {}
     fo_iter = iter(fo_users)
@@ -1702,11 +1971,10 @@ def run_etl(
                 fo = next(fo_iter)
                 fo_by_company[cc] = {
                     "owner_user_id": fo["_id"],
-                    "owner_name": fo["full_name"],
                 }
             except StopIteration:
-                fo_by_company[cc] = {"owner_user_id": None, "owner_name": None}
-
+                fo_by_company[cc] = {"owner_user_id": None}
+ 
     # Farms
     logger.info("  Normalizing farms...")
     farms = transform_farms(rows.farms_df, company_map, fo_by_company)
@@ -1780,6 +2048,16 @@ def run_etl(
     logger.info("  Generating farm performance...")
     farm_performance = transform_farm_performance(seasons)
 
+    # Enrich users with phone, status, address
+    logger.info("  Enriching user contact info...")
+    enrich_users_with_contact_info(users, farms, companies)
+
+    # Generate neighbor contact requests
+    logger.info("  Generating neighbor contact requests...")
+    neighbor_contact_requests = generate_neighbor_contact_requests(
+        farms, users, inspections, detection_results, stats
+    )
+
     if dry_run:
         logger.info("")
         logger.info(">>> DRY RUN - Summary")
@@ -1798,6 +2076,7 @@ def run_etl(
         logger.info("  Harvests          : %d", len(harvests))
         logger.info("  Farm Targets      : %d", len(farm_targets))
         logger.info("  Farm Performance  : %d", len(farm_performance))
+        logger.info("  Neighbor Requests : %d", len(neighbor_contact_requests))
         return stats
 
     # ── LOAD ─────────────────────────────────────────────────────────
@@ -1830,6 +2109,7 @@ def run_etl(
             users, detection_results, disease_history, alerts, stats,
             seasons=seasons, harvests=harvests,
             farm_targets=farm_targets, farm_performance=farm_performance,
+            neighbor_contact_requests=neighbor_contact_requests,
         )
 
         # ── VALIDATION ───────────────────────────────────────────────
@@ -1948,6 +2228,23 @@ def run_etl(
                 orphan_perf += 1
         logger.info("  Orphan farm_performance (no season): %d", orphan_perf)
 
+        # Neighbor Contact Requests -> source farm, target farm, source user, target user
+        orphan_ncr = 0
+        for ncr in db.neighbor_contact_requests.find():
+            if not db.farms.find_one({"_id": ncr["source_farm_id"]}):
+                orphan_ncr += 1
+            if not db.farms.find_one({"_id": ncr["target_farm_id"]}):
+                orphan_ncr += 1
+            if not db.users.find_one({"_id": ncr["source_user_id"]}):
+                orphan_ncr += 1
+            if not db.users.find_one({"_id": ncr["target_user_id"]}):
+                orphan_ncr += 1
+            if ncr.get("inspection_id") and not db.inspections.find_one({"_id": ncr["inspection_id"]}):
+                orphan_ncr += 1
+            if ncr.get("detection_result_id") and not db.detection_results.find_one({"_id": ncr["detection_result_id"]}):
+                orphan_ncr += 1
+        logger.info("  Orphan neighbor_contact_requests: %d", orphan_ncr)
+
     except Exception as exc:
         logger.critical("ETL failed: %s", exc)
         stats.add_error(str(exc))
@@ -1981,6 +2278,7 @@ def print_summary(stats: ETLStats) -> None:
     logger.info("    Harvests          : %d", stats.harvests_loaded)
     logger.info("    Farm Targets      : %d", stats.farm_targets_loaded)
     logger.info("    Farm Performance  : %d", stats.farm_performance_loaded)
+    logger.info("    Neighbor Requests : %d", stats.neighbor_contact_requests_loaded)
     logger.info("")
     logger.info("  Duplicates removed:")
     logger.info("    Companies         : %d", stats.companies_removed_duplicates)

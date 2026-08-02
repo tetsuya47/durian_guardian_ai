@@ -27,8 +27,15 @@ async def list_users(
 ):
     service = UserService(db)
     items, total = await service.list_users(page, per_page, keyword=keyword)
+    stats = await service.get_kpi_stats()
     return success_response(
-        data={"items": items, "total": total, "page": page, "per_page": per_page}
+        data={
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "stats": stats,
+        }
     )
 
 

@@ -50,8 +50,8 @@ export default function RecordDetailDrawer({ title, open, onClose, sections }: R
         className="w-full max-w-[560px] h-full bg-white rounded-l-[18px] shadow-2xl flex flex-col justify-between"
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between gap-4">
+          <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight truncate min-w-0">
             {title}
           </h2>
           <button
@@ -73,11 +73,11 @@ export default function RecordDetailDrawer({ title, open, onClose, sections }: R
               </h3>
               <div className="rounded-[12px] border border-gray-100 divide-y divide-gray-50">
                 {section.fields.map((field) => (
-                  <div key={field.label} className="flex items-start px-4 py-3">
-                    <span className="text-[13px] text-gray-400 w-[160px] shrink-0 leading-relaxed">
+                  <div key={field.label} className="flex items-start px-4 py-3 min-w-0">
+                    <span className="text-[13px] text-gray-400 w-[120px] sm:w-[160px] shrink-0 leading-relaxed">
                       {field.label}
                     </span>
-                    <span className="text-[13px] text-gray-800 font-medium leading-relaxed">
+                    <span className="text-[13px] text-gray-800 font-medium leading-relaxed break-words min-w-0">
                       {field.value || "—"}
                     </span>
                   </div>

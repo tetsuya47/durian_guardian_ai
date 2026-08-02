@@ -9,6 +9,7 @@ import FarmsPage from "@/pages/farms/Farms";
 import ZonesPage from "@/pages/zones/Zones";
 import TreesPage from "@/pages/trees/Trees";
 import UsersPage from "@/pages/users/Users";
+import FarmerOverviewPage from "@/pages/users/FarmerOverview";
 import InspectionsPage from "@/pages/inspections/Inspections";
 import DetectionResultsPage from "@/pages/detection-results/DetectionResults";
 import DiseaseHistoryPage from "@/pages/disease-history/DiseaseHistory";
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
       {
         path: "users",
         element: <UsersPage />,
+      },
+      {
+        path: "users/:user_id",
+        element: <FarmerOverviewPage />,
       },
       {
         path: "inspections",

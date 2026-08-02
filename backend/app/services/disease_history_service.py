@@ -42,6 +42,9 @@ class DiseaseHistoryService:
         serialized_docs = [serialize_disease_history(doc) for doc in docs if doc is not None]
         return serialized_docs, total
 
+    async def get_kpi_stats(self) -> dict:
+        return await self.repo.get_kpi_stats()
+
     async def get_disease_history(self, id: str) -> dict:
         result = await self.repo.get_by_id(id)
         if not result:

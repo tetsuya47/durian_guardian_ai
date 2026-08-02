@@ -41,6 +41,9 @@ class TreeService:
             per_page=per_page,
         )
 
+    async def get_kpi_stats(self) -> dict:
+        return await self.repo.get_kpi_stats()
+
     async def get_tree(self, tree_id: str) -> dict:
         tree = await self.repo.get(tree_id)
         if not tree:

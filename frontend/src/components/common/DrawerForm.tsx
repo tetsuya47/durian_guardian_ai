@@ -42,8 +42,8 @@ export default function DrawerForm({ title, open, onClose, footer, children }: D
         className="w-full max-w-[560px] h-full bg-white rounded-l-[18px] shadow-2xl flex flex-col justify-between"
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between gap-4">
+          <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight truncate min-w-0">
             {title}
           </h2>
           <button

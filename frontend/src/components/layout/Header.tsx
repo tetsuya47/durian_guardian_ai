@@ -148,8 +148,8 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
 
   return (
     <header
-      className="bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0"
-      style={{ height: "72px" }}
+      className="bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-6 flex-shrink-0"
+      style={{ height: "64px" }}
     >
       {/* Left side: Hamburger & Breadcrumb */}
       <div className="flex items-center gap-4">
@@ -161,7 +161,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center text-xs font-semibold text-gray-400 gap-2 select-none">
+        <div className="hidden md:flex items-center text-xs font-semibold text-gray-400 gap-2 select-none">
           <span>PORTAL</span>
           <span className="text-gray-300">/</span>
           <span className="text-gray-800 uppercase font-bold tracking-wider">
@@ -183,7 +183,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             <Search className="w-4 h-4" />
           </button>
           {searchOpen && (
-            <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-[12px] shadow-lg p-2 z-50">
+            <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-[12px] shadow-lg p-2 z-50">
               <div className="flex items-center gap-2">
                 <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
@@ -221,7 +221,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             )}
           </button>
           {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-[12px] shadow-lg z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-[12px] shadow-lg z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100">
                 <span className="text-[13px] font-bold text-gray-800">Thông báo</span>
               </div>
@@ -283,7 +283,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
             {userInitials}
           </button>
           {profileOpen && (
-            <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-[12px] shadow-lg z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-[12px] shadow-lg z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-[13px] font-bold text-gray-800">{userName}</p>
                 <p className="text-[11px] text-gray-400 mt-0.5">{userRole}</p>

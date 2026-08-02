@@ -176,7 +176,7 @@ export default function LoginPage() {
           </div>
 
           {/* White card */}
-          <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-10 sm:p-16">
+          <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-8 sm:p-16">
             {/* Header */}
             <div className="mb-10">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
@@ -249,7 +249,7 @@ export default function LoginPage() {
               </div>
 
               {/* Remember me + Forgot */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <input
                     type="checkbox"

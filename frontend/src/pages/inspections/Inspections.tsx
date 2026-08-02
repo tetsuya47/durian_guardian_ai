@@ -45,6 +45,12 @@ export default function InspectionsPage() {
 
   const [totalInspections, setTotalInspections] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [kpiStats, setKpiStats] = useState<{
+    total_inspections?: number;
+    healthy_inspections?: number;
+    today_inspections?: number;
+    pass_rate?: number;
+  } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTreeId, setSelectedTreeId] = useState("All");
@@ -79,12 +85,13 @@ export default function InspectionsPage() {
     };
     if (searchQuery) params.keyword = searchQuery;
 
-    inspectionService.get<Inspection[] & { total?: number; total_pages?: number }>({ params })
+    inspectionService.get<Inspection[] & { total?: number; total_pages?: number; stats?: { total_inspections?: number; healthy_inspections?: number; today_inspections?: number; pass_rate?: number } }>({ params })
       .then((data) => {
         const arr = data as unknown as Inspection[];
         setInspections(arr);
         setTotalInspections((data as any).total ?? arr.length);
         setTotalPages((data as any).total_pages ?? Math.ceil(((data as any).total ?? arr.length) / perPage));
+        setKpiStats(data.stats ?? null);
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : "Không thể tải chi tiết kiểm tra.";
@@ -108,12 +115,13 @@ export default function InspectionsPage() {
         per_page: perPage,
       };
 
-      inspectionService.get<Inspection[] & { total?: number; total_pages?: number }>({ params })
+      inspectionService.get<Inspection[] & { total?: number; total_pages?: number; stats?: { total_inspections?: number; healthy_inspections?: number; today_inspections?: number; pass_rate?: number } }>({ params })
         .then((inspectionsData) => {
           const arr = inspectionsData as unknown as Inspection[];
           setInspections(arr);
           setTotalInspections((inspectionsData as any).total ?? arr.length);
           setTotalPages((inspectionsData as any).total_pages ?? Math.ceil(((inspectionsData as any).total ?? arr.length) / perPage));
+          setKpiStats(inspectionsData.stats ?? null);
         })
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : "Không thể tải chi tiết kiểm tra.";
@@ -253,10 +261,13 @@ export default function InspectionsPage() {
     return matchesTree && matchesStatus;
   });
 
-  const healthyCount = inspections.filter((i) => (i.status || i.health_status) === "Healthy").length;
+  const healthyCount = kpiStats?.healthy_inspections ?? inspections.filter((i) => {
+    const hs = (i.status || i.health_status) as string;
+    return hs === "Healthy" || hs === "Khỏe mạnh";
+  }).length;
   const today = new Date().toISOString().split("T")[0];
-  const todayInspections = inspections.filter((i) => i.inspection_date?.startsWith(today)).length;
-  const passRate = totalInspections > 0 ? Math.round((healthyCount / totalInspections) * 100) : 0;
+  const todayInspections = kpiStats?.today_inspections ?? inspections.filter((i) => i.inspection_date?.startsWith(today)).length;
+  const passRate = kpiStats?.pass_rate ?? (totalInspections > 0 ? Math.round((healthyCount / totalInspections) * 100) : 0);
 
   const farmMap = useMemo(() => {
     const m = new Map<string, string>();

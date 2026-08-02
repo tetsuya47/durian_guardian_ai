@@ -47,7 +47,7 @@ export default function DataTable({ columns, rows, emptyState, loading = false, 
   );
 
   return (
-    <div className={`bg-white border border-gray-100 rounded-[18px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col w-full flex-1 min-h-0 ${className || ""}`}>
+    <div className={`bg-white border border-gray-100 rounded-[18px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col w-full flex-1 min-w-0 min-h-0 ${className || ""}`}>
       <div className="flex-1 overflow-y-auto overflow-x-auto min-h-0 w-full">
         <table className="w-full border-collapse" style={{ minWidth: "900px" }}>
           <colgroup>

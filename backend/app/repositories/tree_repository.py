@@ -203,6 +203,24 @@ class TreeRepository(BaseRepository):
     async def count_all(self) -> int:
         return await self.collection.count_documents({})
 
+    async def get_kpi_stats(self) -> dict:
+        total_trees = await self.collection.count_documents({})
+        healthy = await self.collection.count_documents(
+            {"status": {"$in": ["Healthy", "Khỏe mạnh"]}}
+        )
+        monitoring = await self.collection.count_documents(
+            {"status": {"$in": ["Monitoring", "Đang theo dõi"]}}
+        )
+        diseased = await self.collection.count_documents(
+            {"status": {"$in": ["Diseased", "Bị bệnh"]}}
+        )
+        return {
+            "total_trees": total_trees,
+            "healthy_trees": healthy,
+            "monitoring_trees": monitoring,
+            "diseased_trees": diseased,
+        }
+
     async def count_by_farms(self, farm_ids: list[str]) -> int:
         db = self.collection.database
         from bson import ObjectId

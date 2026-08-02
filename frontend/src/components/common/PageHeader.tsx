@@ -11,7 +11,7 @@ export default function PageHeader({ title, description, actions, compact = fals
   if (compact) {
     return (
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-[24px] font-bold text-gray-900 tracking-tight leading-tight">
             {title}
           </h1>
@@ -33,8 +33,8 @@ export default function PageHeader({ title, description, actions, compact = fals
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      <div>
-        <h1 className="text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
+      <div className="min-w-0">
+        <h1 className="text-[24px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
           {title}
         </h1>
         {description && (
@@ -45,7 +45,7 @@ export default function PageHeader({ title, description, actions, compact = fals
       </div>
 
       {actions && (
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap shrink-0">
           {actions}
         </div>
       )}

@@ -17,6 +17,7 @@ def serialize_user(doc: dict | None) -> dict | None:
         return None
     res = doc.copy()
     db_role = res.get("role")
+    res["db_role"] = db_role
     res["role"] = db_role_to_api(db_role)
     res.pop("password_hash", None)
     return res
@@ -36,6 +37,9 @@ class UserService:
         docs, total = await self.repo.get_all(page, per_page, keyword)
         serialized_docs = [serialize_user(doc) for doc in docs if doc is not None]
         return serialized_docs, total
+
+    async def get_kpi_stats(self) -> dict:
+        return await self.repo.get_kpi_stats()
 
     async def get_user(self, user_id: str) -> dict:
         user = await self.repo.get_by_id(user_id)

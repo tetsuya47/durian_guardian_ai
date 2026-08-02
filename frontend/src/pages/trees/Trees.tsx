@@ -42,6 +42,12 @@ export default function TreesPage() {
   // Server-side pagination metadata
   const [totalTrees, setTotalTrees] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [kpiStats, setKpiStats] = useState<{
+    total_trees?: number;
+    healthy_trees?: number;
+    monitoring_trees?: number;
+    diseased_trees?: number;
+  } | null>(null);
 
   // Search & Filter local states
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,12 +102,13 @@ export default function TreesPage() {
     if (selectedZoneId !== "All") params.zone_id = selectedZoneId;
     if (selectedStatus !== "All") params.status = selectedStatus;
 
-    treeService.get<Tree[] & { total?: number; total_pages?: number }>({ params })
+    treeService.get<Tree[] & { total?: number; total_pages?: number; stats?: { total_trees?: number; healthy_trees?: number; monitoring_trees?: number; diseased_trees?: number } }>({ params })
       .then((data) => {
         const arr = data as unknown as Tree[];
         setTrees(arr);
         setTotalTrees((data as any).total ?? arr.length);
         setTotalPages((data as any).total_pages ?? Math.ceil(((data as any).total ?? arr.length) / perPage));
+        setKpiStats(data.stats ?? null);
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : "Không thể tải chi tiết cây.";
@@ -125,12 +132,13 @@ export default function TreesPage() {
         per_page: perPage,
       };
 
-      treeService.get<Tree[] & { total?: number; total_pages?: number }>({ params })
+      treeService.get<Tree[] & { total?: number; total_pages?: number; stats?: { total_trees?: number; healthy_trees?: number; monitoring_trees?: number; diseased_trees?: number } }>({ params })
         .then((treesData) => {
           const arr = treesData as unknown as Tree[];
           setTrees(arr);
           setTotalTrees((treesData as any).total ?? arr.length);
           setTotalPages((treesData as any).total_pages ?? Math.ceil(((treesData as any).total ?? arr.length) / perPage));
+          setKpiStats(treesData.stats ?? null);
         })
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : "Không thể tải chi tiết cây.";
@@ -262,10 +270,10 @@ export default function TreesPage() {
     ...STATUS_VI,
   };
 
-  // Stat calculations use the currently-loaded trees
-  const healthyTrees = trees.filter((t) => t.status === "Healthy").length;
-  const monitoringTrees = trees.filter((t) => t.status === "Monitoring").length;
-  const diseasedTrees = trees.filter((t) => t.status === "Diseased").length;
+  // Stat calculations use server-computed MongoDB aggregates (fallback: current page)
+  const healthyTrees = kpiStats?.healthy_trees ?? trees.filter((t) => t.status === "Healthy" || t.status === "Khỏe mạnh").length;
+  const monitoringTrees = kpiStats?.monitoring_trees ?? trees.filter((t) => t.status === "Monitoring" || t.status === "Đang theo dõi").length;
+  const diseasedTrees = kpiStats?.diseased_trees ?? trees.filter((t) => t.status === "Diseased" || t.status === "Bị bệnh").length;
 
   const getFarmName = (id: string) => {
     if (!id) return "—";

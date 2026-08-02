@@ -25,4 +25,5 @@ class UserOut(BaseModel):
     full_name: str
     email: str
     role: UserRole
+    db_role: str | None = None
     created_at: datetime
