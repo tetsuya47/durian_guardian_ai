@@ -92,14 +92,14 @@ class WeatherCard extends ConsumerWidget {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 32,
-                                fontWeight: FontWeight.extrabold,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
                               weather.description,
                               style: const TextStyle(
-                                color: Colors.white90,
+                                color: Colors.white,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
