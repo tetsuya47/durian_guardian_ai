@@ -7,7 +7,7 @@ from app.schemas.user import (
     TokenRefresh,
     ChangePassword,
 )
-from app.schemas.farm import FarmCreate, FarmUpdate, FarmOut
+from app.schemas.farm import FarmCreate, FarmUpdate, FarmOut, FarmRegisterWithIoTRequest
 from app.schemas.zone import ZoneCreate, ZoneUpdate, ZoneOut
 from app.schemas.tree import TreeCreate, TreeUpdate, TreeOut
 from app.schemas.disease import DetectionResult, DetectionResponse, DiseaseHistoryOut

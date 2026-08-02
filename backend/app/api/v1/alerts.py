@@ -26,7 +26,7 @@ async def list_alerts(
     _=Depends(allow_all),
 ):
     service = AlertService(db)
-    items, total = await service.list_alerts(page, per_page, keyword=keyword)
+    items, total = await service.list_alerts(user_id=user_id, page=page, per_page=per_page, keyword=keyword)
     return success_response(
         data={"items": items, "total": total, "page": page, "per_page": per_page}
     )

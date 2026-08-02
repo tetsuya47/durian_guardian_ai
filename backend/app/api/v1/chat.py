@@ -21,5 +21,5 @@ async def chat(
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     service = ChatService(db)
-    answer = await service.ask(data.question, data.tree_id)
+    answer = await service.ask(question=data.question, user_id=user_id, tree_id=data.tree_id)
     return success_response(data={"answer": answer})

@@ -36,12 +36,16 @@ class FarmService:
         company_oid = ObjectId(data.company_id) if ObjectId.is_valid(data.company_id) else ObjectId(user_id)
         
         farm_doc = {
+            "user_id": user_id,
+            "owner_id": user_id,
+            "created_by": user_id,
             "farm_code": data.farm_code,
             "farm_name": data.name,
             "company_id": company_oid,
             "district": data.district,
             "area_hectare": float(data.area) if data.area is not None else 0.0,
             "tree_count": 0,
+            "onboarding_status": "ACTIVE",
         }
         if data.address is not None:
             farm_doc["address"] = data.address

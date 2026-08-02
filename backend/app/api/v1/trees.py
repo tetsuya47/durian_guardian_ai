@@ -38,6 +38,7 @@ async def list_trees(
 ):
     service = TreeService(db)
     items, total = await service.list_trees(
+        user_id=user_id,
         zone_id=zone_id,
         farm_id=farm_id,
         keyword=keyword,

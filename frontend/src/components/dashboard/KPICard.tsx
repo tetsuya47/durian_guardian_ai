@@ -46,18 +46,18 @@ function KPICardInner({
   const leftContent = (
     <>
       <span
-        className="text-[11px] font-semibold text-[#94A3B8] uppercase"
-        style={{ letterSpacing: "0.6px", marginBottom: "10px", lineHeight: "1" }}
+        className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider"
+        style={{ marginBottom: "4px", lineHeight: "1" }}
       >
         {title}
       </span>
       {valueSuffix ? (
-        <div style={{ display: "flex", alignItems: "baseline", marginBottom: "4px" }}>
-          <span className={`text-[48px] font-bold ${valueColor}`} style={{ lineHeight: "1" }}>{value}</span>
-          <span className={`text-[34px] font-semibold ${valueColor}`} style={{ lineHeight: "1", marginLeft: "4px", whiteSpace: "nowrap" }}>{valueSuffix}</span>
+        <div style={{ display: "flex", alignItems: "baseline", marginBottom: "3px" }}>
+          <span className={`text-[32px] 2xl:text-[36px] font-extrabold ${valueColor}`} style={{ lineHeight: "1" }}>{value}</span>
+          <span className={`text-[20px] 2xl:text-[22px] font-bold ${valueColor}`} style={{ lineHeight: "1", marginLeft: "4px", whiteSpace: "nowrap" }}>{valueSuffix}</span>
         </div>
       ) : (
-        <span className={`text-[48px] font-bold ${valueColor}`} style={{ marginBottom: "4px", lineHeight: "48px" }}>
+        <span className={`text-[32px] 2xl:text-[36px] font-extrabold ${valueColor}`} style={{ marginBottom: "3px", lineHeight: "1" }}>
           {value}
         </span>
       )}
@@ -67,10 +67,10 @@ function KPICardInner({
 
   const iconBlock = (
     <div
-      className="flex items-center justify-center rounded-full flex-shrink-0"
+      className="flex items-center justify-center rounded-[12px] flex-shrink-0"
       style={{
-        width: "56px",
-        height: "56px",
+        width: "44px",
+        height: "44px",
         backgroundColor: iconBgColor,
       }}
       aria-hidden="true"
@@ -79,11 +79,11 @@ function KPICardInner({
     </div>
   );
 
-  const cardBase = "bg-white border border-[#EEF2F7] rounded-[18px] shadow-[0_8px_24px_rgba(15,23,42,0.06)]";
+  const cardBase = "bg-white border border-[#EEF2F7] rounded-[16px] shadow-[0_4px_16px_rgba(15,23,42,0.04)]";
 
   if (sparkline) {
     return (
-      <div className={cardBase} style={{ height: "96px", padding: "12px 18px", display: "flex", flexDirection: "column" }} role="group" aria-label={`${title}: ${value}`}>
+      <div className={cardBase} style={{ height: "92px", padding: "10px 16px", display: "flex", flexDirection: "column" }} role="group" aria-label={`${title}: ${value}`}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flex: "1" }}>
           <div style={{ display: "flex", flexDirection: "column", width: "auto" }}>
             {leftContent}
@@ -100,7 +100,7 @@ function KPICardInner({
   }
 
   return (
-    <div className={cardBase} style={{ height: "96px", padding: "12px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }} role="group" aria-label={`${title}: ${value}`}>
+    <div className={cardBase} style={{ height: "92px", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }} role="group" aria-label={`${title}: ${value}`}>
       <div style={{ display: "flex", flexDirection: "column", width: "auto" }}>
         {leftContent}
       </div>

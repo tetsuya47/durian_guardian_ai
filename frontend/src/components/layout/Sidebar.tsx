@@ -13,33 +13,53 @@ import {
   Bug,
   ChevronLeft,
   ChevronRight,
-  Leaf
+  Leaf,
+  Cpu,
+  ShieldAlert,
+  ShoppingBag,
+  Wrench,
+  Bot,
+  TrendingUp,
 } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
-const HIDDEN_MENU_PATHS = new Set(["/detection-results", "/diseases"]);
-
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user } = useAuth();
 
-  const menuItems = [
+  const isUserAdmin = user?.role === "Admin" || user?.role === "ADMIN" || user?.role === "System Admin";
+
+  const adminMenuItems = [
     { label: "Bảng điều khiển", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Công ty", path: "/companies", icon: Building2 },
-    { label: "Trang trại", path: "/farms", icon: Sprout },
-    { label: "Khu vực", path: "/zones", icon: Grid },
-    { label: "Cây", path: "/trees", icon: TreePine },
-    { label: "Người dùng", path: "/users", icon: Users },
-    { label: "Kiểm tra", path: "/inspections", icon: ClipboardCheck },
-    { label: "Kết quả nhận diện", path: "/detection-results", icon: Scan },
-    { label: "Lịch sử phát sinh bệnh", path: "/disease-history", icon: History },
-    { label: "Cảnh báo", path: "/alerts", icon: AlertTriangle },
-    { label: "Bệnh", path: "/diseases", icon: Bug },
+    { label: "Chatbot Trợ lý AI", path: "/ai-chatbot", icon: Bot },
+    { label: "Quản lý Người dùng", path: "/users", icon: Users },
+    { label: "Quản lý Trang trại", path: "/farms", icon: Sprout },
+    { label: "Quản lý Khu vực", path: "/zones", icon: Grid },
+    { label: "Quản lý Cây trồng", path: "/trees", icon: TreePine },
+    { label: "Năng suất Trang trại", path: "/farm-performance", icon: TrendingUp },
+    { label: "Quản lý Thiết bị IoT", path: "/iot-management", icon: Cpu },
+    { label: "Lượt Kiểm tra", path: "/inspections", icon: ClipboardCheck },
+    { label: "Cảnh báo Hệ thống", path: "/alerts", icon: AlertTriangle },
   ];
+
+  const userMenuItems = [
+    { label: "Bảng điều khiển Vườn", path: "/dashboard", icon: LayoutDashboard },
+    { label: "Chatbot Trợ lý AI", path: "/ai-chatbot", icon: Bot },
+    { label: "🌱 Đăng ký Vườn mới", path: "/register-farm", icon: Sprout },
+    { label: "📈 Năng suất Trang trại", path: "/farm-performance", icon: TrendingUp },
+    { label: "🛒 Mua sắm & Đơn IoT", path: "/iot-shop", icon: ShoppingBag },
+    { label: "🛠️ Hướng dẫn Lắp đặt", path: "/iot-setup-guide", icon: Wrench },
+    { label: "🚨 Cảnh báo AI", path: "/ai-alerts", icon: ShieldAlert },
+    { label: "Trang trại của tôi", path: "/farms", icon: Building2 },
+  ];
+
+  const menuItems = isUserAdmin ? adminMenuItems : userMenuItems;
 
   return (
     <aside
@@ -63,9 +83,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Middle Menu */}
       <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5">
-        {menuItems
-          .filter((item) => !HIDDEN_MENU_PATHS.has(item.path))
-          .map((item) => {
+        {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive =
               item.path === "/dashboard"

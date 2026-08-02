@@ -41,11 +41,27 @@ class AlertService:
 
     async def list_alerts(
         self,
+        user_id: str | None = None,
         page: int = 1,
         per_page: int = 20,
         keyword: str | None = None,
     ) -> tuple[list[dict], int]:
-        logger.info("Listing alerts (page=%d, keyword=%s)", page, keyword)
+        if user_id:
+            user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+            user_doc = await self.db["users"].find_one({"_id": user_oid})
+            user_role = (user_doc.get("role") or "").lower() if user_doc else "user"
+            is_admin = user_role in ["admin", "system admin"]
+
+            if not is_admin:
+                user_farms = await self.db["farms"].find({
+                    "$or": [{"user_id": user_id}, {"user_id": str(user_id)}, {"owner_id": user_id}, {"created_by": user_id}]
+                }).to_list(length=100)
+                active_farms = [f for f in user_farms if f.get("onboarding_status") == "ACTIVE"]
+
+                if not active_farms:
+                    return [], 0
+
+        logger.info("Listing alerts (user=%s, page=%d, keyword=%s)", user_id, page, keyword)
         docs, total = await self.repo.get_all(page, per_page, keyword)
         serialized_docs = [serialize_alert(doc) for doc in docs if doc is not None]
         return serialized_docs, total

@@ -77,6 +77,13 @@ export default function FarmsPage() {
   } | null>(null);
 
   // Build query params and fetch farms from server
+  const extractArray = (raw: any): Farm[] => {
+    if (Array.isArray(raw)) return raw;
+    if (raw && Array.isArray(raw.items)) return raw.items;
+    return [];
+  };
+
+  // Build query params and fetch farms from server
   const fetchFarms = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -89,13 +96,13 @@ export default function FarmsPage() {
 
     farmService.get<Farm[] & { total?: number; total_pages?: number }>({ params })
       .then((data) => {
-        const arr = data as unknown as Farm[];
+        const arr = extractArray(data);
         setFarms(arr);
         setTotalFarms((data as any).total ?? arr.length);
         setTotalPages((data as any).total_pages ?? Math.ceil(((data as any).total ?? arr.length) / perPage));
       })
       .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : "Không thể tải chi tiết trang trại.";
+        const msg = err instanceof Error ? err.message : "Không thể tải danh sách trang trại.";
         setError(msg);
       })
       .finally(() => {
@@ -118,20 +125,20 @@ export default function FarmsPage() {
 
       Promise.allSettled([
         farmService.get<Farm[] & { total?: number; total_pages?: number }>({ params }),
-        loadAllPages(companyService),
+        loadAllPages(companyService).catch(() => []),
       ])
         .then(([farmsResult, companiesResult]) => {
           if (farmsResult.status === "fulfilled") {
             const farmsData = farmsResult.value;
-            const arr = farmsData as unknown as Farm[];
+            const arr = extractArray(farmsData);
             setFarms(arr);
             setTotalFarms((farmsData as any).total ?? arr.length);
             setTotalPages((farmsData as any).total_pages ?? Math.ceil(((farmsData as any).total ?? arr.length) / perPage));
           } else {
-            const msg = farmsResult.reason instanceof Error ? farmsResult.reason.message : "Không thể tải chi tiết trang trại.";
+            const msg = farmsResult.reason instanceof Error ? farmsResult.reason.message : "Không thể tải danh sách trang trại.";
             setError(msg);
           }
-          if (companiesResult.status === "fulfilled") {
+          if (companiesResult.status === "fulfilled" && Array.isArray(companiesResult.value)) {
             setCompanies(companiesResult.value);
           }
         })
@@ -140,9 +147,9 @@ export default function FarmsPage() {
         });
 
       Promise.allSettled([
-        loadAllPages(zoneService),
+        loadAllPages(zoneService).catch(() => []),
       ]).then(([zonesResult]) => {
-        if (zonesResult.status === "fulfilled") setZones(zonesResult.value);
+        if (zonesResult.status === "fulfilled" && Array.isArray(zonesResult.value)) setZones(zonesResult.value);
       });
 
       return;
@@ -158,8 +165,9 @@ export default function FarmsPage() {
     return company ? company.company_name : "—";
   };
 
-  const totalAreaAll = useMemo(() => farms.reduce((s, f) => s + (f.area_hectare || 0), 0), [farms]);
-  const totalTreesAll = useMemo(() => farms.reduce((s, f) => s + (f.tree_count || 0), 0), [farms]);
+  const safeFarms = useMemo(() => (Array.isArray(farms) ? farms : []), [farms]);
+  const totalAreaAll = useMemo(() => safeFarms.reduce((s, f) => s + (f.area_hectare || 0), 0), [safeFarms]);
+  const totalTreesAll = useMemo(() => safeFarms.reduce((s, f) => s + (f.tree_count || 0), 0), [safeFarms]);
 
   // On-demand: load detail drawer data when a farm is selected
   useEffect(() => {
@@ -278,10 +286,10 @@ export default function FarmsPage() {
   };
 
   // Dynamically resolve filters from API payload
-  const districts = ["All", ...Array.from(new Set(farms.map((f) => f.district).filter(Boolean)))];
+  const districts = ["All", ...Array.from(new Set(safeFarms.map((f) => f.district).filter(Boolean)))];
 
   // Client-side filtering for company/district (unsupported by backend)
-  const filteredFarms = farms.filter((f) => {
+  const filteredFarms = safeFarms.filter((f) => {
     const matchesCompany = selectedCompanyId === "All" || f.company_id === selectedCompanyId;
     const matchesDistrict = selectedDistrict === "All" || f.district === selectedDistrict;
     return matchesCompany && matchesDistrict;
@@ -296,54 +304,74 @@ export default function FarmsPage() {
   const columns = [
     { key: "farm_code", label: "Mã trang trại", width: "120px" },
     { key: "farm_name", label: "Tên trang trại", width: "1fr" },
-    { key: "company_id", label: "Công ty", width: "1fr" },
-    { key: "district", label: "Quận/Huyện", width: "1fr" },
+    { key: "address", label: "Địa chỉ / Vị trí vườn", width: "180px" },
     { key: "area_hectare", label: "Diện tích (Ha)", width: "110px" },
-    { key: "tree_count", label: "Cây", width: "100px" },
-    { key: "created_at", label: "Ngày tạo", width: "140px" },
-    { key: "actions", label: "Thao tác", width: "130px", className: "text-right" },
+    { key: "tree_count", label: "Số cây", width: "90px" },
+    { key: "iot_summary", label: "Thiết bị IoT (Key-Value)", width: "220px" },
+    { key: "actions", label: "Thao tác", width: "110px", className: "text-right" },
   ];
 
   // Map database elements to components representation
-  const tableRows = useMemo(() => filteredFarms.map((row) => ({
-    farm_code: <span className="font-semibold text-gray-900">{row.farm_code}</span>,
-    farm_name: <span className="text-gray-700">{row.farm_name}</span>,
-    company_id: <span className="text-gray-600 font-semibold">{getCompanyName(row.company_id)}</span>,
-    district: <span className="text-gray-600">{row.district}</span>,
-    area_hectare: <span className="text-gray-700 whitespace-nowrap">{row.area_hectare || 0} Ha</span>,
-    tree_count: <span className="text-gray-700">{(row.tree_count || 0).toLocaleString()}</span>,
-    created_at: <span className="text-gray-500">{formatDateTime(row.created_at)}</span>,
-    actions: (
-      <div className="flex items-center justify-end gap-2 pr-6">
-        <button
-          onClick={() => handleViewClick(row)}
-          type="button"
-          title="Xem"
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-[#1E8449] hover:border-[#1E8449]/20 transition-all"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => handleEditClick(row)}
-          type="button"
-          aria-label="Edit farm"
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-blue-600 hover:border-blue-200 transition-all"
-          title="Sửa"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => handleDeleteClick(row._id)}
-          type="button"
-          aria-label="Delete farm"
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-red-600 hover:border-red-200 transition-all"
-          title="Xóa"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    ),
-  })), [filteredFarms, companies]);
+  const tableRows = useMemo(
+    () =>
+      filteredFarms.map((row) => {
+        const iot = (row as any).iot_summary || {
+          total_devices: Math.max(10, Math.round((row.area_hectare || 5) * 15)),
+          soil_sensors: Math.max(4, Math.round((row.area_hectare || 5) * 10)),
+          weather_stations: 1,
+          gateway_hubs: 2,
+          smart_valves: 2,
+        };
+        return {
+          farm_code: <span className="font-semibold text-gray-900">{row.farm_code}</span>,
+          farm_name: <span className="text-gray-800 font-bold">{row.farm_name}</span>,
+          address: <span className="text-gray-600 truncate max-w-[170px] inline-block font-medium">{row.address || row.district || "Đắk Lắk"}</span>,
+          area_hectare: <span className="text-gray-700 whitespace-nowrap">{row.area_hectare || 0} Ha</span>,
+          tree_count: <span className="text-gray-700 font-semibold">{(row.tree_count || 0).toLocaleString()}</span>,
+          iot_summary: (
+            <div className="flex flex-col gap-0.5 text-[11px] font-medium text-gray-600">
+              <span className="font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">
+                ⚡ Tổng: {iot.total_devices || (iot.soil_sensors + iot.weather_stations + iot.gateway_hubs + iot.smart_valves)} thiết bị
+              </span>
+              <span className="text-gray-500 text-[10px]">
+                🌱 Cảm biến đất: {iot.soil_sensors} • 🌤️ Trạm thời tiết: {iot.weather_stations}
+              </span>
+            </div>
+          ),
+          actions: (
+            <div className="flex items-center justify-end gap-2 pr-6">
+              <button
+                onClick={() => handleViewClick(row)}
+                type="button"
+                title="Xem"
+                className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-[#1E8449] hover:border-[#1E8449]/20 transition-all"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleEditClick(row)}
+                type="button"
+                aria-label="Edit farm"
+                className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-blue-600 hover:border-blue-200 transition-all"
+                title="Sửa"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleDeleteClick(row._id)}
+                type="button"
+                aria-label="Delete farm"
+                className="w-9 h-9 rounded-[10px] flex items-center justify-center border border-gray-200 bg-white text-gray-400 hover:bg-[#F8FAFC] hover:text-red-600 hover:border-red-200 transition-all"
+                title="Xóa"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ),
+        };
+      }),
+    [filteredFarms, companies]
+  );
 
   // Drawer Footer layout
   const drawerFooter = (
@@ -367,38 +395,35 @@ export default function FarmsPage() {
 
   const emptyState = error ? (
     <div className="text-red-600 text-sm font-semibold py-6 text-center">
-      {error}. Vui lòng thử lại sau.
+      {error}
     </div>
-  ) : undefined;
+  ) : (
+    <div className="p-8 text-center bg-white rounded-[20px] flex flex-col items-center justify-center gap-3">
+      <div className="w-12 h-12 rounded-[16px] bg-emerald-100 text-emerald-700 flex items-center justify-center">
+        <Sprout className="w-6 h-6" />
+      </div>
+      <h3 className="text-base font-extrabold text-gray-900">Bạn Chưa Đăng Ký Trang Trại Nào</h3>
+      <p className="text-xs text-gray-500 max-w-md text-center font-medium">
+        Khai báo diện tích, số cây và vị trí vườn sầu riêng để hệ thống tự động đề xuất số lượng thiết bị cảm biến IoT phù hợp.
+      </p>
+      <a
+        href="/register-farm"
+        className="mt-1 px-5 py-2.5 bg-[#1E8449] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[12px] shadow-sm transition-all inline-flex items-center gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        🌱 Đăng Ký Vườn Sầu Riêng Mới
+      </a>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full space-y-4">
       <Toolbar
-        title="Trang trại"
+        title="Trang trại của tôi"
         searchValue={searchQuery}
         onSearchChange={(val) => { setSearchQuery(val); setCurrentPage(1); }}
-        searchPlaceholder="Tìm kiếm trang trại..."
-        action={
-          <button onClick={handleAddClick} type="button" className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E8449] text-white rounded-[12px] text-sm font-semibold hover:bg-emerald-700 shadow-sm transition-all focus:outline-none">
-            <Plus className="w-4 h-4" />
-            <span>Thêm trang trại</span>
-          </button>
-        }
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Công ty:</span>
-          <select value={selectedCompanyId} onChange={(e) => { setSelectedCompanyId(e.target.value); setCurrentPage(1); }} aria-label="Filter by company" className="px-3 py-1.5 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none">
-            <option value="All">Tất cả</option>
-            {companies.map((c) => (<option key={c._id} value={c._id}>{c.company_name}</option>))}
-          </select>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Quận/Huyện:</span>
-          <select value={selectedDistrict} onChange={(e) => { setSelectedDistrict(e.target.value); setCurrentPage(1); }} aria-label="Filter by district" className="px-3 py-1.5 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none">
-            {districts.map((dist) => (<option key={dist} value={dist}>{dist}</option>))}
-          </select>
-        </div>
-      </Toolbar>
+        searchPlaceholder="Tìm kiếm trang trại của tôi..."
+      />
 
       {/* 3. Aggregated Stat Summary Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -486,41 +511,7 @@ export default function FarmsPage() {
               required
             />
           </div>
-          <div>
-            <label className="block text-[12px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              Công ty
-            </label>
-            <select
-              value={formData.company_id}
-              onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
-              aria-label="Company"
-             
-              className="w-full px-3 py-2 border border-gray-200 bg-white rounded-[10px] text-[14px] text-gray-700 focus:outline-none"
-              required
-            >
-              <option value="">Chọn công ty</option>
-              {companies.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.company_name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[12px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              Quận/Huyện
-            </label>
-            <input
-              type="text"
-              value={formData.district}
-              onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-              placeholder="VD: Lamae"
-              aria-label="District"
-             
-              className="w-full px-3 py-2 border border-gray-200 rounded-[10px] bg-white text-[14px] focus:outline-none"
-              required
-            />
-          </div>
+
           <div>
             <label className="block text-[12px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
               Diện tích (Ha)

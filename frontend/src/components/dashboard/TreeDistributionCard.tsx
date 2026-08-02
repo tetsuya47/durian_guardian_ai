@@ -65,9 +65,9 @@ export default function TreeDistributionCard({ data, total }: FarmHealthCardProp
                 <Pie
                   data={data}
                   cx="50%"
-                  cy="48%"
-                  innerRadius={95}
-                  outerRadius={150}
+                  cy="50%"
+                  innerRadius="62%"
+                  outerRadius="92%"
                   paddingAngle={3}
                   dataKey="value"
                   strokeWidth={0}

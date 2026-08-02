@@ -4,6 +4,8 @@ import LoginPage from "@/pages/auth/Login";
 import RegisterPage from "@/pages/auth/Register";
 import DashboardPage from "@/pages/dashboard/Dashboard";
 import FarmDashboardPage from "@/pages/dashboard/FarmDashboard";
+import AIChatbotPage from "@/pages/chatbot/AIChatbotPage";
+import FarmPerformancePage from "@/pages/performance/FarmPerformancePage";
 import CompaniesPage from "@/pages/companies/Companies";
 import FarmsPage from "@/pages/farms/Farms";
 import ZonesPage from "@/pages/zones/Zones";
@@ -13,9 +15,14 @@ import FarmerOverviewPage from "@/pages/users/FarmerOverview";
 import InspectionsPage from "@/pages/inspections/Inspections";
 import DetectionResultsPage from "@/pages/detection-results/DetectionResults";
 import DiseaseHistoryPage from "@/pages/disease-history/DiseaseHistory";
+import AIAlertsPage from "@/pages/alerts/AIAlertsPage";
 import AlertsPage from "@/pages/alerts/Alerts";
 import DiseasesPage from "@/pages/diseases/Diseases";
 import SettingsPage from "@/pages/settings/Settings";
+import RegisterFarmPage from "@/pages/farms/RegisterFarmPage";
+import IoTSetupGuidePage from "@/pages/iot/IoTSetupGuidePage";
+import IoTOrdersPage from "@/pages/iot/IoTOrdersPage";
+import IoTManagementPage from "@/pages/iot/IoTManagementPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -44,8 +51,28 @@ export const router = createBrowserRouter([
         element: <DashboardPage />,
       },
       {
+        path: "ai-chatbot",
+        element: <AIChatbotPage />,
+      },
+      {
+        path: "farm-performance",
+        element: <FarmPerformancePage />,
+      },
+      {
         path: "dashboard/farm/:farmId",
         element: <FarmDashboardPage />,
+      },
+      {
+        path: "register-farm",
+        element: <RegisterFarmPage />,
+      },
+      {
+        path: "iot-setup-guide",
+        element: <IoTSetupGuidePage />,
+      },
+      {
+        path: "iot-shop",
+        element: <IoTOrdersPage />,
       },
       {
         path: "companies",
@@ -86,6 +113,18 @@ export const router = createBrowserRouter([
       {
         path: "alerts",
         element: <AlertsPage />,
+      },
+      {
+        path: "ai-alerts",
+        element: <AIAlertsPage />,
+      },
+      {
+        path: "iot-orders",
+        element: <IoTManagementPage />,
+      },
+      {
+        path: "iot-management",
+        element: <IoTManagementPage />,
       },
       {
         path: "diseases",

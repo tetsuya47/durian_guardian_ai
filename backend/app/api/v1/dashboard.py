@@ -39,7 +39,7 @@ async def get_heatmap(
     _=Depends(allow_all),
 ):
     service = DashboardService(db)
-    result = await service.get_heatmap()
+    result = await service.get_heatmap(user_id=user_id)
     logger.info("Heatmap fetched for user %s", user_id)
     return success_response(data=result)
 
@@ -51,7 +51,7 @@ async def get_widgets(
     _=Depends(allow_all),
 ):
     service = DashboardService(db)
-    result = await service.get_widgets()
+    result = await service.get_widgets(user_id=user_id)
     logger.info("Dashboard widgets fetched for user %s", user_id)
     return success_response(data=result.model_dump())
 

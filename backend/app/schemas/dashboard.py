@@ -21,6 +21,7 @@ class AlertBrief(BaseModel):
 
 
 class KpiData(BaseModel):
+    total_users: int = 0
     total_farms: int
     total_trees: int
     healthy_trees: int
@@ -33,11 +34,20 @@ class RiskTrendItem(BaseModel):
     avg_risk: float
 
 
+class GrowthTrendItem(BaseModel):
+    month: str
+    new_users: int
+    new_farms: int
+
+
 class SystemOverview(BaseModel):
     inspection_today: int
     ai_detection_today: int
     new_alerts_today: int
     pending_review: int
+    active_iot_devices: int = 0
+    in_stock_iot_devices: int = 0
+    maintenance_iot_devices: int = 0
     updated_at: datetime
 
 
@@ -47,6 +57,7 @@ class DashboardOut(BaseModel):
     recent_detection: list[DetectionBrief]
     alerts: list[AlertBrief]
     risk_trend: list[RiskTrendItem]
+    growth_trend: list[GrowthTrendItem] = []
 
 
 class WidgetInspection(BaseModel):

@@ -40,26 +40,26 @@ async def seed() -> None:
     else:
         user_id = user["_id"]
 
-    # 2. Create or get Farmer User for Mobile App
-    farmer = await db["users"].find_one({"email": "nongdan@gmail.com"})
-    if not farmer:
+    # 3. Create or get User teo@gmail.com
+    teo = await db["users"].find_one({"email": "teo@gmail.com"})
+    if not teo:
         count = await db["users"].count_documents({})
-        farmer_id = ObjectId()
-        farmer_doc = {
-            "_id": farmer_id,
+        teo_id = ObjectId()
+        teo_doc = {
+            "_id": teo_id,
             "user_code": f"USR{count + 1:04d}",
-            "full_name": "Trần Văn Bao (Nông Dân)",
-            "fullname": "Trần Văn Bao (Nông Dân)",
-            "email": "nongdan@gmail.com",
+            "full_name": "Nguyễn Văn Tèo",
+            "fullname": "Nguyễn Văn Tèo",
+            "email": "teo@gmail.com",
             "password_hash": hash_password("123456"),
-            "role": "Technician",
+            "role": "User",
             "created_at": now,
             "updated_at": now,
         }
-        await db["users"].insert_one(farmer_doc)
-        print(f"Created farmer user nongdan@gmail.com with ID: {farmer_id}")
+        await db["users"].insert_one(teo_doc)
+        print(f"Created user teo@gmail.com with ID: {teo_id}")
     else:
-        farmer_id = farmer["_id"]
+        teo_id = teo["_id"]
 
     # 2. Check if farm exists for this user
     existing_farm = await db["farms"].find_one({"owner_id": user_id})
