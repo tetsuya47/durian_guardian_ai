@@ -15,7 +15,7 @@ phân lớp chuẩn**: `MongoDB → Repository → Service → DTO → API (Fast
 React Component → UI`, gồm 3 nhánh chính: `backend/` (FastAPI + Motor, async), `frontend/`
 (React 19 + Vite + TS + Tailwind), `database/` (ETL + schema + indexes + seed).
 
-**Trạng thái dữ liệu hiện tại (quan trọng):** Database `durian_guardian_ai_1` đã được **khôi
+**Trạng thái dữ liệu hiện tại (quan trọng):** Database `durian_guardian_ai` đã được **khôi
 phục đầy đủ** về Enterprise Dataset chuẩn (đo trực tiếp, read-only):
 
 | Collection | Count | Collection | Count |
@@ -394,7 +394,7 @@ Không yêu cầu thay đổi tầng lõi (main/mongodb/security/dependencies/en
 
 | # | Rủi ro | Nguyên nhân |
 |---|---|---|
-| R1 | **Test suite xóa sạch database production** khi chạy `pytest` | `backend/tests/conftest.py:22-31` fixture autouse `setup_db` gọi `delete_many({})` trên mọi collection của `durian_guardian_ai_1` (không có test DB riêng, không guard tên DB) — đã gây reset thực tế trong Release 1.3.2 |
+| R1 | **Test suite xóa sạch database production** khi chạy `pytest` | `backend/tests/conftest.py:22-31` fixture autouse `setup_db` gọi `delete_many({})` trên mọi collection của `durian_guardian_ai` (không có test DB riêng, không guard tên DB) — đã gây reset thực tế trong Release 1.3.2 |
 | R2 | **Rò rỉ dữ liệu ngang vai trò** | Không có per-resource ownership check; mọi role hợp lệ (`allow_all`) đọc/sửa/xóa được mọi tài nguyên; `FarmRepository.list_by_owner` không lọc theo owner |
 | R3 | **KPI/analytics sai nếu gắn nhầm ngôn ngữ status** | Validator ép enum tiếng Việt (trees/inspections) nhưng một số code/frontend vẫn so giá trị tiếng Anh; DB chứa cả 2 dạng ở một vài field |
 

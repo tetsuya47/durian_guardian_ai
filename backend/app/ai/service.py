@@ -13,6 +13,9 @@ from bson import ObjectId
 from app.core.config import settings
 from app.core.exceptions import AppException, BadRequestException
 from app.repositories import DiseaseRepository, TreeRepository
+from app.repositories.inspection_repository import InspectionRepository
+from app.repositories.detection_result_repository import DetectionResultRepository
+from app.repositories.alert_repository import AlertRepository
 from app.schemas import DetectionResponse, DetectionResult
 from app.ai.predictor import DiseasePredictor
 
@@ -37,6 +40,9 @@ class AIService:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
         self.disease_repo = DiseaseRepository(db)
         self.tree_repo = TreeRepository(db)
+        self.inspection_repo = InspectionRepository(db)
+        self.detection_result_repo = DetectionResultRepository(db)
+        self.alert_repo = AlertRepository(db)
         # Singleton predictor — model is loaded once on first call
         try:
             self._predictor = DiseasePredictor()
@@ -182,55 +188,170 @@ class AIService:
         if not quality["leaf_detected"]:
             raise BadRequestException("Ảnh tải lên không phải là lá hoặc cây sầu riêng. Vui lòng chụp hoặc chọn ảnh lá/quả sầu riêng rõ nét để phân tích.")
 
-        prediction = quality.get("prediction")
-        if not prediction:
-            try:
+        farm_id = tree.get("farm_id") if isinstance(tree, dict) else None
+        zone_id = tree.get("zone_id") if isinstance(tree, dict) else None
+        company_id = tree.get("company_id") if isinstance(tree, dict) else None
+
+        # Phase 1: Create Inspection record with status="PROCESSING"
+        count = await self.inspection_repo.collection.count_documents({})
+        inspection_code = f"INSP{count + 1:05d}"
+
+        inspection_id = await self.inspection_repo.create({
+            "inspection_code": inspection_code,
+            "tree_id": ObjectId(tree_id) if ObjectId.is_valid(tree_id) else tree_id,
+            "farm_id": ObjectId(farm_id) if farm_id and ObjectId.is_valid(str(farm_id)) else farm_id,
+            "zone_id": ObjectId(zone_id) if zone_id and ObjectId.is_valid(str(zone_id)) else zone_id,
+            "inspection_date": datetime.now(timezone.utc),
+            "health_status": "Đang theo dõi",
+            "predicted_disease": "Đang xử lý",
+            "confidence": 0.0,
+            "status": "PROCESSING",
+        })
+
+        try:
+            start_time = time.perf_counter()
+            prediction = quality.get("prediction")
+            if not prediction:
                 prediction = self._predictor.predict(file_bytes)
-            except Exception as exc:
-                logger.error("AI prediction failed: %s", exc, exc_info=True)
-                raise BadRequestException("Không thể phân tích ảnh lá sầu riêng. Vui lòng chọn tệp ảnh hợp lệ.") from exc
+            inference_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
-        # Save uploaded image
-        upload_dir = settings.UPLOAD_DIR
-        os.makedirs(upload_dir, exist_ok=True)
-        ext = os.path.splitext(filename or "")[1] or ".jpg"
-        saved_name = f"{uuid.uuid4().hex}{ext}"
-        saved_path = os.path.join(upload_dir, saved_name)
-        with open(saved_path, "wb") as f:
-            f.write(file_bytes)
+            # Save uploaded image
+            upload_dir = settings.UPLOAD_DIR
+            os.makedirs(upload_dir, exist_ok=True)
+            ext = os.path.splitext(filename or "")[1] or ".jpg"
+            saved_name = f"{uuid.uuid4().hex}{ext}"
+            saved_path = os.path.join(upload_dir, saved_name)
+            with open(saved_path, "wb") as f:
+                f.write(file_bytes)
 
-        inference_time_ms = 120.0
-        result = DetectionResult(
-            disease=prediction["disease_vi"],
-            confidence=prediction["confidence"],
-            severity=prediction["severity"],
-        )
+            result = DetectionResult(
+                disease=prediction["disease_vi"],
+                confidence=prediction["confidence"],
+                severity=prediction["severity"],
+            )
 
-        rel_image_url = f"/uploads/{saved_name}"
-        disease_id = await self.disease_repo.create(
-            {
+            rel_image_url = f"/uploads/{saved_name}"
+
+            # Phase 2: Create Detection Result record in detection_results collection
+            count_det = await self.detection_result_repo.collection.count_documents({})
+            detection_code = f"DET{count_det + 1:05d}"
+
+            detection_result_id = await self.detection_result_repo.create({
+                "detection_code": detection_code,
+                "inspection_id": ObjectId(inspection_id) if ObjectId.is_valid(inspection_id) else inspection_id,
                 "tree_id": ObjectId(tree_id) if ObjectId.is_valid(tree_id) else tree_id,
-                "disease": result.disease,
-                "disease_name": result.disease,
+                "farm_id": ObjectId(farm_id) if farm_id and ObjectId.is_valid(str(farm_id)) else farm_id,
+                "company_id": ObjectId(company_id) if company_id and ObjectId.is_valid(str(company_id)) else company_id,
+                "model": "EfficientNet-B0",
+                "model_version": "1.0.0",
+                "prediction": result.disease,
+                "confidence": round(float(result.confidence) * 100, 2),
                 "severity": result.severity,
-                "confidence": result.confidence,
-                "image_url": rel_image_url,
-                "date": datetime.now(timezone.utc),
-                "action": "Chẩn đoán bệnh AI",
+                "image_path": rel_image_url,
+                "image_quality": "good" if quality.get("passed") else "normal",
+                "processing_time_ms": inference_time_ms,
+                "recommendation": _build_recommendation(result.disease, result.severity),
+                "created_at": datetime.now(timezone.utc),
+            })
+
+            # Phase 3: Update Tree master entity (health_status, risk_score, last_inspection)
+            severity_risk_map = {
+                "none": 10,
+                "low": 40,
+                "medium": 70,
+                "high": 90,
             }
-        )
+            risk_score = severity_risk_map.get(result.severity, 50)
+            health_status_vi = "Khỏe mạnh" if result.disease in ("Khỏe mạnh", "Healthy") else result.disease
 
-        disease_doc = await self.disease_repo.get(disease_id)
-        created_at = disease_doc["created_at"] if disease_doc else datetime.now(timezone.utc)
+            await self.tree_repo.update(
+                tree_id,
+                {
+                    "health_status": health_status_vi,
+                    "status": health_status_vi,
+                    "risk_score": risk_score,
+                    "last_inspection": datetime.now(timezone.utc),
+                },
+            )
 
-        return DetectionResponse(
-            tree_id=tree_id,
-            image_url=rel_image_url,
-            detection=result,
-            created_at=created_at,
-            recommendation=_build_recommendation(result.disease, result.severity),
-            processing_time_ms=inference_time_ms,
-        )
+            # Phase 4: Disease History Audit Log (Immutable append-only record)
+            disease_id = await self.disease_repo.create(
+                {
+                    "tree_id": ObjectId(tree_id) if ObjectId.is_valid(tree_id) else tree_id,
+                    "farm_id": ObjectId(farm_id) if farm_id and ObjectId.is_valid(str(farm_id)) else farm_id,
+                    "company_id": ObjectId(company_id) if company_id and ObjectId.is_valid(str(company_id)) else company_id,
+                    "detection_result_id": ObjectId(detection_result_id) if ObjectId.is_valid(str(detection_result_id)) else detection_result_id,
+                    "disease": result.disease,
+                    "disease_name": result.disease,
+                    "severity": result.severity,
+                    "confidence": result.confidence,
+                    "image_url": rel_image_url,
+                    "date": datetime.now(timezone.utc),
+                    "action": "Chẩn đoán bệnh AI",
+                }
+            )
+
+            # Phase 5: High-Risk Alert Auto-Generation (Only triggered when severity == 'high')
+            if result.severity == "high":
+                tree_code = tree.get("tree_code", tree_id) if isinstance(tree, dict) else tree_id
+                count_alert = await self.alert_repo.collection.count_documents({})
+                alert_code = f"ALT{count_alert + 1:05d}"
+
+                await self.alert_repo.create({
+                    "alert_code": alert_code,
+                    "farm_id": ObjectId(farm_id) if farm_id and ObjectId.is_valid(str(farm_id)) else farm_id,
+                    "tree_id": ObjectId(tree_id) if ObjectId.is_valid(tree_id) else tree_id,
+                    "company_id": ObjectId(company_id) if company_id and ObjectId.is_valid(str(company_id)) else company_id,
+                    "inspection_id": ObjectId(inspection_id) if ObjectId.is_valid(inspection_id) else inspection_id,
+                    "detection_result_id": ObjectId(detection_result_id) if ObjectId.is_valid(str(detection_result_id)) else detection_result_id,
+                    "disease_history_id": ObjectId(disease_id) if ObjectId.is_valid(str(disease_id)) else disease_id,
+                    "alert_type": "Bệnh nghiêm trọng",
+                    "title": "Cảnh báo bệnh nguy cơ cao",
+                    "message": f"Phát hiện bệnh {result.disease} nguy cơ cao tại cây {tree_code}",
+                    "recommendation": _build_recommendation(result.disease, result.severity),
+                    "priority": "Cao",
+                    "status": "unread",
+                    "is_read": False,
+                    "date": datetime.now(timezone.utc),
+                    "created_at": datetime.now(timezone.utc),
+                })
+
+            health_status_vi = "Khỏe mạnh" if result.disease in ("Khỏe mạnh", "Healthy") else "Bị bệnh"
+            await self.inspection_repo.update(
+                inspection_id,
+                {
+                    "status": "COMPLETED",
+                    "health_status": health_status_vi,
+                    "predicted_disease": result.disease,
+                    "confidence": round(result.confidence * 100, 2),
+                    "severity": result.severity,
+                    "remark": f"Chẩn đoán AI: {result.disease} ({result.severity})",
+                },
+            )
+
+            disease_doc = await self.disease_repo.get(disease_id)
+            created_at = disease_doc["created_at"] if disease_doc else datetime.now(timezone.utc)
+
+            return DetectionResponse(
+                tree_id=tree_id,
+                image_url=rel_image_url,
+                detection=result,
+                created_at=created_at,
+                recommendation=_build_recommendation(result.disease, result.severity),
+                processing_time_ms=inference_time_ms,
+            )
+        except Exception as exc:
+            logger.error("AI detection phase failed for inspection %s: %s", inspection_id, exc, exc_info=True)
+            await self.inspection_repo.update(
+                inspection_id,
+                {
+                    "status": "FAILED",
+                    "error_message": str(exc),
+                },
+            )
+            if isinstance(exc, BadRequestException):
+                raise exc
+            raise BadRequestException(f"Không thể hoàn tất chẩn đoán AI: {exc}") from exc
 
     def _run_detection(self, file_bytes: bytes) -> tuple[DetectionResult, float]:
         """Run real AI inference using the trained EfficientNet-B0 model.

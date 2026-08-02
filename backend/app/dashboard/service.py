@@ -74,8 +74,8 @@ class DashboardService:
         zone_ids = await self._get_zone_ids_for_farms(farm_ids)
 
         healthy_filter = {"$or": [{"health_status": {"$in": ["Healthy", "Khỏe mạnh"]}}, {"status": {"$in": ["Healthy", "Khỏe mạnh"]}}]}
-        diseased_filter = {"$or": [{"health_status": {"$nin": ["Healthy", "Khỏe mạnh"]}}, {"status": {"$nin": ["Healthy", "Khỏe mạnh"]}}]}
-        high_risk_filter = {"$or": [{"health_status": {"$regex": "Phytophthora|High Risk|Nguy cơ cao|thối|xì mủ", "$options": "i"}}, {"status": {"$regex": "Phytophthora|High Risk|Nguy cơ cao|thối|xì mủ", "$options": "i"}}]}
+        diseased_filter = {"$or": [{"health_status": {"$in": ["Diseased", "Bệnh", "Bị bệnh"]}}, {"status": {"$in": ["Diseased", "Bệnh", "Bị bệnh"]}}]}
+        high_risk_filter = {"$or": [{"risk_score": {"$gte": 70}}, {"health_status": {"$in": ["Diseased", "Bệnh", "Bị bệnh"]}}, {"status": {"$in": ["Diseased", "Bệnh", "Bị bệnh"]}}, {"health_status": {"$regex": "Phytophthora|High Risk|Nguy cơ cao|thối|xì mủ|Nứt thân|Cháy thân", "$options": "i"}}, {"status": {"$regex": "Phytophthora|High Risk|Nguy cơ cao|thối|xì mủ|Nứt thân|Cháy thân", "$options": "i"}}]}
 
         if zone_ids:
             zone_oid_filter = {"zone_id": {"$in": zone_ids}}

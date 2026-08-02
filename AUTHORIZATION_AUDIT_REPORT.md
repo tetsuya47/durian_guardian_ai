@@ -51,7 +51,7 @@ D:\durian_guardian_ai  (git monorepo)
    └─────────────────────────────────────────┘
         │  Motor (async) MongoClient
         ▼
-   MongoDB  →  database name: durian_guardian_ai_1 (default)
+   MongoDB  →  database name: durian_guardian_ai (default)
                durian_guardian_ai (README text)
                15 collections (db_schema.py), 10 seeded
 ```
@@ -169,7 +169,7 @@ Clean-architecture feature folders: `authentication`, `dashboard`, `disease_dete
 
 ```
 database/
-├── config.py         # MONGODB_URI/USERNAME/PASSWORD, DATABASE_NAME (durian_guardian_ai_1)
+├── config.py         # MONGODB_URI/USERNAME/PASSWORD, DATABASE_NAME (durian_guardian_ai)
 ├── db_schema.py      # 15 collection names + $jsonSchema validators
 ├── indexes.py        # index specs
 ├── mongodb.py        # sync singleton client
@@ -187,7 +187,7 @@ database/
 
 ## 3. Database Audit
 
-- Driver/connection: **MongoDB**. Default DB name in `backend/app/core/config.py` = `durian_guardian_ai_1`; default in `database/config.py` = `durian_guardian_ai_1`; `database/README.md` text says `durian_guardian_ai` (documentation discrepancy).
+- Driver/connection: **MongoDB**. Default DB name in `backend/app/core/config.py` = `durian_guardian_ai`; default in `database/config.py` = `durian_guardian_ai`; `database/README.md` text says `durian_guardian_ai` (documentation discrepancy).
 - **15 collections** defined in `database/db_schema.py`.
 - **10 collections** seeded by ETL (`seed_collections()`): companies, farms, zones, trees, users, diseases, inspections, detection_results, disease_history, alerts.
 - **5 collections** are schema/index-only (no ETL, no REST CRUD): seasons, harvests, farm_targets, farm_performance, neighbor_contact_requests (read indirectly by dashboard/overview aggregations).
@@ -634,7 +634,7 @@ Assessment scale used: **Implemented** = present and wired into code; **Partial*
 10. **Notifications are global:** `list_unread` has no user filter — every authenticated user sees the same unread set.
 11. **`inspections.inspector_id`** is written but missing from the collection validator (schema drift).
 12. **Public `/docs`/`/openapi.json`** exposes the full API surface with no auth.
-13. **DB name inconsistency** between docs (`durian_guardian_ai`) and code defaults (`durian_guardian_ai_1`).
+13. **DB name inconsistency** between docs (`durian_guardian_ai`) and code defaults (`durian_guardian_ai`).
 14. **Mobile app** uses mock repositories/datasources for most features (no server authz exercised).
 
 ---

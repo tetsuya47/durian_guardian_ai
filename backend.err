@@ -1,4 +1,4 @@
-INFO:     Will watch for changes in these directories: ['D:\\durian_guardian_ai_1\\backend']
+INFO:     Will watch for changes in these directories: ['D:\\durian_guardian_ai\\backend']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 INFO:     Started reloader process [15692] using WatchFiles
 INFO:     Started server process [30232]

@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-Toàn bộ dữ liệu của Enterprise Database `durian_guardian_ai_1` đã bị **xóa trắng và thay thế
+Toàn bộ dữ liệu của Enterprise Database `durian_guardian_ai` đã bị **xóa trắng và thay thế
 bằng dữ liệu test** trong lúc Release 1.3.1 (KPI Aggregation Fix) được thực hiện.
 
 **Nguyên nhân gốc — chính xác:**
@@ -21,7 +21,7 @@ bằng dữ liệu test** trong lúc Release 1.3.1 (KPI Aggregation Fix) đượ
 | **Line** | 28–30 |
 | **Code** | `collections = await db.list_collection_names()`<br>`for col in collections:`<br>`    await db[col].delete_many({})` |
 | **Trigger** | Chạy lệnh `pytest` để kiểm tra KPI Fix (thực hiện nhiều lần trong Release 1.3.1) |
-| **Reason** | Fixture `autouse` này chạy **trước mỗi test**, gọi `MongoDBManager.get_db()` → trả về **chính database production** `durian_guardian_ai_1` (`backend/app/core/config.py:19`, `backend/app/database/mongodb.py:27`, không có `.env` override), rồi `delete_many({})` trên **mọi collection**. Sau đó các test fixture chèn dữ liệu test tiếng Anh tối thiểu; riêng `trees`/`inspections` bị `$jsonSchema` validator (chỉ nhận tiếng Việt) **từ chối ghi** (`pymongo.errors.WriteError` code 121) nên các collection này còn **0 document**. |
+| **Reason** | Fixture `autouse` này chạy **trước mỗi test**, gọi `MongoDBManager.get_db()` → trả về **chính database production** `durian_guardian_ai` (`backend/app/core/config.py:19`, `backend/app/database/mongodb.py:27`, không có `.env` override), rồi `delete_many({})` trên **mọi collection**. Sau đó các test fixture chèn dữ liệu test tiếng Anh tối thiểu; riêng `trees`/`inspections` bị `$jsonSchema` validator (chỉ nhận tiếng Việt) **từ chối ghi** (`pymongo.errors.WriteError` code 121) nên các collection này còn **0 document**. |
 
 **Bản thân KPI Aggregation Fix hoàn toàn READ-ONLY** (chỉ thêm các truy vấn `count_documents`
 và `distinct`, đính kèm khóa `stats` vào response). **Nó không ghi, không drop, không seed, không
@@ -113,7 +113,7 @@ Toàn bộ diff của KPI Fix (đã trích ra trong quá trình audit) chỉ ch�
 
 ## 5. Database Comparison
 
-Đo trực tiếp (read-only) database `durian_guardian_ai_1` bằng `pymongo`:
+Đo trực tiếp (read-only) database `durian_guardian_ai` bằng `pymongo`:
 
 | Collection | **Expected** (ETL Design / đã xác minh trước reset) | **Actual** (hiện tại) | Mismatch |
 |---|---|---|---|
@@ -146,9 +146,9 @@ user `inspector@test.com` — toàn bộ là dữ liệu test, không phải d�
 
 1. **Thiết kế lỗi:** `backend/tests/conftest.py:22-31` định nghĩa fixture `autouse=True` tên `setup_db`
    nhằm dọn dữ liệu trước mỗi test — nhưng nó gọi `MongoDBManager.get_db()`, tức database **production**
-   `durian_guardian_ai_1` (`config.py:19`). Không có test database riêng, không có `.env` override.
+   `durian_guardian_ai` (`config.py:19`). Không có test database riêng, không có `.env` override.
 2. **Hành động kích hoạt:** Trong Release 1.3.1, để xác nhận KPI Fix, các lệnh sau đã được chạy
-   (mỗi lần đều kích hoạt `setup_db` → xóa sạch toàn bộ collection của `durian_guardian_ai_1`):
+   (mỗi lần đều kích hoạt `setup_db` → xóa sạch toàn bộ collection của `durian_guardian_ai`):
    - `pytest tests/test_users_crud.py tests/test_inspections_crud.py tests/test_disease_history_crud.py -q`
    - chạy toàn bộ test suite
    - `pytest ... -v` và các lần chạy baseline `git stash`
@@ -219,7 +219,7 @@ python -m database.setup_database --drop-existing
 
 1. **Database không bị reset bởi code KPI.** Toàn bộ diff Release 1.3.1 là read-only.
 2. **Thủ phạm:** `backend/tests/conftest.py:22-31` — fixture `autouse` `setup_db` dùng
-   `delete_many({})` trên database production `durian_guardian_ai_1` trước mỗi test, được kích hoạt
+   `delete_many({})` trên database production `durian_guardian_ai` trước mỗi test, được kích hoạt
    khi chạy `pytest` để validate KPI Fix.
 3. Trạng thái hiện tại (`companies=1, farms=1, users=2`, còn lại `0`) là **dữ liệu test residue**
    cộng với admin do startup tự seed — đã đối chiếu trực tiếp với MongoDB.

@@ -405,7 +405,7 @@ User → /dashboard → GET /dashboard, /dashboard/heatmap, /dashboard/widgets,
 ### High
 | # | Rủi ro | Nguyên nhân |
 |---|---|---|
-| R1 | **Test suite xóa sạch DB production nếu chạy `pytest`** | `backend/tests/conftest.py:22-31` autouse `setup_db` → `delete_many({})` trên `durian_guardian_ai_1` (không test-DB riêng) — đã gây reset thật ở 1.3.2. Việc verify giao diện phải hoàn toàn bằng chạy thủ công, không chạy test |
+| R1 | **Test suite xóa sạch DB production nếu chạy `pytest`** | `backend/tests/conftest.py:22-31` autouse `setup_db` → `delete_many({})` trên `durian_guardian_ai` (không test-DB riêng) — đã gây reset thật ở 1.3.2. Việc verify giao diện phải hoàn toàn bằng chạy thủ công, không chạy test |
 | R2 | **Đụng tầng UI Kit / màu sắc / radius do sửa rộng** | Thay đổi trên nhiều file; người thực hiện có thể thêm class làm đổi màu/bán kính/typography ngoài phạm vi. Bắt buộc review diff từng class |
 
 ### Medium
