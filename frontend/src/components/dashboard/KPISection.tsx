@@ -9,14 +9,17 @@ interface KPISectionProps {
   farmCount: number;
   zoneCount: number;
   emergencyCount: number;
+  healthyCount?: number;
 }
 
 export default function KPISection({
   totalTrees, newTreesThisMonth, healthyPercent,
-  farmArea, farmCount, zoneCount, emergencyCount,
+  farmArea, farmCount, zoneCount, emergencyCount, healthyCount = 0,
 }: KPISectionProps) {
+  const estimatedYield = ((healthyCount * 19.5) / 1000).toFixed(1);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" style={{ gap: "20px" }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4" style={{ gap: "16px" }}>
       <KPICard
         icon={<Trees className="w-7 h-7 text-emerald-600" />}
         iconBg="bg-emerald-100"
@@ -52,12 +55,13 @@ export default function KPISection({
         valueColor="text-red-500"
       />
       <KPICard
-        icon={<TrendingUp className="w-7 h-7 text-gray-400" />}
-        iconBg="bg-gray-100"
+        icon={<TrendingUp className="w-7 h-7 text-emerald-600" />}
+        iconBg="bg-emerald-100"
         title="ƯỚC TÍNH SẢN LƯỢNG"
-        value="--"
-        subtitle="Sẽ khả dụng trong phiên bản AI"
-        valueColor="text-gray-400"
+        value={estimatedYield}
+        valueSuffix="Tấn"
+        subtitle="Ước tính vụ 2026"
+        valueColor="text-[#111827]"
       />
     </div>
   );

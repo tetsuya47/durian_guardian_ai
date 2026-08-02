@@ -83,12 +83,12 @@ function KPICardInner({
 
   if (sparkline) {
     return (
-      <div className={cardBase} style={{ height: "116px", padding: "20px 24px", display: "flex", flexDirection: "column" }} role="group" aria-label={`${title}: ${value}`}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flex: "1" }}>
+      <div className={cardBase} style={{ height: "96px", padding: "12px 18px", display: "flex", flexDirection: "column" }} role="group" aria-label={`${title}: ${value}`}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flex: "1" }}>
           <div style={{ display: "flex", flexDirection: "column", width: "auto" }}>
             {leftContent}
           </div>
-          <div style={{ marginTop: "26px" }}>
+          <div>
             {iconBlock}
           </div>
         </div>
@@ -100,11 +100,11 @@ function KPICardInner({
   }
 
   return (
-    <div className={cardBase} style={{ height: "116px", padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }} role="group" aria-label={`${title}: ${value}`}>
+    <div className={cardBase} style={{ height: "96px", padding: "12px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }} role="group" aria-label={`${title}: ${value}`}>
       <div style={{ display: "flex", flexDirection: "column", width: "auto" }}>
         {leftContent}
       </div>
-      <div style={{ marginTop: "26px" }}>
+      <div>
         {iconBlock}
       </div>
     </div>

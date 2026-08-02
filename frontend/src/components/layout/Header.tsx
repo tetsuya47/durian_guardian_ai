@@ -149,7 +149,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
   return (
     <header
       className="bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-6 flex-shrink-0"
-      style={{ height: "72px" }}
+      style={{ height: "64px" }}
     >
       {/* Left side: Hamburger & Breadcrumb */}
       <div className="flex items-center gap-4">

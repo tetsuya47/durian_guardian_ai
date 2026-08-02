@@ -52,7 +52,7 @@ export default function AppLayout() {
 
         {/* Content Viewport */}
         <main className="flex-1 overflow-y-auto flex flex-col justify-between">
-          <div className="px-4 sm:px-6 py-4 sm:py-6 flex-1">
+          <div className="px-4 py-3 flex-1 w-full">
             <Outlet />
           </div>
           {/* Footer Layout inside scroll viewport */}

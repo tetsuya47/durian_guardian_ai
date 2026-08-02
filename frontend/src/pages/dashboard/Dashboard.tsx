@@ -21,7 +21,7 @@ import AgronomistPanel from "../../components/dashboard/AgronomistPanel";
 import TreeDistributionCard from "../../components/dashboard/TreeDistributionCard";
 import RealtimeInspectionCard from "../../components/dashboard/RealtimeInspectionCard";
 import FarmPerformanceCard from "../../components/dashboard/FarmPerformanceCard";
-import { KPISkeleton, CardSkeleton, DashboardSkeleton } from "../../components/dashboard/Shared/SkeletonCard";
+import { KPISkeleton, CardSkeleton } from "../../components/dashboard/Shared/SkeletonCard";
 import type { CellData, ZoneSection } from "../../components/dashboard/HeatmapGrid";
 import type { InspectionRow } from "../../components/dashboard/InspectionTable";
 
@@ -255,7 +255,8 @@ export default function DashboardPage() {
   }, [filteredPriorityTrees]);
 
   return (
-    <div className="flex flex-col bg-[#F5F7FB]" style={{ gap: "20px", flex: "1 1 0%", minHeight: 0 }}>
+    <div className="flex flex-col bg-[#F5F7FB]" style={{ gap: "16px", flex: "1 1 0%", minHeight: 0 }}>
+      {/* HEADER */}
       <DashboardHeader loading={anyLoading} onRefresh={fetchAll} />
 
       {error && (
@@ -264,88 +265,99 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-5 lg:[grid-template-rows:auto_450px_420px]">
-        {/* ROW 1: KPI — renders as soon as /dashboard resolves */}
-        <div className="lg:col-span-3">
-          {dashboardLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" style={{ gap: "20px" }}>
-              {Array.from({ length: 5 }).map((_, i) => <KPISkeleton key={i} />)}
-            </div>
-          ) : (
-            <KPISection
-              totalTrees={kpiTotalTrees}
-              newTreesThisMonth={0}
-              healthyPercent={filteredHealthyPercent}
-              farmArea={filteredFarmAreaFormatted}
-              farmCount={backendKpi.total_farms}
-              zoneCount={filteredZoneCount}
-              emergencyCount={kpiEmergencyCount}
-            />
-          )}
-        </div>
+      {/* ROW 1: 5 KPI Cards */}
+      <div className="w-full">
+        {dashboardLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4" style={{ gap: "16px" }}>
+            {Array.from({ length: 5 }).map((_, i) => <KPISkeleton key={i} />)}
+          </div>
+        ) : (
+          <KPISection
+            totalTrees={kpiTotalTrees}
+            newTreesThisMonth={0}
+            healthyPercent={filteredHealthyPercent}
+            farmArea={filteredFarmAreaFormatted}
+            farmCount={backendKpi.total_farms}
+            zoneCount={filteredZoneCount}
+            emergencyCount={kpiEmergencyCount}
+            healthyCount={kpiHealthyCount}
+          />
+        )}
+      </div>
 
-        {/* ROW 2-3 COL 1: System Overview — renders as soon as /dashboard resolves */}
-        <div className="lg:self-start">
+      {/* ROW 2: 3 Columns (Overview | Heatmap | AI Chat - 35% 35% 30% / 4fr 4fr 3fr, Target: 365px) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[4fr_4fr_3fr] gap-4 items-stretch w-full">
+        {/* Col 1: System Overview */}
+        <div className="h-[365px] min-h-[365px] max-h-[365px] w-full">
           {dashboardLoading ? (
-            <CardSkeleton><div className="flex-1 grid grid-cols-2 gap-2"><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /></div></CardSkeleton>
+            <CardSkeleton height="100%"><div className="flex-1 grid grid-cols-2 gap-2"><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /><div className="bg-gray-200 rounded-[6px] animate-pulse h-[60px]" /></div></CardSkeleton>
           ) : (
             <SystemOverviewCard data={systemOverview} />
           )}
         </div>
 
-        {/* ROW 2-3 COL 2: Heatmap — renders as soon as /dashboard/heatmap resolves */}
-        {heatmapLoading ? (
-          <CardSkeleton><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
-        ) : (
-          <HeatmapCard
-            sections={zoneSections}
-            lastUpdated={heatmapLastUpdated}
-            summaryCounts={heatmapSummary}
-            onRefresh={fetchAll}
-            farmOptions={farmOptions}
-            zoneOptions={zoneOptions}
-            selectedFarm={farmFilter}
-            selectedZone={zoneFilter}
-            onFarmChange={setFarmFilter}
-            onZoneChange={setZoneFilter}
-          />
-        )}
-
-        {/* ROW 2 COL 3: AI Agronomist + ROW 3 COL 3: Inspection Log */}
-        <div className="lg:row-span-2 flex flex-col" style={{ gap: "20px" }}>
-          <div className="lg:h-[450px] min-h-0">
-            {widgetsLoading ? (
-              <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse h-12 w-full mb-2" /><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
-            ) : (
-              <AgronomistPanel
-                priorityTrees={filteredPriorityTrees}
-                farmStatus={farmStatus}
-                kpiHealthyCount={kpiHealthyCount}
-                kpiMonitoringCount={kpiMonitoringCount}
-                kpiDiseasedCount={kpiDiseasedCount}
-                alertCounts={filteredAlertCounts}
-                highRiskCount={filteredHighRiskCount}
-              />
-            )}
-          </div>
-          <div className="flex-1 min-h-0">
-            {widgetsLoading ? (
-              <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
-            ) : (
-              <RealtimeInspectionCard data={filteredInspectionRows} />
-            )}
-          </div>
+        {/* Col 2: Heatmap */}
+        <div className="h-[365px] min-h-[365px] max-h-[365px] w-full min-w-0">
+          {heatmapLoading ? (
+            <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
+          ) : (
+            <HeatmapCard
+              sections={zoneSections}
+              lastUpdated={heatmapLastUpdated}
+              summaryCounts={heatmapSummary}
+              onRefresh={fetchAll}
+              farmOptions={farmOptions}
+              zoneOptions={zoneOptions}
+              selectedFarm={farmFilter}
+              selectedZone={zoneFilter}
+              onFarmChange={setFarmFilter}
+              onZoneChange={setZoneFilter}
+            />
+          )}
         </div>
 
-        {/* ROW 3 COL 1: Tree Distribution — renders as soon as /dashboard resolves */}
-        {dashboardLoading ? (
-          <CardSkeleton><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
-        ) : (
-          <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
-        )}
+        {/* Col 3: AI Chat (AgronomistPanel) */}
+        <div className="h-[365px] min-h-[365px] max-h-[365px] w-full">
+          {widgetsLoading ? (
+            <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse h-12 w-full mb-2" /><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
+          ) : (
+            <AgronomistPanel
+              priorityTrees={filteredPriorityTrees}
+              farmStatus={farmStatus}
+              kpiHealthyCount={kpiHealthyCount}
+              kpiMonitoringCount={kpiMonitoringCount}
+              kpiDiseasedCount={kpiDiseasedCount}
+              alertCounts={filteredAlertCounts}
+              highRiskCount={filteredHighRiskCount}
+            />
+          )}
+        </div>
+      </div>
 
-        {/* ROW 3 COL 2: Farm Performance */}
-        <FarmPerformanceCard />
+      {/* ROW 3: 3 Columns (Pie Chart | Performance | Recent Activity - 1fr 1fr 1fr, Target: 405px) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
+        {/* Col 1: Tree Distribution (Pie Chart) */}
+        <div className="h-[405px] min-h-[405px] max-h-[405px] w-full">
+          {dashboardLoading ? (
+            <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
+          ) : (
+            <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
+          )}
+        </div>
+
+        {/* Col 2: Farm Performance */}
+        <div className="h-[405px] min-h-[405px] max-h-[405px] w-full">
+          <FarmPerformanceCard />
+        </div>
+
+        {/* Col 3: Realtime Inspection (Recent Activity) */}
+        <div className="h-[405px] min-h-[405px] max-h-[405px] w-full">
+          {widgetsLoading ? (
+            <CardSkeleton height="100%"><div className="bg-gray-200 rounded-[6px] animate-pulse flex-1 w-full" /></CardSkeleton>
+          ) : (
+            <RealtimeInspectionCard data={filteredInspectionRows} />
+          )}
+        </div>
       </div>
     </div>
   );
