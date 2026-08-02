@@ -154,8 +154,9 @@ def create_collections_and_indexes(
             name = spec.get("name", "unnamed")
             if name in existing:
                 continue
-            keys = spec.pop("keys")
-            collection.create_index(keys, **spec)
+            spec_copy = dict(spec)
+            keys = spec_copy.pop("keys")
+            collection.create_index(keys, **spec_copy)
             logger.info("Created index '%s' on %s", name, coll_name)
 
 

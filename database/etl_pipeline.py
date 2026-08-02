@@ -1597,8 +1597,9 @@ def create_collections_and_indexes(
                 name = spec.get("name", "unnamed")
                 if name in existing:
                     continue
-                keys = spec.pop("keys")
-                collection.create_index(keys, **spec)
+                spec_copy = dict(spec)
+                keys = spec_copy.pop("keys")
+                collection.create_index(keys, **spec_copy)
             except OperationFailure as exc:
                 stats.add_error(
                     f"Failed to create index '{spec.get('name', 'unnamed')}' "

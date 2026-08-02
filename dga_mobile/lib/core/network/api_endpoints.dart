@@ -74,4 +74,7 @@ class ApiEndpoints {
   // ─── Alerts ──────────────────────────────────────────────────────────────
   static const String alerts = '/alerts';
   static String alertById(String id) => '/alerts/$id';
+
+  // ─── Weather ─────────────────────────────────────────────────────────────
+  static const String weatherCurrent = '/weather/current';
 }

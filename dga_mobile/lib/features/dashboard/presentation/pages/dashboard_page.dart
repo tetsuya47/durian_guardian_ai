@@ -13,6 +13,7 @@ import '../widgets/quick_actions_grid.dart';
 import '../widgets/quick_stats_grid.dart';
 import '../widgets/recent_inspections_list.dart';
 import '../widgets/dashboard_alerts_card.dart';
+import '../../../weather/presentation/widgets/weather_card.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -43,6 +44,8 @@ class DashboardPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const WeatherCard(),
+                  AppSpacing.v20,
                   AIFarmStatusCard(status: data.farmStatus),
                   AppSpacing.v20,
                   const SectionHeader(title: AppStrings.quickStats),

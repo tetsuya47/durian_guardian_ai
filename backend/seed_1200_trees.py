@@ -39,8 +39,8 @@ async def seed_1200_trees() -> None:
     await db["diseases"].delete_many({})
     await db["detection_results"].delete_many({})
 
-    # 2. Get main owner user ID (Bao Admin)
-    user = await db["users"].find_one({"email": "bao@gmail.com"})
+    # 2. Get main owner user ID (Farmer nongdan@gmail.com)
+    user = await db["users"].find_one({"email": "nongdan@gmail.com"}) or await db["users"].find_one({"email": "bao@gmail.com"})
     owner_id = user["_id"] if user else ObjectId("6a6d510a1b0a24c1305a4310")
 
     # 3. Create Main Farm

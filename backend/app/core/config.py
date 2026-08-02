@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_UPLOAD_SIZE_MB: int = 10
 
+    OPENWEATHER_API_KEY: str = ""
+    OPENWEATHER_BASE_URL: str = "https://api.openweathermap.org/data/2.5"
+    WEATHER_CACHE_TTL_MINUTES: int = 15
+
     LOG_LEVEL: str = "INFO"
 
     @property

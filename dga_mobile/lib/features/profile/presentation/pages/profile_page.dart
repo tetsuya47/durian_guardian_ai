@@ -12,6 +12,7 @@ import '../../../../shared/loading/loading_dialog.dart';
 import '../../../../shared/utils/ui_helpers.dart';
 import '../../domain/entities/profile_entities.dart';
 import '../../../authentication/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/edit_profile_sheet.dart';
 import '../widgets/farm_information_card.dart';
@@ -110,6 +111,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       onConfirm: () async {
         final repo = ref.read(authRepositoryProvider);
         await repo.logout();
+        ref.invalidate(dashboardDataProvider);
+        ref.invalidate(userProfileProvider);
+        ref.invalidate(profileStateProvider);
         if (context.mounted) context.go('/login');
       },
     );

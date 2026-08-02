@@ -11,6 +11,8 @@ import '../../../../shared/widgets/input_field.dart';
 import '../../../../shared/widgets/password_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
@@ -92,6 +94,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       if (result.isSuccess) {
         // Clear guest mode on real login
         ref.read(guestModeProvider.notifier).state = false;
+
+        // Invalidate cached user state so new user profile & dashboard load fresh
+        ref.invalidate(dashboardDataProvider);
+        ref.invalidate(userProfileProvider);
+        ref.invalidate(profileStateProvider);
 
         // Handle Remember Me
         final rememberMe = ref.read(rememberMeProvider);

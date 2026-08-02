@@ -11,6 +11,7 @@ from app.schemas.farm import FarmCreate, FarmUpdate, FarmOut
 from app.schemas.zone import ZoneCreate, ZoneUpdate, ZoneOut
 from app.schemas.tree import TreeCreate, TreeUpdate, TreeOut
 from app.schemas.disease import DetectionResult, DetectionResponse, DiseaseHistoryOut
+from app.schemas.weather import WeatherCurrentResponse
 from app.schemas.dashboard import (
     DashboardOut,
     DetectionBrief,
@@ -69,6 +70,7 @@ __all__ = [
     "DetectionResult",
     "DetectionResponse",
     "DiseaseHistoryOut",
+    "WeatherCurrentResponse",
     "DashboardOut",
     "DetectionBrief",
     "AlertBrief",

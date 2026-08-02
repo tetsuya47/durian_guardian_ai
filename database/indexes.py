@@ -113,4 +113,9 @@ def get_index_specs() -> Dict[str, List[Dict[str, Any]]]:
             {"keys": [("created_at", -1)], "name": "idx_ncr_created_at"},
             {"keys": [("expires_at", 1)], "name": "idx_ncr_expires_at"},
         ],
+        Collections.WEATHER_CACHE: [
+            {"keys": [("farm_id", 1)], "name": "idx_weather_cache_farm_id"},
+            {"keys": [("updated_at", -1)], "name": "idx_weather_cache_updated_at_desc"},
+            {"keys": [("cache_expired_at", 1)], "name": "idx_weather_cache_cache_expired_at_ttl", "expireAfterSeconds": 86400},
+        ],
     }

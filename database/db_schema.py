@@ -30,6 +30,7 @@ class Collections:
     FARM_TARGETS: str = "farm_targets"
     FARM_PERFORMANCE: str = "farm_performance"
     NEIGHBOR_CONTACT_REQUESTS: str = "neighbor_contact_requests"
+    WEATHER_CACHE: str = "weather_cache"
 
     @classmethod
     def all(cls) -> List[str]:
@@ -38,7 +39,7 @@ class Collections:
             cls.USERS, cls.DISEASES, cls.INSPECTIONS,
             cls.DETECTION_RESULTS, cls.DISEASE_HISTORY, cls.ALERTS,
             cls.SEASONS, cls.HARVESTS, cls.FARM_TARGETS, cls.FARM_PERFORMANCE,
-            cls.NEIGHBOR_CONTACT_REQUESTS,
+            cls.NEIGHBOR_CONTACT_REQUESTS, cls.WEATHER_CACHE,
         ]
 
     @classmethod
