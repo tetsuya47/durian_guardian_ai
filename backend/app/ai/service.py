@@ -130,28 +130,24 @@ class AIService:
         mean_saturation = float(np.mean(hsv[:, :, 1]))
 
         # G) Validation Decision for Durian Leaf / Plant Foliage:
-        # 1. Strict Rejection criteria for non-durian images:
-        if skin_ratio > 0.15 and green_ratio < 0.15:
-            leaf_detected = False
-        elif blue_ratio > 0.20 and green_ratio < 0.15:
-            leaf_detected = False
-        elif red_ratio > 0.25 and green_ratio < 0.15:
-            leaf_detected = False
-        elif mean_saturation < 20.0 and green_ratio < 0.08:
-            leaf_detected = False
-        elif foliage_ratio < 0.12:
-            leaf_detected = False
-        elif green_ratio < 0.04 and foliage_ratio < 0.20:
-            leaf_detected = False
-        # 2. Acceptance criteria for valid durian plant/leaf images:
-        elif green_ratio >= 0.15:
+        # 1. Nếu mô hình AI (EfficientNet-B0) nhận diện ra bệnh/lá (confidence >= 0.25) -> Chấp nhận
+        if confidence >= 0.25:
             leaf_detected = True
-        elif foliage_ratio >= 0.20 and green_ratio >= 0.05:
+        elif green_ratio >= 0.05 or foliage_ratio >= 0.08:
             leaf_detected = True
-        elif foliage_ratio >= 0.15 and confidence >= 0.70 and green_ratio >= 0.04 and skin_ratio < 0.10:
-            leaf_detected = True
+        # 2. Chỉ loại bỏ nếu ảnh HOÀN TOÀN không chứa cây lá
+        elif skin_ratio > 0.35 and green_ratio < 0.02 and foliage_ratio < 0.05:
+            leaf_detected = False
+        elif blue_ratio > 0.40 and green_ratio < 0.02 and foliage_ratio < 0.05:
+            leaf_detected = False
+        elif red_ratio > 0.40 and green_ratio < 0.02 and foliage_ratio < 0.05:
+            leaf_detected = False
+        elif mean_saturation < 15.0 and green_ratio < 0.02 and foliage_ratio < 0.05:
+            leaf_detected = False
+        elif foliage_ratio < 0.05:
+            leaf_detected = False
         else:
-            leaf_detected = False
+            leaf_detected = True if prediction is not None else False
 
         passed = bool((not blur) and (brightness == "good") and leaf_detected)
 

@@ -75,41 +75,39 @@ const MONGODB_SEED_PERFORMANCE: FarmYieldItem[] = [
 export default function FarmPerformancePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [provinceFilter, setProvinceFilter] = useState("all");
-  const [farms, setFarms] = useState<FarmYieldItem[]>(MONGODB_SEED_PERFORMANCE);
+  const [farms, setFarms] = useState<FarmYieldItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Dynamic fetch from backend /api/v1/farm-performance
-    api.get<{ data: { items?: any[] } | any[] }>("/api/v1/farm-performance")
+    api.get<{ data: { items?: any[] } | any[] }>("/farm-performance")
       .then((res) => {
         const rawItems = Array.isArray(res.data)
           ? res.data
           : (res.data as any)?.data?.items || (res.data as any)?.data || [];
 
-        if (rawItems.length > 0) {
-          const mapped: FarmYieldItem[] = rawItems.map((f: any, idx: number) => ({
-            id: f._id || String(idx + 1),
-            rank: idx + 1,
-            name: f.farm_name || `Farm ${f.farm_code || idx + 1}`,
-            code: f.farm_code || `FARM00${idx + 1}`,
-            owner: f.owner_name || "Nguyễn Văn Bảo",
-            province: f.province || "Đắk Lắk",
-            area: Number(f.area_hectare || 30.0),
-            treeCount: f.tree_count || 500,
-            yieldTons: Number(f.yield_tons || 1000.0),
-            yieldPerHa: Number(f.yield_per_ha || 25.0),
-            growthPct: Number(f.growth_pct || 10.0),
-            revenueVnd: Number(f.revenue_vnd || 3000000000),
-            tier: f.tier || "Cao",
-          }));
+        const mapped: FarmYieldItem[] = rawItems.map((f: any, idx: number) => ({
+          id: f._id || f.id || String(idx + 1),
+          rank: idx + 1,
+          name: f.farm_name || f.name || `Farm ${f.farm_code || idx + 1}`,
+          code: f.farm_code || f.code || `FARM00${idx + 1}`,
+          owner: f.owner_name || f.owner || "Chủ nông trại",
+          province: f.province || "Cần Thơ",
+          area: Number(f.area_hectare || f.area || 0),
+          treeCount: Number(f.tree_count || f.treeCount || 0),
+          yieldTons: Number(f.yield_tons || f.yieldTons || 0),
+          yieldPerHa: Number(f.yield_per_ha || f.yieldPerHa || 0),
+          growthPct: Number(f.growth_pct || f.growthPct || 0),
+          revenueVnd: Number(f.revenue_vnd || f.revenueVnd || 0),
+          tier: f.tier || (Number(f.yield_per_ha || f.yieldPerHa || 0) >= 25 ? "Rất cao" : Number(f.yield_per_ha || f.yieldPerHa || 0) >= 20 ? "Cao" : "Trung bình"),
+        }));
 
-          mapped.sort((a, b) => b.yieldPerHa - a.yieldPerHa);
-          mapped.forEach((f, index) => {
-            f.rank = index + 1;
-          });
+        mapped.sort((a, b) => b.yieldPerHa - a.yieldPerHa);
+        mapped.forEach((f, index) => {
+          f.rank = index + 1;
+        });
 
-          setFarms(mapped);
-        }
+        setFarms(mapped);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -142,10 +140,10 @@ export default function FarmPerformancePage() {
   };
 
   const tierPieData = [
-    { name: "Rất cao (> 25 t/ha)", value: tierCounts.ratCao || 4, color: "#10B981" },
-    { name: "Cao (20 - 25 t/ha)", value: tierCounts.cao || 4, color: "#84CC16" },
-    { name: "Trung bình (15 - 20 t/ha)", value: tierCounts.trungBinh || 2, color: "#F59E0B" },
-    { name: "Thấp (< 15 t/ha)", value: tierCounts.thap || 1, color: "#EF4444" },
+    { name: "Rất cao (> 25 t/ha)", value: tierCounts.ratCao, color: "#10B981" },
+    { name: "Cao (20 - 25 t/ha)", value: tierCounts.cao, color: "#84CC16" },
+    { name: "Trung bình (15 - 20 t/ha)", value: tierCounts.trungBinh, color: "#F59E0B" },
+    { name: "Thấp (< 15 t/ha)", value: tierCounts.thap, color: "#EF4444" },
   ];
 
   return (

@@ -50,6 +50,81 @@ async def list_iot_devices(
     return success_response(data=items, total=total, page=page, per_page=per_page)
 
 
+@router.get("/my-devices")
+async def list_user_iot_devices(
+    farm_id: Optional[str] = Query(default=None),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    """Retrieve real IoT devices belonging to current user's farms from MongoDB collection `iot_devices`."""
+    from bson import ObjectId
+    user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+    user_doc = await db["users"].find_one({"_id": user_oid})
+    user_role = (user_doc.get("role") or "").lower() if user_doc else "user"
+    is_admin = user_role in ["admin", "system admin"]
+
+    if is_admin:
+        query: dict = {}
+        if farm_id and farm_id != "all":
+            query = {"$or": [{"farm_id": farm_id}, {"farm_id": ObjectId(farm_id) if ObjectId.is_valid(farm_id) else farm_id}]}
+    else:
+        user_farms = await db["farms"].find({
+            "$or": [
+                {"owner_user_id": user_oid},
+                {"owner_user_id": str(user_id)},
+                {"user_id": user_id},
+                {"user_id": str(user_id)},
+                {"owner_id": user_id},
+                {"owner_id": user_oid},
+                {"created_by": user_id},
+                {"created_by": str(user_id)},
+            ]
+        }).to_list(length=100)
+
+        farm_ids_str = [str(f["_id"]) for f in user_farms]
+        farm_codes = [f.get("farm_code") for f in user_farms if f.get("farm_code")]
+        farm_oids = [f["_id"] for f in user_farms]
+
+        all_farm_keys = farm_ids_str + farm_codes + farm_oids
+
+        if farm_id and farm_id != "all":
+            query = {"farm_id": farm_id}
+        else:
+            query = {"$or": [{"farm_id": {"$in": all_farm_keys}}, {"farm_id": {"$in": farm_ids_str}}, {"farm_id": {"$in": farm_codes}}]}
+
+    cursor = db["iot_devices"].find(query).sort("created_at", -1)
+    docs = await cursor.to_list(length=100)
+
+    farms = await db["farms"].find({}).to_list(100)
+    farm_map = {str(f["_id"]): f.get("farm_name") for f in farms}
+    for f in farms:
+        if f.get("farm_code"):
+            farm_map[f.get("farm_code")] = f.get("farm_name")
+
+    items = []
+    for d in docs:
+        f_id = str(d.get("farm_id", ""))
+        items.append({
+            "id": str(d["_id"]),
+            "device_code": d.get("device_code", "DEV-UNKNOWN"),
+            "name": d.get("name") or d.get("device_name") or "Thiết bị Cảm biến IoT",
+            "device_type": d.get("device_type", "Soil Sensor"),
+            "farm_id": f_id,
+            "farm_name": d.get("farm_name") or farm_map.get(f_id) or "Trang trại của tôi",
+            "status": d.get("status", "Active"),
+            "battery": d.get("battery", d.get("battery_level", 100)),
+            "signal": d.get("signal", d.get("last_signal", "LoRa 5/5")),
+            "soil_moisture": d.get("soil_moisture"),
+            "pH": d.get("pH"),
+            "EC": d.get("EC"),
+            "temperature": d.get("temperature"),
+            "humidity": d.get("humidity"),
+            "last_sync": str(d.get("last_sync") or d.get("updated_at") or d.get("created_at") or ""),
+        })
+
+    return success_response(data={"items": items, "total": len(items)})
+
+
 @router.post("/estimate", response_model=SuccessResponse[IoTEstimateResponse])
 async def estimate_iot_equipment(data: IoTEstimateRequest):
     area = data.area_hectare

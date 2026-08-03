@@ -128,9 +128,9 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
 
       dev.log('[DGA] Calling detectDisease API with treeId=$treeId', name: 'DGA');
       final detectionDto = await _remoteDataSource.detectDisease(treeId, localImagePath).timeout(
-        const Duration(seconds: 25),
+        const Duration(seconds: 60),
         onTimeout: () {
-          throw Exception('Quá thời gian chờ phân tích (Timeout 25s). Vui lòng thử lại.');
+          throw Exception('Quá thời gian chờ phân tích (Timeout 60s). Vui lòng kiểm tra lại kết nối mạng và thử lại.');
         },
       );
       dev.log('[DGA] detectionDto received: disease=${detectionDto.detection.disease}, confidence=${detectionDto.detection.confidence}', name: 'DGA');

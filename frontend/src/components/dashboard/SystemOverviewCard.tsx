@@ -28,13 +28,13 @@ function formatTime(iso: string): string {
 }
 
 export default function SystemOverviewCard({ data, variant = "admin" }: SystemOverviewCardProps) {
-  const activeCount = data.active_iot_devices ?? 784;
-  const stockCount = data.in_stock_iot_devices ?? 58;
-  const maintCount = data.maintenance_iot_devices ?? 1;
+  const activeCount = data.active_iot_devices ?? 0;
+  const stockCount = data.in_stock_iot_devices ?? 0;
+  const maintCount = data.maintenance_iot_devices ?? 0;
   const totalIoT = activeCount + stockCount + maintCount;
 
-  const inspectionCount = data.inspection_today > 0 ? data.inspection_today : 10000;
-  const aiDetectionCount = data.ai_detection_today > 0 ? data.ai_detection_today : 10000;
+  const inspectionCount = data.inspection_today ?? 0;
+  const aiDetectionCount = data.ai_detection_today ?? 0;
 
   if (variant === "user") {
     return (

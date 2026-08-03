@@ -23,6 +23,7 @@ import RegisterFarmPage from "@/pages/farms/RegisterFarmPage";
 import IoTSetupGuidePage from "@/pages/iot/IoTSetupGuidePage";
 import IoTOrdersPage from "@/pages/iot/IoTOrdersPage";
 import IoTManagementPage from "@/pages/iot/IoTManagementPage";
+import UserIoTDevicesPage from "@/pages/iot/UserIoTDevicesPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
       {
         path: "iot-shop",
         element: <IoTOrdersPage />,
+      },
+      {
+        path: "my-iot-devices",
+        element: <UserIoTDevicesPage />,
       },
       {
         path: "companies",

@@ -63,7 +63,7 @@ export default function KPISection({
   }
 
   // 2. USER DASHBOARD VIEW: 5 Farmer-Centric KPI Metrics (WEB USER ONLY)
-  const healthPercent = totalTrees > 0 ? ((healthyTrees / totalTrees) * 100).toFixed(1) : "98.5";
+  const healthPercent = totalTrees > 0 ? ((healthyTrees / totalTrees) * 100).toFixed(1) : "0.0";
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" style={{ gap: "16px" }}>

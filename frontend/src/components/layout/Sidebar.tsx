@@ -53,6 +53,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { label: "Chatbot Trợ lý AI", path: "/ai-chatbot", icon: Bot },
     { label: "🌱 Đăng ký Vườn mới", path: "/register-farm", icon: Sprout },
     { label: "📈 Năng suất Trang trại", path: "/farm-performance", icon: TrendingUp },
+    { label: "📡 Thiết bị IoT của Vườn", path: "/my-iot-devices", icon: Cpu },
     { label: "🛒 Mua sắm & Đơn IoT", path: "/iot-shop", icon: ShoppingBag },
     { label: "🛠️ Hướng dẫn Lắp đặt", path: "/iot-setup-guide", icon: Wrench },
     { label: "🚨 Cảnh báo AI", path: "/ai-alerts", icon: ShieldAlert },

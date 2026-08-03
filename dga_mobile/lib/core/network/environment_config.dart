@@ -14,16 +14,16 @@ class EnvironmentConfig {
   static const _Env _activeEnv = _Env.device;
 
   /// Host for real-device testing on LAN.
-  /// Change this to your machine's local IP (e.g. '192.168.1.2').
-  static const String deviceHost = '192.168.1.5';
+  /// Current LAN IP for this machine: '172.16.26.120'
+  static const String deviceHost = '172.16.26.120';
+  static const String emulatorHost = '10.0.2.2';
   // ─────────────────────────────────────────────────────────────────────────
 
   /// The base URL for the currently active environment.
   static String get baseUrl {
     switch (_activeEnv) {
       case _Env.emulator:
-        // Fallback or emulator mapped route using deviceHost
-        return 'http://$deviceHost:8000/api/v1';
+        return 'http://$emulatorHost:8000/api/v1';
       case _Env.device:
         return 'http://$deviceHost:8000/api/v1';
       case _Env.production:
@@ -35,7 +35,7 @@ class EnvironmentConfig {
   static String get uploadsBaseUrl {
     switch (_activeEnv) {
       case _Env.emulator:
-        return 'http://$deviceHost:8000/uploads';
+        return 'http://$emulatorHost:8000/uploads';
       case _Env.device:
         return 'http://$deviceHost:8000/uploads';
       case _Env.production:
