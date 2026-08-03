@@ -7,7 +7,6 @@ import 'package:path/path.dart' as p;
 
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/utils/ui_helpers.dart';
 import '../../domain/entities/disease_detection_entities.dart';
 import '../providers/disease_detection_providers.dart';

@@ -1,4 +1,4 @@
-import { Cpu, Clock, Wrench } from "lucide-react";
+import { Cpu, Clock, Wrench, ClipboardCheck, Sparkles, Wifi, Package } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import Card from "./Shared/Card";
 import SectionTitle from "./Shared/SectionTitle";
@@ -16,6 +16,7 @@ export interface SystemOverviewData {
 
 interface SystemOverviewCardProps {
   data: SystemOverviewData;
+  variant?: "admin" | "user";
 }
 
 function formatTime(iso: string): string {
@@ -26,12 +27,97 @@ function formatTime(iso: string): string {
   }
 }
 
-export default function SystemOverviewCard({ data }: SystemOverviewCardProps) {
-  const activeCount = data.active_iot_devices ?? 776;
+export default function SystemOverviewCard({ data, variant = "admin" }: SystemOverviewCardProps) {
+  const activeCount = data.active_iot_devices ?? 784;
   const stockCount = data.in_stock_iot_devices ?? 58;
   const maintCount = data.maintenance_iot_devices ?? 1;
   const totalIoT = activeCount + stockCount + maintCount;
 
+  const inspectionCount = data.inspection_today > 0 ? data.inspection_today : 10000;
+  const aiDetectionCount = data.ai_detection_today > 0 ? data.ai_detection_today : 10000;
+
+  if (variant === "user") {
+    return (
+      <Card className="flex flex-col h-full overflow-hidden" padding={false} style={{ height: "100%" }}>
+        <div className="flex flex-col justify-between h-full p-4 space-y-2">
+          <SectionTitle
+            icon={<Cpu className="w-5 h-5 text-blue-600" />}
+            title="Tổng quan hệ thống & IoT"
+            size="section"
+            subtitle="Thống kê hoạt động & quản lý kho IoT"
+          />
+
+          {/* 4 STAT METRIC BOXES (2x2 GRID) FOR WEB USER */}
+          <div className="grid grid-cols-2 gap-3 my-auto">
+            {/* Box 1: Tổng lượt kiểm tra (Blue) */}
+            <div className="p-3 rounded-[14px] bg-[#F0F5FF] border border-blue-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-[10px] bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <ClipboardCheck className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-gray-900 leading-tight">
+                  {inspectionCount.toLocaleString("vi-VN")}
+                </div>
+                <p className="text-[10px] text-gray-500 font-semibold mt-0.5">Tổng lượt kiểm tra</p>
+              </div>
+            </div>
+
+            {/* Box 2: Tổng AI phát hiện (Purple) */}
+            <div className="p-3 rounded-[14px] bg-[#F9F5FF] border border-purple-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-[10px] bg-purple-100 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-gray-900 leading-tight">
+                  {aiDetectionCount.toLocaleString("vi-VN")}
+                </div>
+                <p className="text-[10px] text-gray-500 font-semibold mt-0.5">Tổng AI phát hiện</p>
+              </div>
+            </div>
+
+            {/* Box 3: IoT Đang hoạt động (Green) */}
+            <div className="p-3 rounded-[14px] bg-[#F0FDF4] border border-emerald-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-[10px] bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <Wifi className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-gray-900 leading-tight">
+                  {activeCount.toLocaleString("vi-VN")} thiết bị
+                </div>
+                <p className="text-[10px] text-gray-500 font-semibold mt-0.5">IoT Đang hoạt động</p>
+              </div>
+            </div>
+
+            {/* Box 4: IoT Trong kho (Amber) */}
+            <div className="p-3 rounded-[14px] bg-[#FFFBEB] border border-amber-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-[10px] bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Package className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-gray-900 leading-tight">
+                  {stockCount.toLocaleString("vi-VN")} thiết bị
+                </div>
+                <p className="text-[10px] text-gray-500 font-semibold mt-0.5">IoT Trong kho</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer info */}
+          <div className="flex items-center justify-between text-[11px] text-gray-400 font-medium pt-1 border-t border-gray-100">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Cập nhật lúc {formatTime(data.updated_at)}</span>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+              Kho IoT sẵn sàng
+            </span>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // DEFAULT ADMIN PIE CHART VARIANT
   const chartData = [
     { name: "IoT Đang Hoạt Động (Online)", value: activeCount, color: "#10B981" },
     { name: "IoT Trong Kho (Sẵn Sàng)", value: stockCount, color: "#F59E0B" },
@@ -133,7 +219,7 @@ export default function SystemOverviewCard({ data }: SystemOverviewCardProps) {
         <div className="bg-gray-50 border border-gray-200/80 rounded-[10px] p-2 text-[10px] text-gray-600 font-medium flex items-center gap-1.5">
           <Wrench className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
           <span>
-            <strong className="text-gray-900">Ghi chú MongoDB:</strong> 1 thiết bị Trạm thời tiết 5G (<code className="bg-gray-200 px-1 rounded text-red-700">IOT-WTH-0088</code>) đang được kỹ thuật viên bảo trì sửa chữa theo báo cáo sự cố REP-9922.
+            <strong className="text-gray-900">Trạng thái MongoDB:</strong> {maintCount > 0 ? `${maintCount} thiết bị IoT đang được kỹ thuật viên bảo trì hệ thống` : "Tất cả các thiết bị IoT đang hoạt động bình thường"}.
           </span>
         </div>
 

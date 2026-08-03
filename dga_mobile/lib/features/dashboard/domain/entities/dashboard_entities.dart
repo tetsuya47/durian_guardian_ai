@@ -96,12 +96,16 @@ class StatItemEntity {
   final String value;
   final String icon;
   final String color;
+  final String? subtitle;
+  final bool? isPositiveTrend;
 
   const StatItemEntity({
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
+    this.subtitle,
+    this.isPositiveTrend,
   });
 
   @override
@@ -111,11 +115,13 @@ class StatItemEntity {
         other.label == label &&
         other.value == value &&
         other.icon == icon &&
-        other.color == color;
+        other.color == color &&
+        other.subtitle == subtitle &&
+        other.isPositiveTrend == isPositiveTrend;
   }
 
   @override
-  int get hashCode => Object.hash(label, value, icon, color);
+  int get hashCode => Object.hash(label, value, icon, color, subtitle, isPositiveTrend);
 }
 
 @immutable

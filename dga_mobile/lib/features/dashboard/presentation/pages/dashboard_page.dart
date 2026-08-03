@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -12,8 +13,6 @@ import '../widgets/dashboard_app_bar.dart';
 import '../widgets/quick_actions_grid.dart';
 import '../widgets/quick_stats_grid.dart';
 import '../widgets/recent_inspections_list.dart';
-import '../widgets/dashboard_alerts_card.dart';
-import '../../../weather/presentation/widgets/weather_card.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -44,7 +43,59 @@ class DashboardPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const WeatherCard(),
+                  // Onboarding Banner: Đăng Ký Vườn Mới & Kết Nối IoT
+                  InkWell(
+                    onTap: () => context.go('/register-farm'),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.green.shade900, Colors.green.shade700],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.shade900.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add_business_outlined, color: Colors.white, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Bắt Đầu Kích Hoạt Trang Trại & Kết Nối IoT',
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Đăng ký vườn mới để mở khóa tính năng tự động Cảnh báo AI',
+                                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 14),
+                        ],
+                      ),
+                    ),
+                  ),
                   AppSpacing.v20,
                   AIFarmStatusCard(status: data.farmStatus),
                   AppSpacing.v20,

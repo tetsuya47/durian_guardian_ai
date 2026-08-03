@@ -27,6 +27,9 @@ class KpiData(BaseModel):
     healthy_trees: int
     diseased_trees: int
     high_risk_trees: int
+    area_hectare: float = 0.0
+    total_zones: int = 0
+    estimated_yield: float = 0.0
 
 
 class RiskTrendItem(BaseModel):

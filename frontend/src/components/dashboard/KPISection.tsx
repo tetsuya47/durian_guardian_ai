@@ -17,15 +17,15 @@ interface KPISectionProps {
 
 export default function KPISection({
   isAdmin = true,
-  totalUsers = 62,
-  totalFarms = 10,
-  totalTrees = 350,
-  healthyTrees = 345,
-  highRiskTrees = 5,
-  areaHectare = 12.5,
-  farmCount = 1,
-  zoneCount = 2,
-  estimatedYield = 306.3,
+  totalUsers = 0,
+  totalFarms = 0,
+  totalTrees = 0,
+  healthyTrees = 0,
+  highRiskTrees = 0,
+  areaHectare = 0,
+  farmCount = 0,
+  zoneCount = 0,
+  estimatedYield = 0,
 }: KPISectionProps) {
   // 1. ADMIN DASHBOARD VIEW: 3 Core System Metrics (UNTOUCHED FOR WEB ADMIN)
   if (isAdmin) {
@@ -53,7 +53,7 @@ export default function KPISection({
           icon={<Trees className="w-7 h-7 text-emerald-600" />}
           iconBg="bg-emerald-100"
           title="TỔNG CÂY ĐANG QUẢN LÝ"
-          value={(totalTrees > 500 ? totalTrees : 6000).toLocaleString()}
+          value={totalTrees.toLocaleString()}
           valueSuffix="cây trồng"
           subtitle="Toàn bộ cây sầu riêng hệ thống"
           valueColor="text-[#111827]"

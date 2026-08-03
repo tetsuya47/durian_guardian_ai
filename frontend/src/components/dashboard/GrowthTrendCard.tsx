@@ -35,7 +35,7 @@ export default function GrowthTrendCard() {
 
   useEffect(() => {
     // Dynamic fetch if backend provides growth_trend
-    api.get<{ data: { growth_trend?: any[] } }>("/api/v1/dashboard")
+    api.get<{ data: { growth_trend?: any[] } }>("/dashboard")
       .then((res) => {
         const trend = res.data?.data?.growth_trend;
         if (Array.isArray(trend) && trend.length > 0) {

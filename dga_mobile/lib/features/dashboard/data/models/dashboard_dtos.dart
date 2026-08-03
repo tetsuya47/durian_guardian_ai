@@ -188,37 +188,53 @@ class DashboardOutDto {
 }
 
 class KpiDataDto {
+  final int totalUsers;
   final int totalFarms;
   final int totalTrees;
   final int healthyTrees;
   final int diseasedTrees;
   final int highRiskTrees;
+  final double areaHectare;
+  final int totalZones;
+  final double estimatedYield;
 
   const KpiDataDto({
+    required this.totalUsers,
     required this.totalFarms,
     required this.totalTrees,
     required this.healthyTrees,
     required this.diseasedTrees,
     required this.highRiskTrees,
+    required this.areaHectare,
+    required this.totalZones,
+    required this.estimatedYield,
   });
 
   factory KpiDataDto.fromJson(Map<String, dynamic> json) {
     return KpiDataDto(
+      totalUsers: json['total_users'] as int? ?? 0,
       totalFarms: json['total_farms'] as int? ?? 0,
       totalTrees: json['total_trees'] as int? ?? 0,
       healthyTrees: json['healthy_trees'] as int? ?? 0,
       diseasedTrees: json['diseased_trees'] as int? ?? 0,
       highRiskTrees: json['high_risk_trees'] as int? ?? 0,
+      areaHectare: (json['area_hectare'] as num?)?.toDouble() ?? 0.0,
+      totalZones: json['total_zones'] as int? ?? 0,
+      estimatedYield: (json['estimated_yield'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'total_users': totalUsers,
       'total_farms': totalFarms,
       'total_trees': totalTrees,
       'healthy_trees': healthyTrees,
       'diseased_trees': diseasedTrees,
       'high_risk_trees': highRiskTrees,
+      'area_hectare': areaHectare,
+      'total_zones': totalZones,
+      'estimated_yield': estimatedYield,
     };
   }
 }

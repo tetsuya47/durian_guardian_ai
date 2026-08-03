@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'app_card.dart';
-import '../styles/app_styles.dart';
 
 class StatisticTile extends StatelessWidget {
   final String label;
@@ -23,8 +22,10 @@ class StatisticTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -32,48 +33,60 @@ class StatisticTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurface.withOpacity(0.65),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              AppSpacing.h4,
+              const SizedBox(width: 4),
               CircleAvatar(
-                radius: 16,
-                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-                child: Icon(icon, size: 16, color: theme.colorScheme.primary),
+                radius: 13,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                child: Icon(icon, size: 14, color: theme.colorScheme.primary),
               ),
             ],
           ),
-          AppSpacing.v12,
-          Text(
-            value,
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           ),
-          if (trendLabel != null) ...[
-            AppSpacing.v8,
+          if (trendLabel != null && trendLabel!.isNotEmpty) ...[
+            const SizedBox(height: 4),
             Row(
               children: [
                 if (isPositiveTrend != null) ...[
                   Icon(
                     isPositiveTrend! ? Icons.trending_up : Icons.trending_down,
-                    size: 16,
+                    size: 13,
                     color: isPositiveTrend! ? Colors.green : Colors.red,
                   ),
-                  AppSpacing.h4,
+                  const SizedBox(width: 3),
                 ],
-                Text(
-                  trendLabel!,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: isPositiveTrend == null
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
-                        : (isPositiveTrend! ? Colors.green : Colors.red),
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    trendLabel!,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10,
+                      color: isPositiveTrend == null
+                          ? theme.colorScheme.onSurface.withOpacity(0.6)
+                          : (isPositiveTrend! ? Colors.green : Colors.red),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

@@ -11,4 +11,7 @@ class RouteNames {
   static const String settings = 'settings';
   static const String cameraSimulator = 'camera-simulator';
   static const String imageEditorWizard = 'image-editor-wizard';
+  static const String registerFarm = 'register-farm';
+  static const String iotShop = 'iot-shop';
+  static const String iotManagement = 'iot-management';
 }

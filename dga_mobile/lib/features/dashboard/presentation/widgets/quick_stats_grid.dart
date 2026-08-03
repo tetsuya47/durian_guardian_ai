@@ -5,16 +5,23 @@ import '../../domain/entities/dashboard_entities.dart';
 
 IconData _mapIcon(String name) {
   switch (name) {
+    case 'park':
+    case 'qr_code_scanner':
+      return Icons.park;
+    case 'landscape':
+    case 'map':
+      return Icons.landscape;
+    case 'favorite':
     case 'check_circle_outline':
-      return Icons.check_circle_outline;
+      return Icons.favorite;
+    case 'warning':
     case 'error_outline':
-      return Icons.error_outline;
     case 'warning_amber_outlined':
       return Icons.warning_amber_outlined;
-    case 'qr_code_scanner':
-      return Icons.qr_code_scanner;
+    case 'trending_up':
+      return Icons.trending_up;
     default:
-      return Icons.help_outline;
+      return Icons.analytics_outlined;
   }
 }
 
@@ -28,50 +35,51 @@ class QuickStatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (statistics.length < 4) return const SizedBox.shrink();
+    if (statistics.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: StatisticTile(
-                label: statistics[0].label,
-                value: statistics[0].value,
-                icon: _mapIcon(statistics[0].icon),
+    final List<Widget> rows = [];
+    for (int i = 0; i < statistics.length; i += 2) {
+      if (i > 0) rows.add(AppSpacing.v8);
+      if (i + 1 < statistics.length) {
+        rows.add(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: StatisticTile(
+                  label: statistics[i].label,
+                  value: statistics[i].value,
+                  icon: _mapIcon(statistics[i].icon),
+                  trendLabel: statistics[i].subtitle,
+                  isPositiveTrend: statistics[i].isPositiveTrend,
+                ),
               ),
-            ),
-            AppSpacing.h12,
-            Expanded(
-              child: StatisticTile(
-                label: statistics[1].label,
-                value: statistics[1].value,
-                icon: _mapIcon(statistics[1].icon),
+              AppSpacing.h8,
+              Expanded(
+                child: StatisticTile(
+                  label: statistics[i + 1].label,
+                  value: statistics[i + 1].value,
+                  icon: _mapIcon(statistics[i + 1].icon),
+                  trendLabel: statistics[i + 1].subtitle,
+                  isPositiveTrend: statistics[i + 1].isPositiveTrend,
+                ),
               ),
-            ),
-          ],
-        ),
-        AppSpacing.v12,
-        Row(
-          children: [
-            Expanded(
-              child: StatisticTile(
-                label: statistics[2].label,
-                value: statistics[2].value,
-                icon: _mapIcon(statistics[2].icon),
-              ),
-            ),
-            AppSpacing.h12,
-            Expanded(
-              child: StatisticTile(
-                label: statistics[3].label,
-                value: statistics[3].value,
-                icon: _mapIcon(statistics[3].icon),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+            ],
+          ),
+        );
+      } else {
+        rows.add(
+          StatisticTile(
+            label: statistics[i].label,
+            value: statistics[i].value,
+            icon: _mapIcon(statistics[i].icon),
+            trendLabel: statistics[i].subtitle,
+            isPositiveTrend: statistics[i].isPositiveTrend,
+          ),
+        );
+      }
+    }
+
+    return Column(children: rows);
   }
 }

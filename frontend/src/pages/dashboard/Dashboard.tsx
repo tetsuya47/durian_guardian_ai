@@ -315,75 +315,123 @@ export default function DashboardPage() {
         ) : (
           <KPISection
             isAdmin={isAdmin}
-            totalUsers={backendKpi.total_users || 62}
-            totalFarms={backendKpi.total_farms || 10}
-            totalTrees={kpiTotalTrees || 350}
-            healthyTrees={kpiHealthyCount || 345}
-            diseasedTrees={kpiDiseasedCount || 5}
-            highRiskTrees={kpiEmergencyCount || 5}
-            areaHectare={12.5}
-            farmCount={1}
-            zoneCount={2}
-            estimatedYield={306.3}
+            totalUsers={backendKpi.total_users || 0}
+            totalFarms={backendKpi.total_farms || 0}
+            totalTrees={kpiTotalTrees || 0}
+            healthyTrees={kpiHealthyCount || 0}
+            diseasedTrees={kpiDiseasedCount || 0}
+            highRiskTrees={kpiEmergencyCount || 0}
+            areaHectare={backendKpi.area_hectare || 0}
+            farmCount={backendKpi.total_farms || 0}
+            zoneCount={backendKpi.total_zones || 0}
+            estimatedYield={backendKpi.estimated_yield || 0}
           />
         )}
       </div>
 
-      {/* ROW 2: 3 Equal Columns (System Overview Pie Chart | Regional Farm Map Pie Chart | Realtime Weather) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
-        {/* Col 1: System Overview (IoT Pie Chart) */}
-        <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-          {dashboardLoading ? (
-            <CardSkeleton height="100%"><div className="flex-1 bg-gray-200 rounded-[12px] animate-pulse" /></CardSkeleton>
-          ) : (
-            <SystemOverviewCard data={systemOverview} />
-          )}
-        </div>
+      {/* ROW 2 */}
+      {isAdmin ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
+          {/* Col 1: System Overview (IoT Pie Chart) */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            {dashboardLoading ? (
+              <CardSkeleton height="100%"><div className="flex-1 bg-gray-200 rounded-[12px] animate-pulse" /></CardSkeleton>
+            ) : (
+              <SystemOverviewCard data={systemOverview} />
+            )}
+          </div>
 
-        {/* Col 2: Bản đồ phân bố nông trại theo khu vực (Pie Chart) */}
-        <div className="h-[315px] min-h-[315px] max-h-[315px] w-full min-w-0">
-          {heatmapLoading ? (
-            <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
-          ) : isAdmin ? (
-            <RegionalFarmMapCard />
-          ) : (
-            <HeatmapCard
-              sections={zoneSections}
-              lastUpdated={heatmapLastUpdated}
-              summaryCounts={heatmapSummary}
-              onRefresh={fetchAll}
-              farmOptions={farmOptions}
-              zoneOptions={zoneOptions}
-              selectedFarm={farmFilter}
-              selectedZone={zoneFilter}
-              onFarmChange={setFarmFilter}
-              onZoneChange={setZoneFilter}
-            />
-          )}
-        </div>
+          {/* Col 2: Bản đồ phân bố nông trại theo khu vực (Pie Chart) */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full min-w-0">
+            {heatmapLoading ? (
+              <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
+            ) : (
+              <RegionalFarmMapCard />
+            )}
+          </div>
 
-        {/* Col 3: Thẻ Thời Tiết Realtime & Khuyến Nghị AI Agronomist */}
-        <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-          <WeatherCard />
+          {/* Col 3: Thẻ Thời Tiết Realtime */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            <WeatherCard />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
+          {/* Col 1: System Overview */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            {dashboardLoading ? (
+              <CardSkeleton height="100%"><div className="flex-1 bg-gray-200 rounded-[12px] animate-pulse" /></CardSkeleton>
+            ) : (
+              <SystemOverviewCard data={systemOverview} variant="user" />
+            )}
+          </div>
 
-      {/* ROW 3: 2 Columns (Growth Line Chart - 2fr | Tree Distribution - 1fr) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-stretch w-full">
-        {/* Col 1: Growth Trend Line Chart (Người dùng mới & Nông trại mới theo tháng) */}
-        <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-          <GrowthTrendCard />
-        </div>
+          {/* Col 2: Heatmap Card */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full min-w-0">
+            {heatmapLoading ? (
+              <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
+            ) : (
+              <HeatmapCard
+                sections={zoneSections}
+                lastUpdated={heatmapLastUpdated}
+                summaryCounts={heatmapSummary}
+                onRefresh={fetchAll}
+                farmOptions={farmOptions}
+                zoneOptions={zoneOptions}
+                selectedFarm={farmFilter}
+                selectedZone={zoneFilter}
+                onFarmChange={setFarmFilter}
+                onZoneChange={setZoneFilter}
+              />
+            )}
+          </div>
 
-        {/* Col 2: Tree Distribution (Pie Chart) */}
-        <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-          {dashboardLoading ? (
-            <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
-          ) : (
-            <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
-          )}
+          {/* Col 3: Chatbot Trợ lý AI */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            <AIChatbotCard />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ROW 3 */}
+      {isAdmin ? (
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-stretch w-full">
+          {/* Col 1: Growth Trend Line Chart */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            <GrowthTrendCard />
+          </div>
+
+          {/* Col 2: Tree Distribution */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            {dashboardLoading ? (
+              <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
+            ) : (
+              <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
+          {/* Col 1: Tree Distribution (Pie Chart) */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            {dashboardLoading ? (
+              <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
+            ) : (
+              <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
+            )}
+          </div>
+
+          {/* Col 2: Farm Performance Card */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            <FarmPerformanceCard />
+          </div>
+
+          {/* Col 3: Realtime Inspection Card */}
+          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+            <RealtimeInspectionCard data={filteredInspectionRows} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -23,30 +23,47 @@ class DashboardRepositoryImpl implements DashboardRepository {
         totalTrees: dashboard.kpi.totalTrees,
       );
 
+      final totalTrees = dashboard.kpi.totalTrees;
+      final healthyTrees = dashboard.kpi.healthyTrees;
+      final healthPercent = totalTrees > 0 ? ((healthyTrees / totalTrees) * 100).toStringAsFixed(1) : "0.0";
+
       final statistics = [
         StatItemEntity(
-          label: 'Tổng số cây',
-          value: dashboard.kpi.totalTrees.toString(),
-          icon: _mapIcon('qr_code_scanner'),
-          color: _mapColor('primary'),
+          label: 'TỔNG SỐ CÂY',
+          value: '$totalTrees cây',
+          icon: 'park',
+          color: 'primary',
+          subtitle: '+0 Cây tháng này',
         ),
         StatItemEntity(
-          label: 'Cây khỏe mạnh',
-          value: dashboard.kpi.healthyTrees.toString(),
-          icon: _mapIcon('check_circle_outline'),
-          color: _mapColor('success'),
+          label: 'DIỆN TÍCH CANH TÁC',
+          value: '${dashboard.kpi.areaHectare} ha',
+          icon: 'landscape',
+          color: 'success',
+          subtitle: '${dashboard.kpi.totalFarms} Trang trại · ${dashboard.kpi.totalZones} Khu vực',
         ),
         StatItemEntity(
-          label: 'Cây nhiễm bệnh',
-          value: dashboard.kpi.diseasedTrees.toString(),
-          icon: _mapIcon('error_outline'),
-          color: _mapColor('error'),
+          label: 'SỨC KHỎE VƯỜN CÂY',
+          value: '$healthPercent%',
+          icon: 'favorite',
+          color: 'success',
+          subtitle: 'Tỷ lệ cây khỏe mạnh',
         ),
         StatItemEntity(
-          label: 'Nguy cơ cao',
-          value: dashboard.kpi.highRiskTrees.toString(),
-          icon: _mapIcon('warning_amber_outlined'),
-          color: _mapColor('warning'),
+          label: 'CẢNH BÁO NGUY CƠ CAO',
+          value: '${dashboard.kpi.highRiskTrees} cây',
+          icon: 'warning',
+          color: 'warning',
+          subtitle: 'Cây nguy cơ cao (>80%)',
+          isPositiveTrend: false,
+        ),
+        StatItemEntity(
+          label: 'ƯỚC TÍNH SẢN LƯỢNG',
+          value: '${dashboard.kpi.estimatedYield} Tấn',
+          icon: 'trending_up',
+          color: 'primary',
+          subtitle: 'Ước tính vụ 2026',
+          isPositiveTrend: true,
         ),
       ];
 
@@ -86,14 +103,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } catch (e) {
       return Failure(err.Failure.fromException(e).message, e);
     }
-  }
-
-  dynamic _mapIcon(String name) {
-    return name;
-  }
-
-  dynamic _mapColor(String name) {
-    return name;
   }
 
   String _resolveUrl(String? relativePath) {

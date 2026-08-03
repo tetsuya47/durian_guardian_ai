@@ -112,7 +112,8 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
         final items = treesListResponse.data?['items'] as List<dynamic>? ?? [];
         dev.log('[DGA] Trees items count: ${items.length}', name: 'DGA');
         if (items.isNotEmpty) {
-          treeId = items.first['id'] as String?;
+          final first = items.first as Map<String, dynamic>;
+          treeId = (first['id'] ?? first['_id'])?.toString();
           dev.log('[DGA] Using treeId: $treeId', name: 'DGA');
         }
       } catch (e) {

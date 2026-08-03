@@ -175,9 +175,34 @@ class AIService:
             trees_list, _ = await self.tree_repo.list(per_page=1)
             if trees_list:
                 tree = trees_list[0]
-                tree_id = tree["id"]
+                tree_id = str(tree.get("id") or tree.get("_id"))
             else:
-                tree_id = "6a6cc2ba3432b70022fba65d"
+                fallback_oid = ObjectId("6a6cc2ba3432b70022fba65d")
+                tree = await self.db["trees"].find_one({"_id": fallback_oid})
+                if not tree:
+                    farm = await self.db["farms"].find_one({})
+                    farm_id = farm["_id"] if farm else ObjectId()
+                    zone = await self.db["zones"].find_one({})
+                    zone_id = zone["_id"] if zone else ObjectId()
+
+                    tree = {
+                        "_id": fallback_oid,
+                        "tree_code": "SR-DEFAULT-01",
+                        "farm_id": farm_id,
+                        "zone_id": zone_id,
+                        "variety": "Ri6",
+                        "planting_date": datetime.now(timezone.utc),
+                        "tree_age": 5,
+                        "status": "Khỏe mạnh",
+                        "health_status": "Khỏe mạnh",
+                        "created_at": datetime.now(timezone.utc),
+                        "updated_at": datetime.now(timezone.utc),
+                    }
+                    try:
+                        await self.db["trees"].insert_one(tree)
+                    except Exception as err:
+                        logger.warning("Could not insert fallback tree: %s", err)
+                tree_id = str(fallback_oid)
 
         # Validate image quality & leaf presence
         quality = self._analyze_quality(file_bytes)

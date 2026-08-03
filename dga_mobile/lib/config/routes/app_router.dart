@@ -17,6 +17,9 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/disease_detection/presentation/pages/camera_simulator_page.dart';
 import '../../features/disease_detection/presentation/pages/image_editor_wizard.dart';
+import '../../features/farms/presentation/pages/register_farm_page.dart';
+import '../../features/iot/presentation/pages/iot_shop_page.dart';
+import '../../features/iot/presentation/pages/iot_management_page.dart';
 import '../../features/authentication/presentation/providers/auth_providers.dart';
 import '../../core/constants/storage_keys.dart';
 import '../../services/storage_service.dart';
@@ -68,6 +71,21 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
         path: '/image-editor-wizard',
         name: RouteNames.imageEditorWizard,
         builder: (context, state) => const ImageEditorWizard(),
+      ),
+      GoRoute(
+        path: '/register-farm',
+        name: RouteNames.registerFarm,
+        builder: (context, state) => const RegisterFarmPage(),
+      ),
+      GoRoute(
+        path: '/iot-shop',
+        name: RouteNames.iotShop,
+        builder: (context, state) => const IoTShopPage(),
+      ),
+      GoRoute(
+        path: '/iot-management',
+        name: RouteNames.iotManagement,
+        builder: (context, state) => const IoTManagementPage(),
       ),
 
       ShellRoute(

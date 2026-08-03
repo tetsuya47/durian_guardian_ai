@@ -46,7 +46,17 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
     return DashboardData(
       dashboard: dashboardResponse.data ?? const DashboardOutDto(
-        kpi: KpiDataDto(totalFarms: 0, totalTrees: 0, healthyTrees: 0, diseasedTrees: 0, highRiskTrees: 0),
+        kpi: KpiDataDto(
+          totalUsers: 0,
+          totalFarms: 0,
+          totalTrees: 0,
+          healthyTrees: 0,
+          diseasedTrees: 0,
+          highRiskTrees: 0,
+          areaHectare: 0.0,
+          totalZones: 0,
+          estimatedYield: 0.0,
+        ),
         recentDetection: [],
         alerts: [],
         riskTrend: [],

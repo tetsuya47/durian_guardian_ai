@@ -1,11 +1,15 @@
 import api from "../api";
 
 export interface BackendKpi {
+  total_users?: number;
   total_farms: number;
   total_trees: number;
   healthy_trees: number;
   diseased_trees: number;
   high_risk_trees: number;
+  area_hectare?: number;
+  total_zones?: number;
+  estimated_yield?: number;
 }
 
 export interface SystemOverviewData {

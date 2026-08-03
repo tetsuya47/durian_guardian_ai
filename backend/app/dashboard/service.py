@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -20,6 +20,7 @@ from app.schemas import (
     AlertBrief,
     DashboardOut,
     DetectionBrief,
+    GrowthTrendItem,
     KpiData,
     RiskTrendItem,
     SystemOverview,
@@ -57,6 +58,21 @@ class DashboardService:
         self.farm_target_repo = FarmTargetRepository(db)
         self.harvest_repo = HarvestRepository(db)
 
+    async def _get_user_farms(self, user_id: str) -> list[dict]:
+        user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+        return await self.db["farms"].find({
+            "$or": [
+                {"owner_user_id": user_oid},
+                {"owner_user_id": str(user_id)},
+                {"user_id": user_id},
+                {"user_id": str(user_id)},
+                {"owner_id": user_id},
+                {"owner_id": user_oid},
+                {"created_by": user_id},
+                {"created_by": str(user_id)},
+            ]
+        }).to_list(length=100)
+
     async def _get_zone_ids_for_farms(self, farm_ids: list[str]) -> list[ObjectId]:
         farm_oids = [ObjectId(fid) for fid in farm_ids if ObjectId.is_valid(fid)]
         if not farm_oids:
@@ -80,6 +96,8 @@ class DashboardService:
         if is_admin:
             farms = await self.db["farms"].find({}).to_list(length=1000)
             total_farms = len(farms)
+            total_area = round(sum(float(f.get("area_hectare") or f.get("area") or 0) for f in farms), 1)
+            total_zones = await self.db["zones"].count_documents({})
 
             total_users, total_trees, healthy_trees, diseased_trees, high_risk_trees = await asyncio.gather(
                 self.db["users"].count_documents({}),
@@ -88,6 +106,12 @@ class DashboardService:
                 self.db["trees"].count_documents(diseased_filter),
                 self.db["trees"].count_documents(high_risk_filter),
             )
+
+            harvests = await self.db["harvests"].find({}).to_list(1000)
+            harvest_yield_kg = sum(float(h.get("yield_kg", 0)) for h in harvests)
+            targets = await self.db["farm_targets"].find({}).to_list(1000)
+            target_yield_kg = sum(float(t.get("target_yield", 0)) for t in targets)
+            estimated_yield = round((harvest_yield_kg or target_yield_kg or (total_trees * 80)) / 1000.0, 1)
 
             recent_detection, alerts, risk_trend, system_overview, growth_trend = await asyncio.gather(
                 self._get_recent_detections(),
@@ -105,6 +129,9 @@ class DashboardService:
                     healthy_trees=healthy_trees,
                     diseased_trees=diseased_trees,
                     high_risk_trees=high_risk_trees,
+                    area_hectare=total_area,
+                    total_zones=total_zones,
+                    estimated_yield=estimated_yield,
                 ),
                 system_overview=system_overview,
                 recent_detection=recent_detection,
@@ -114,38 +141,25 @@ class DashboardService:
             )
 
         # Non-Admin User (Farmer / Customer)
-        user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
-        user_farms = await self.db["farms"].find({
-            "$or": [
-                {"owner_user_id": user_oid},
-                {"owner_user_id": str(user_id)},
-                {"user_id": user_id},
-                {"user_id": str(user_id)},
-                {"owner_id": user_id},
-                {"created_by": user_id}
-            ]
-        }).to_list(length=100)
-
-        # Fallback to primary farm if farm list is empty for demo
-        if not user_farms:
-            primary = await self.db["farms"].find_one({"farm_code": "FARM-TEO-01"})
-            if not primary:
-                primary = await self.db["farms"].find_one({})
-            if primary:
-                user_farms = [primary]
-
+        user_farms = await self._get_user_farms(user_id)
         active_farms = [f for f in user_farms if f.get("onboarding_status", "ACTIVE") == "ACTIVE"]
         if not active_farms and user_farms:
             active_farms = user_farms
 
+        total_users = await self.db["users"].count_documents({})
+
         if not active_farms:
             return DashboardOut(
                 kpi=KpiData(
+                    total_users=total_users,
                     total_farms=0,
                     total_trees=0,
                     healthy_trees=0,
                     diseased_trees=0,
                     high_risk_trees=0,
+                    area_hectare=0.0,
+                    total_zones=0,
+                    estimated_yield=0.0,
                 ),
                 system_overview=SystemOverview(
                     inspection_today=0,
@@ -160,52 +174,61 @@ class DashboardService:
                 recent_detection=[],
                 alerts=[],
                 risk_trend=[],
+                growth_trend=await self._get_growth_trend(),
             )
 
         # Active user -> calculate stats for user's active farm(s)
         total_farms = len(active_farms)
+        total_area = round(sum(float(f.get("area_hectare") or f.get("area") or 0) for f in active_farms), 1)
         farm_oids = [f["_id"] for f in active_farms]
         farm_ids_str = [str(f["_id"]) for f in active_farms] + [f.get("farm_code", "") for f in active_farms if f.get("farm_code")]
         
         zone_ids = []
         async for z in self.db["zones"].find({"farm_id": {"$in": farm_oids}}):
             zone_ids.append(z["_id"])
+        total_zones = len(zone_ids)
 
-        if zone_ids:
-            zone_oid_filter = {"zone_id": {"$in": zone_ids}}
-            total_trees, healthy_trees, diseased_trees, high_risk_trees = await asyncio.gather(
-                self.db["trees"].count_documents(zone_oid_filter),
-                self.db["trees"].count_documents({"$and": [zone_oid_filter, healthy_filter]}),
-                self.db["trees"].count_documents({"$and": [zone_oid_filter, diseased_filter]}),
-                self.db["trees"].count_documents({"$and": [zone_oid_filter, high_risk_filter]}),
-            )
-        else:
-            total_trees = sum(f.get("tree_count", 0) for f in active_farms)
-            healthy_trees = int(total_trees * 0.98)
-            diseased_trees = total_trees - healthy_trees
-            high_risk_trees = diseased_trees
+        tree_filter = {"$or": [{"farm_id": {"$in": farm_oids}}, {"zone_id": {"$in": zone_ids}}]} if zone_ids else {"farm_id": {"$in": farm_oids}}
+        
+        total_trees, healthy_trees, diseased_trees, high_risk_trees = await asyncio.gather(
+            self.db["trees"].count_documents(tree_filter),
+            self.db["trees"].count_documents({"$and": [tree_filter, healthy_filter]}),
+            self.db["trees"].count_documents({"$and": [tree_filter, diseased_filter]}),
+            self.db["trees"].count_documents({"$and": [tree_filter, high_risk_filter]}),
+        )
+
+        harvests = await self.db["harvests"].find({"farm_id": {"$in": farm_oids}}).to_list(100)
+        harvest_yield_kg = sum(float(h.get("yield_kg", 0)) for h in harvests)
+        targets = await self.db["farm_targets"].find({"farm_id": {"$in": farm_oids}}).to_list(100)
+        target_yield_kg = sum(float(t.get("target_yield", 0)) for t in targets)
+        estimated_yield = round((harvest_yield_kg or target_yield_kg or (total_trees * 80)) / 1000.0, 1) if total_trees > 0 else 0.0
 
         active_iot = await self.db["iot_devices"].count_documents({"farm_id": {"$in": farm_ids_str}, "status": "Active"})
         in_stock_iot = await self.db["iot_devices"].count_documents({"farm_id": {"$in": farm_ids_str}, "status": "In_Stock"})
         maintenance_iot = await self.db["iot_devices"].count_documents({"farm_id": {"$in": farm_ids_str}, "status": "Maintenance"})
 
-        if active_iot == 0 and in_stock_iot == 0:
-            active_iot = sum(f.get("iot_summary", {}).get("total_devices", 8) for f in active_farms)
+        inspection_today = await self.db["inspections"].count_documents({"farm_id": {"$in": farm_oids}})
+        ai_detection_today = await self.db["detection_results"].count_documents({"farm_id": {"$in": farm_oids}})
+        new_alerts_today = await self.db["alerts"].count_documents({"farm_id": {"$in": farm_oids}})
 
         return DashboardOut(
             kpi=KpiData(
+                total_users=total_users,
                 total_farms=total_farms,
-                total_trees=total_trees if total_trees > 0 else 350,
-                healthy_trees=healthy_trees if healthy_trees > 0 else 345,
-                diseased_trees=diseased_trees if diseased_trees > 0 else 5,
-                high_risk_trees=high_risk_trees if high_risk_trees > 0 else 5,
+                total_trees=total_trees,
+                healthy_trees=healthy_trees,
+                diseased_trees=diseased_trees,
+                high_risk_trees=high_risk_trees,
+                area_hectare=total_area,
+                total_zones=total_zones,
+                estimated_yield=estimated_yield,
             ),
             system_overview=SystemOverview(
-                inspection_today=10,
-                ai_detection_today=10,
-                new_alerts_today=high_risk_trees if high_risk_trees > 0 else 5,
+                inspection_today=inspection_today,
+                ai_detection_today=ai_detection_today,
+                new_alerts_today=new_alerts_today,
                 pending_review=0,
-                active_iot_devices=active_iot if active_iot > 0 else 8,
+                active_iot_devices=active_iot,
                 in_stock_iot_devices=in_stock_iot,
                 maintenance_iot_devices=maintenance_iot,
                 updated_at=now,
@@ -216,15 +239,57 @@ class DashboardService:
             growth_trend=await self._get_growth_trend(),
         )
 
-    async def _get_growth_trend(self) -> list[dict]:
-        """Generate monthly user & new farm growth data."""
+    async def _get_growth_trend(self) -> list[GrowthTrendItem]:
+        """Generate monthly user & new farm growth data dynamically from MongoDB."""
+        now = datetime.now(timezone.utc)
+        months_order = []
+        months_map: dict[str, dict[str, int]] = {}
+
+        for i in range(5, -1, -1):
+            m_date = now - timedelta(days=i * 30)
+            m_key = f"Tháng {m_date.month}"
+            months_order.append(m_key)
+            months_map[m_key] = {"new_users": 0, "new_farms": 0}
+
+        async for u in self.db["users"].find({}, {"created_at": 1}):
+            cat = u.get("created_at")
+            if cat:
+                if isinstance(cat, str):
+                    try:
+                        cat_dt = datetime.fromisoformat(cat.replace("Z", "+00:00"))
+                        m_key = f"Tháng {cat_dt.month}"
+                        if m_key in months_map:
+                            months_map[m_key]["new_users"] += 1
+                    except Exception:
+                        pass
+                elif hasattr(cat, "month"):
+                    m_key = f"Tháng {cat.month}"
+                    if m_key in months_map:
+                        months_map[m_key]["new_users"] += 1
+
+        async for f in self.db["farms"].find({}, {"created_at": 1}):
+            cat = f.get("created_at")
+            if cat:
+                if isinstance(cat, str):
+                    try:
+                        cat_dt = datetime.fromisoformat(cat.replace("Z", "+00:00"))
+                        m_key = f"Tháng {cat_dt.month}"
+                        if m_key in months_map:
+                            months_map[m_key]["new_farms"] += 1
+                    except Exception:
+                        pass
+                elif hasattr(cat, "month"):
+                    m_key = f"Tháng {cat.month}"
+                    if m_key in months_map:
+                        months_map[m_key]["new_farms"] += 1
+
         return [
-            {"month": "Tháng 3", "new_users": 8, "new_farms": 1},
-            {"month": "Tháng 4", "new_users": 12, "new_farms": 2},
-            {"month": "Tháng 5", "new_users": 15, "new_farms": 2},
-            {"month": "Tháng 6", "new_users": 10, "new_farms": 3},
-            {"month": "Tháng 7", "new_users": 18, "new_farms": 2},
-            {"month": "Tháng 8", "new_users": 22, "new_farms": 3},
+            GrowthTrendItem(
+                month=m,
+                new_users=months_map[m]["new_users"],
+                new_farms=months_map[m]["new_farms"],
+            )
+            for m in months_order
         ]
 
     async def _get_system_overview(self) -> SystemOverview:
@@ -368,10 +433,10 @@ class DashboardService:
             is_admin = user_role in ["admin", "system admin"]
 
             if not is_admin:
-                user_farms = await self.db["farms"].find({
-                    "$or": [{"user_id": user_id}, {"user_id": str(user_id)}, {"owner_id": user_id}, {"created_by": user_id}]
-                }).to_list(length=100)
-                active_farms = [f for f in user_farms if f.get("onboarding_status") == "ACTIVE"]
+                user_farms = await self._get_user_farms(user_id)
+                active_farms = [f for f in user_farms if f.get("onboarding_status", "ACTIVE") == "ACTIVE"]
+                if not active_farms and user_farms:
+                    active_farms = user_farms
 
                 if not active_farms:
                     return {
@@ -442,10 +507,10 @@ class DashboardService:
             is_admin = user_role in ["admin", "system admin"]
 
             if not is_admin:
-                user_farms = await self.db["farms"].find({
-                    "$or": [{"user_id": user_id}, {"user_id": str(user_id)}, {"owner_id": user_id}, {"created_by": user_id}]
-                }).to_list(length=100)
-                active_farms = [f for f in user_farms if f.get("onboarding_status") == "ACTIVE"]
+                user_farms = await self._get_user_farms(user_id)
+                active_farms = [f for f in user_farms if f.get("onboarding_status", "ACTIVE") == "ACTIVE"]
+                if not active_farms and user_farms:
+                    active_farms = user_farms
 
         if not is_admin and user_id:
             if not active_farms:
