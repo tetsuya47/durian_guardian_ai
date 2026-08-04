@@ -30,7 +30,7 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: "init-1",
     sender: "ai",
-    text: "Xin chào! Tôi là Trợ lý AI Chuyên gia Nông nghiệp Sầu Riêng (DGA AI Agronomist).\n\nTôi được tích hợp trực tiếp với cơ sở dữ liệu MongoDB và tri thức nông nghiệp Việt Nam. Tôi có thể tư vấn kỹ thuật canh tác, chẩn đoán sâu bệnh hại và tra cứu chỉ số trang trại realtime theo phân quyền tài khoản của bạn!",
+    text: "Xin chào! Tôi là Trợ lý AI Chuyên gia Nông nghiệp Sầu Riêng (Vie-farm AI Agronomist).\n\nTôi được tích hợp trực tiếp với cơ sở dữ liệu MongoDB và tri thức nông nghiệp Việt Nam. Tôi có thể tư vấn kỹ thuật canh tác, chẩn đoán sâu bệnh hại và tra cứu chỉ số trang trại realtime theo phân quyền tài khoản của bạn!",
     timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
   },
 ];
@@ -114,7 +114,7 @@ export default function AIChatbotPage() {
       } else if (isAdmin && (q.includes("iot") || q.includes("thiết bị") || q.includes("cảm biến"))) {
         fallback = "📊 **BÁO CÁO TỔNG QUAN HỆ THỐNG IOT (MONGODB `iot_devices`)**\n\n• **Tổng thiết bị IoT:** **835 bộ** (777 Online | 58 Trong kho)\n• Cảm biến NPK: 683 bộ | Trạm thời tiết 5G: 80 bộ | Gateway AI: 36 bộ | Van tự động: 36 bộ\n• **Tổng số Nông trại:** 10 trang trại đăng ký toàn quốc.";
       } else {
-        fallback = `🌱 **TRỢ LÝ AI DGA AGRONOMIST**\n\nCảm ơn bạn đã hỏi về: "${query}". DGA AI đã phân tích dữ liệu trực tiếp từ cơ sở dữ liệu MongoDB và khuyến nghị bạn duy trì độ ẩm đất từ 60-70% và phun phòng nấm định kỳ khi nhú cơi đọt mới.`;
+        fallback = `🌱 **TRỢ LÝ AI VIE-FARM AGRONOMIST**\n\nCảm ơn bạn đã hỏi về: "${query}". Vie-farm AI đã phân tích dữ liệu trực tiếp từ cơ sở dữ liệu MongoDB và khuyến nghị bạn duy trì độ ẩm đất từ 60-70% và phun phòng nấm định kỳ khi nhú cơi đọt mới.`;
       }
 
       const isWarningMsg = fallback.includes("⛔ CẢNH BÁO QUYỀN HẠN") || fallback.includes("không có quyền hạn");
@@ -151,7 +151,7 @@ export default function AIChatbotPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-white">Chatbot Trợ Lý AI Chuyên Gia Sầu Riêng Realtime</h1>
               <span className="bg-amber-400 text-gray-950 font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                <Sparkles className="w-3 h-3 fill-gray-950" /> DGA Smart AI v4.0
+                <Sparkles className="w-3 h-3 fill-gray-950" /> Vie-farm Smart AI v4.0
               </span>
             </div>
             <p className="text-xs text-emerald-200 mt-1 font-medium">

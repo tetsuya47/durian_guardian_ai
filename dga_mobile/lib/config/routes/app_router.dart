@@ -12,6 +12,7 @@ import '../../features/history/presentation/pages/history_page.dart';
 import '../../features/history/presentation/pages/compare_page.dart';
 import '../../features/history/presentation/pages/leaderboard_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/recommendation/presentation/pages/recommendation_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
@@ -20,6 +21,7 @@ import '../../features/disease_detection/presentation/pages/image_editor_wizard.
 import '../../features/farms/presentation/pages/register_farm_page.dart';
 import '../../features/iot/presentation/pages/iot_shop_page.dart';
 import '../../features/iot/presentation/pages/iot_management_page.dart';
+import '../../features/iot/presentation/pages/farm_management_iot_page.dart';
 import '../../features/authentication/presentation/providers/auth_providers.dart';
 import '../../core/constants/storage_keys.dart';
 import '../../services/storage_service.dart';
@@ -87,6 +89,11 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
         name: RouteNames.iotManagement,
         builder: (context, state) => const IoTManagementPage(),
       ),
+      GoRoute(
+        path: '/farm-management-iot',
+        name: 'farmManagementIoT',
+        builder: (context, state) => const FarmManagementIoTPage(),
+      ),
 
       ShellRoute(
         builder: (context, state, child) {
@@ -108,10 +115,10 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/recommendation',
-            name: RouteNames.recommendation,
+            path: '/community',
+            name: 'community',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: RecommendationPage(),
+              child: CommunityPage(),
             ),
           ),
           GoRoute(

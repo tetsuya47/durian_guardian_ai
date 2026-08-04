@@ -18,7 +18,7 @@ from app.api.v1.diseases import router as diseases_router
 from app.api.v1.alerts import router as alerts_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.weather import router as weather_router
-from app.api.v1.iot import router as iot_router, admin_router as admin_iot_router
+from app.api.v1.iot import router as iot_router
 from app.api.v1.farm_performance import router as farm_performance_router
 from app.api.v1.market import router as market_router
 
@@ -43,6 +43,5 @@ api_router.include_router(alerts_router)
 api_router.include_router(admin_router)
 api_router.include_router(weather_router)
 api_router.include_router(iot_router)
-api_router.include_router(admin_iot_router)
 api_router.include_router(farm_performance_router)
 api_router.include_router(market_router)

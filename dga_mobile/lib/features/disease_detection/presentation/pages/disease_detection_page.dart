@@ -106,6 +106,7 @@ class DiseaseDetectionPage extends ConsumerWidget {
         success: (data) {
           container.read(detectionResultProvider.notifier).state = data;
           container.read(detectionStateProvider.notifier).state = 'success';
+          container.invalidate(historyRawLogsProvider);
         },
         failure: (msg, err) {
           container.read(detectionErrorMessageProvider.notifier).state = msg;
@@ -268,10 +269,6 @@ class DiseaseDetectionPage extends ConsumerWidget {
             AppSpacing.v24,
             ActionButtons(
               onReScan: () => _reset(ref),
-              onSave: () {
-                ref.invalidate(historyRawLogsProvider);
-                AppSnackbars.showSuccess(context, 'Đã lưu kết quả chẩn đoán vào lịch sử thành công!');
-              },
             ),
           ],
         ),

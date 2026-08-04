@@ -83,6 +83,22 @@ def create_app() -> FastAPI:
         )
         logger.info("Admin user created: bao@gmail.com")
 
+    @app.on_event("startup")
+    async def _seed_trees_if_empty() -> None:
+        db = MongoDBManager.get_db()
+        tree_count = await db["trees"].count_documents({})
+        if tree_count < 1200:
+            logger.info("Trees collection count is %d (expected 1,200). Auto-seeding 1,200 durian trees...", tree_count)
+            try:
+                backend_dir = Path(__file__).resolve().parent.parent
+                if str(backend_dir) not in sys.path:
+                    sys.path.insert(0, str(backend_dir))
+                from seed_1200_trees import seed_1200_trees
+                await seed_1200_trees()
+                logger.info("Auto-seeded 1,200 durian trees successfully.")
+            except Exception as exc:
+                logger.error("Failed to auto-seed 1,200 trees: %s", exc, exc_info=True)
+
     return app
 
 

@@ -67,14 +67,39 @@ _SEVERITY_MAP: dict[str, str] = {
     "stem_cracking_ gummosis": "high",
 }
 
-# Path to trained checkpoint (relative to project root)
-_CHECKPOINT_PATH = (
-    Path(__file__).resolve().parent.parent.parent.parent
-    / "training"
-    / "checkpoints"
-    / "disease_detection"
-    / "best_model.pt"
-)
+import os
+
+# Path to trained checkpoint with flexible multi-path resolution
+def _get_checkpoint_path() -> Path:
+    env_path = os.getenv("DISEASE_MODEL_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    # Standard path relative to repo root
+    repo_path = (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "training"
+        / "checkpoints"
+        / "disease_detection"
+        / "best_model.pt"
+    )
+    if repo_path.exists():
+        return repo_path
+
+    # Secondary path inside backend or export dir
+    export_path = (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "training"
+        / "exports"
+        / "disease_detection"
+        / "model.pt"
+    )
+    if export_path.exists():
+        return export_path
+
+    return repo_path
+
+_CHECKPOINT_PATH = _get_checkpoint_path()
 
 # ImageNet normalization stats (same used during training)
 _IMAGENET_MEAN = (0.485, 0.456, 0.406)

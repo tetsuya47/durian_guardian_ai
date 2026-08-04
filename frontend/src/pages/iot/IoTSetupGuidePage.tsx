@@ -88,7 +88,7 @@ const DEVICE_GUIDES: DeviceGuide[] = [
   },
   {
     id: "weather_station",
-    name: "Trạm thời tiết vi khí hậu DGA-Weather 5G",
+    name: "Trạm thời tiết vi khí hậu Vie-farm Weather 5G",
     category: "Trạm thời tiết",
     icon: Radio,
     badge: "Công nghệ AI 5G",
@@ -96,7 +96,7 @@ const DEVICE_GUIDES: DeviceGuide[] = [
     steps: [
       {
         id: 1,
-        title: "Bước 1: Khai quật & Cố định cột đỡ DGA-Weather",
+        title: "Bước 1: Khai quật & Cố định cột đỡ Vie-farm Weather",
         desc: "Đổ bê tông cọc đỡ cao 2.5m ở vị trí trung tâm vườn sầu riêng thoáng gió.",
         icon: Radio,
         details: [
@@ -740,7 +740,7 @@ export default function IoTSetupGuidePage() {
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Kết Nối Kỹ Sư Nông Nghiệp DGA</h3>
+                  <h3 className="text-base font-bold text-gray-900">Kết Nối Kỹ Sư Nông Nghiệp Vie-farm</h3>
                   <p className="text-xs text-gray-500 font-medium">Hỗ trợ sự cố lắp đặt & cấu hình tín hiệu 24/7</p>
                 </div>
               </div>
@@ -769,7 +769,7 @@ export default function IoTSetupGuidePage() {
               <div className="bg-amber-50 p-3 rounded-[12px] border border-amber-200/70 text-xs text-amber-900 font-medium space-y-1">
                 <div className="flex items-center gap-2 font-bold text-amber-950">
                   <PhoneCall className="w-4 h-4 text-amber-700" />
-                  Hotline Kỹ sư DGA: 1900 8899 - 0988 123 456
+                  Hotline Kỹ sư Vie-farm: 1900 8899 - 0988 123 456
                 </div>
                 <p className="text-[11px] text-amber-800">
                   Kỹ sư sẽ gọi trực tiếp hoặc cử kỹ thuật viên khu vực Tây Nguyên / Miền Tây tới hỗ trợ trong 24h.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -22,6 +23,16 @@ class DetectionResponse(BaseModel):
     risk_probability: float | None = None
     recommendation: str | None = None
     processing_time_ms: float | None = None
+
+
+class RiskPredictionResponse(BaseModel):
+    risk_level: str
+    risk_score: float
+    fungal_disease_risk: str
+    probabilities: dict[str, float]
+    top_factors: list[dict[str, Any]]
+    weather_used: dict[str, Any]
+    tree_info: dict[str, Any]
 
 
 class DiseaseHistoryOut(BaseModel):

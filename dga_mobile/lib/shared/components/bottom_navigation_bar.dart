@@ -56,9 +56,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 label: AppStrings.diseaseDetection,
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.star_border),
-                activeIcon: Icon(Icons.star),
-                label: AppStrings.recommendation,
+                icon: Icon(Icons.groups_outlined),
+                activeIcon: Icon(Icons.groups),
+                label: 'Cộng đồng',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.history_outlined),

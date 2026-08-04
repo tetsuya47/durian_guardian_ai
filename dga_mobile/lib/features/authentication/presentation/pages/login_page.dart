@@ -39,7 +39,7 @@ class LoginPage extends ConsumerWidget {
                 ),
                 AppSpacing.v20,
                 Text(
-                  'Durian Guardian AI',
+                  'Vie-farm',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,

@@ -76,12 +76,12 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         backgroundColor: "#0F3D2E",
       }}
     >
-      {/* Top DGA Logo */}
+      {/* Top Vie-farm Logo */}
       <div className={`flex items-center h-[72px] border-b border-emerald-900/40 ${collapsed ? "justify-center px-0" : "px-5 gap-3"}`}>
         <Leaf className="w-6 h-6 text-emerald-400 flex-shrink-0" />
         {!collapsed && (
           <span className="font-bold text-base tracking-wider text-emerald-50 truncate">
-            DGA Portal
+            Vie-farm Portal
           </span>
         )}
       </div>

@@ -129,7 +129,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
               ),
               AppSpacing.v24,
               Text(
-                'Durian Guardian AI',
+                'Vie-farm',
                 style: theme.textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.primary,

@@ -106,7 +106,6 @@ class DashboardService:
                 self.db["trees"].count_documents(diseased_filter),
                 self.db["trees"].count_documents(high_risk_filter),
             )
-
             harvests = await self.db["harvests"].find({}).to_list(1000)
             harvest_yield_kg = sum(float(h.get("yield_kg", 0)) for h in harvests)
             targets = await self.db["farm_targets"].find({}).to_list(1000)
@@ -195,6 +194,7 @@ class DashboardService:
             self.db["trees"].count_documents({"$and": [tree_filter, healthy_filter]}),
             self.db["trees"].count_documents({"$and": [tree_filter, diseased_filter]}),
             self.db["trees"].count_documents({"$and": [tree_filter, high_risk_filter]}),
+
         )
 
         harvests = await self.db["harvests"].find({"farm_id": {"$in": farm_oids}}).to_list(100)

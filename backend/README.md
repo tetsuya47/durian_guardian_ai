@@ -1,4 +1,4 @@
-# Durian Guardian AI (DGA) Backend
+# Vie-farm AI Backend
 
 > **Protect Every Tree. Predict Every Risk.**
 

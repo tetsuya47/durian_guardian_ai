@@ -8,10 +8,12 @@ import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/skeleton_loading.dart';
 import '../providers/dashboard_providers.dart';
+import '../widgets/agricultural_features_grid.dart';
 import '../widgets/ai_farm_status_card.dart';
 import '../widgets/dashboard_app_bar.dart';
+import '../widgets/durian_market_price_card.dart';
+import '../widgets/pesticide_lookup_card.dart';
 import '../widgets/quick_actions_grid.dart';
-import '../widgets/quick_stats_grid.dart';
 import '../widgets/recent_inspections_list.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -43,22 +45,27 @@ class DashboardPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Onboarding Banner: Đăng Ký Vườn Mới & Kết Nối IoT
+                  AIFarmStatusCard(status: data.farmStatus),
+                  AppSpacing.v20,
+                  const AgriculturalFeaturesGrid(),
+                  AppSpacing.v16,
+
+                  // Quản Lý Vườn & IoT Banner Card
                   InkWell(
-                    onTap: () => context.go('/register-farm'),
+                    onTap: () => context.push('/farm-management-iot'),
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.green.shade900, Colors.green.shade700],
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1B4D3E), Color(0xFF2E7D32)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.green.shade900.withOpacity(0.3),
+                            color: Colors.black.withAlpha(12),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -67,41 +74,46 @@ class DashboardPage extends ConsumerWidget {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha(25),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.add_business_outlined, color: Colors.white, size: 24),
+                            child: const Icon(Icons.sensors, color: Colors.amber, size: 26),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Bắt Đầu Kích Hoạt Trang Trại & Kết Nối IoT',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  '🌳 QUẢN LÝ VƯỜN & IOT',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 SizedBox(height: 2),
                                 Text(
-                                  'Đăng ký vườn mới để mở khóa tính năng tự động Cảnh báo AI',
-                                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                                  'Xem chỉ số cảm biến 30s + Khuyến nghị Model 3/4 AI',
+                                  style: TextStyle(fontSize: 11, color: Colors.white70),
                                 ),
                               ],
                             ),
                           ),
-                          const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 14),
+                          const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
                         ],
                       ),
                     ),
                   ),
+
                   AppSpacing.v20,
-                  AIFarmStatusCard(status: data.farmStatus),
+                  const DurianMarketPriceCard(),
                   AppSpacing.v20,
-                  const SectionHeader(title: AppStrings.quickStats),
-                  AppSpacing.v12,
-                  QuickStatsGrid(statistics: data.statistics),
+                  const PesticideLookupCard(),
                   AppSpacing.v20,
                   const SectionHeader(title: AppStrings.quickActions),
                   AppSpacing.v12,
@@ -118,8 +130,6 @@ class DashboardPage extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 children: [
-                  SkeletonLoading.card(height: 140),
-                  AppSpacing.v20,
                   SkeletonLoading.card(height: 140),
                   AppSpacing.v20,
                   Column(

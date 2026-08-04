@@ -107,14 +107,14 @@ export default function LoginPage() {
               <Leaf className="w-5.5 h-5.5 text-emerald-400" />
             </div>
             <span className="text-lg font-bold tracking-wide text-white/90">
-              DGA Portal
+              Vie-farm Portal
             </span>
           </div>
 
           {/* Center: Title + Features */}
           <div className="flex-1 flex flex-col justify-center max-w-xl animate-[fadeSlideUp_0.7s_ease-out]">
             <h1 className="text-5xl lg:text-[3.5rem] font-extrabold text-white leading-[1.1] tracking-tight">
-              Durian Guardian
+              Vie-farm
               <br />
               <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
                 AI
@@ -171,7 +171,7 @@ export default function LoginPage() {
               <Leaf className="w-5 h-5 text-emerald-400" />
             </div>
             <span className="text-lg font-bold tracking-wide text-gray-800">
-              DGA Portal
+              Vie-farm Portal
             </span>
           </div>
 
