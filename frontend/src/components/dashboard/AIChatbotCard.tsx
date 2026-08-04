@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, User, Sparkles, RefreshCw } from "lucide-react";
-import Card from "./Shared/Card";
+import { Bot, Send, User, Sparkles, RefreshCw, X, MessageSquare, ChevronDown } from "lucide-react";
 import api from "../../api";
 
 interface Message {
@@ -20,15 +19,17 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: "init-1",
     sender: "ai",
-    text: "Xin chào! Tôi là Trợ lý AI Chuyên gia Sầu Riêng. Bạn cần tư vấn về kỹ thuật bón phân, xử lý xì mủ gốc hay phòng trừ bệnh hại nào hôm nay?",
+    text: "Xin chào! Tôi là Trợ lý AI Chuyên gia Sầu Riêng 24/7. Bạn cần tư vấn về kỹ thuật bón phân, xử lý xì mủ gốc hay phòng trừ bệnh hại nào hôm nay?",
     timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
   },
 ];
 
 export default function AIChatbotCard() {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(1);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -36,8 +37,11 @@ export default function AIChatbotCard() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
+    if (isOpen) {
+      setUnreadCount(0);
+      scrollToBottom();
+    }
+  }, [isOpen, messages, loading]);
 
   const handleSend = async (textToSend?: string) => {
     const query = (textToSend || input).trim();
@@ -57,7 +61,7 @@ export default function AIChatbotCard() {
     try {
       const res = await api.post<{ data: { answer: string } }>("/api/v1/chat", { question: query });
       const aiAnswer = res.data.data?.answer || "Tôi đã ghi nhận thông tin. Bạn có muốn kiểm tra thêm khu vực nào không?";
-      
+
       setMessages((prev) => [
         ...prev,
         {
@@ -98,123 +102,160 @@ export default function AIChatbotCard() {
   };
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden" padding={false} hover={false}>
-      <div className="flex flex-col h-full p-3.5 justify-between">
-        {/* Top Header */}
-        <div className="flex items-center justify-between pb-2 border-b border-gray-100 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-[10px] bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <Bot className="w-4.5 h-4.5 text-emerald-700" />
-            </div>
-            <div>
-              <h3 className="text-[14px] font-bold text-gray-900 leading-none flex items-center gap-1">
-                🤖 CHATBOT TRỢ LÝ AI
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-              </h3>
-              <p className="text-[10px] text-gray-500 font-medium leading-tight mt-0.5">Tư vấn kỹ thuật sầu riêng 24/7</p>
-            </div>
-          </div>
-
+    <>
+      {/* FLOATING CHAT BUBBLE BUTTON IN BOTTOM RIGHT CORNER */}
+      <div className="fixed bottom-6 right-6 z-50 flex items-center">
+        {!isOpen && (
           <button
-            onClick={handleReset}
-            className="p-1.5 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-[8px] transition-all"
-            title="Làm mới cuộc trò chuyện"
-            type="button"
+            onClick={() => setIsOpen(true)}
+            className="group relative flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 text-white p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl hover:shadow-emerald-950/40 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-emerald-400/40"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <div className="relative">
+              <Bot className="w-6 h-6 text-emerald-100 group-hover:rotate-12 transition-transform" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-emerald-900 animate-ping" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-emerald-900" />
+            </div>
+
+            <span className="hidden sm:inline text-xs font-black tracking-wide">TRỢ LÝ AI SẦU RIÊNG</span>
+
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-1.5 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-md">
+                {unreadCount}
+              </span>
+            )}
           </button>
-        </div>
+        )}
+      </div>
 
-        {/* Middle Message List */}
-        <div className="flex-1 overflow-y-auto py-2 space-y-2.5 min-h-0 pr-1">
-          {messages.map((msg) => {
-            const isAI = msg.sender === "ai";
-            return (
-              <div key={msg.id} className={`flex gap-2 ${isAI ? "items-start" : "items-end justify-end"}`}>
-                {isAI && (
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-sm">
-                    <Bot className="w-3.5 h-3.5" />
-                  </div>
-                )}
-                <div
-                  className={`max-w-[85%] p-2.5 rounded-[14px] text-[12px] leading-relaxed shadow-sm ${
-                    isAI
-                      ? "bg-gray-50 text-gray-800 border border-gray-100 rounded-tl-none font-medium"
-                      : "bg-emerald-600 text-white rounded-tr-none font-semibold"
-                  }`}
-                >
-                  <p className="whitespace-pre-line">{msg.text}</p>
-                  <span className={`text-[9px] block text-right mt-1 ${isAI ? "text-gray-400" : "text-emerald-100"}`}>
-                    {msg.timestamp}
-                  </span>
-                </div>
-                {!isAI && (
-                  <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 flex-shrink-0">
-                    <User className="w-3.5 h-3.5" />
-                  </div>
-                )}
+      {/* POPUP CHAT WINDOW DRAWER */}
+      {isOpen && (
+        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[540px] max-h-[85vh] bg-white rounded-[24px] shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up">
+          {/* Top Premium Gradient Header */}
+          <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 text-white p-4 flex items-center justify-between shadow-md flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[14px] bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300">
+                <Bot className="w-5 h-5" />
               </div>
-            );
-          })}
-
-          {loading && (
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white flex-shrink-0">
-                <Bot className="w-3.5 h-3.5" />
-              </div>
-              <div className="bg-gray-50 p-2.5 rounded-[14px] rounded-tl-none border border-gray-100 text-[11px] text-gray-500 font-medium flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-150" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-300" />
-                <span>AI đang suy nghĩ...</span>
+              <div>
+                <h3 className="text-sm font-black tracking-tight flex items-center gap-1.5">
+                  Chatbot Trợ Lý AI
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                </h3>
+                <p className="text-[11px] text-emerald-200/80 font-medium">Tư vấn kỹ thuật sầu riêng 24/7</p>
               </div>
             </div>
-          )}
-          <div ref={chatEndRef} />
-        </div>
 
-        {/* Bottom Quick Suggestions & Input */}
-        <div className="flex-shrink-0 pt-1.5 border-t border-gray-100">
-          {/* Quick Suggestions */}
-          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1">
-            {QUICK_SUGGESTIONS.map((sug) => (
+            <div className="flex items-center gap-1">
               <button
-                key={sug}
-                onClick={() => handleSend(sug)}
+                onClick={handleReset}
+                className="p-1.5 text-emerald-200 hover:text-white hover:bg-white/10 rounded-[8px] transition-all cursor-pointer"
+                title="Làm mới cuộc trò chuyện"
                 type="button"
-                className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 px-2 py-0.5 rounded-full whitespace-nowrap transition-colors"
               >
-                {sug}
+                <RefreshCw className="w-4 h-4" />
               </button>
-            ))}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 text-emerald-200 hover:text-white hover:bg-white/10 rounded-[8px] transition-all cursor-pointer"
+                title="Thu gọn"
+                type="button"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Form Input */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex items-center gap-1.5"
-          >
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Nhập câu hỏi cho AI..."
-              className="flex-1 text-[12px] bg-gray-50 border border-gray-200 rounded-[10px] px-3 py-1.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || loading}
-              className="w-8 h-8 rounded-[10px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white flex items-center justify-center flex-shrink-0 transition-all shadow-sm"
-              title="Gửi câu hỏi"
+          {/* Middle Message History */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+            {messages.map((msg) => {
+              const isAI = msg.sender === "ai";
+              return (
+                <div key={msg.id} className={`flex gap-2 ${isAI ? "items-start" : "items-end justify-end"}`}>
+                  {isAI && (
+                    <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-sm">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[85%] p-3 rounded-[16px] text-xs leading-relaxed shadow-xs ${
+                      isAI
+                        ? "bg-white text-gray-800 border border-gray-200/80 rounded-tl-none font-medium"
+                        : "bg-emerald-600 text-white rounded-tr-none font-semibold"
+                    }`}
+                  >
+                    <p className="whitespace-pre-line">{msg.text}</p>
+                    <span className={`text-[9px] block text-right mt-1 font-bold ${isAI ? "text-gray-400" : "text-emerald-100"}`}>
+                      {msg.timestamp}
+                    </span>
+                  </div>
+                  {!isAI && (
+                    <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 flex-shrink-0">
+                      <User className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {loading && (
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center text-white flex-shrink-0">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div className="bg-white p-3 rounded-[16px] rounded-tl-none border border-gray-200 text-xs text-gray-500 font-medium flex items-center gap-1.5 shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-150" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-300" />
+                  <span>AI Chuyên gia đang suy nghĩ...</span>
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Bottom Quick Suggestions & Form */}
+          <div className="p-3 bg-white border-t border-gray-100 space-y-2 flex-shrink-0">
+            {/* Quick Prompt Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+              {QUICK_SUGGESTIONS.map((sug) => (
+                <button
+                  key={sug}
+                  onClick={() => handleSend(sug)}
+                  type="button"
+                  className="text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                >
+                  {sug}
+                </button>
+              ))}
+            </div>
+
+            {/* Form Input */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+              className="flex items-center gap-2"
             >
-              <Send className="w-3.5 h-3.5" />
-            </button>
-          </form>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Nhập câu hỏi cho AI Chuyên gia..."
+                className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-[12px] px-3.5 py-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all font-medium"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || loading}
+                className="w-9 h-9 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white flex items-center justify-center flex-shrink-0 transition-all shadow-md cursor-pointer"
+                title="Gửi câu hỏi"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
-    </Card>
+      )}
+    </>
   );
 }

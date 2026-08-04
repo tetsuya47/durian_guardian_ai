@@ -24,6 +24,8 @@ import IoTSetupGuidePage from "@/pages/iot/IoTSetupGuidePage";
 import IoTOrdersPage from "@/pages/iot/IoTOrdersPage";
 import IoTManagementPage from "@/pages/iot/IoTManagementPage";
 import UserIoTDevicesPage from "@/pages/iot/UserIoTDevicesPage";
+import UserHomePage from "@/pages/home/UserHomePage";
+import UserCommunityPage from "@/pages/community/UserCommunityPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -46,6 +48,14 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Navigate to="/dashboard" replace />,
+      },
+      {
+        path: "home",
+        element: <UserHomePage />,
+      },
+      {
+        path: "community",
+        element: <UserCommunityPage />,
       },
       {
         path: "dashboard",

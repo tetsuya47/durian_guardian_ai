@@ -65,6 +65,13 @@ async def register_farm_with_iot(
     user_id: str = Depends(get_current_user_id),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
+    from app.utils.gis import (
+        calculate_polygon_area_ha,
+        calculate_polygon_perimeter_meters,
+        calculate_centroid,
+        calculate_bounding_box,
+    )
+
     now = datetime.now(timezone.utc)
     user_doc = await db["users"].find_one({"_id": ObjectId(user_id)}) if ObjectId.is_valid(user_id) else None
     user_name = user_doc.get("full_name") or user_doc.get("fullname") or "Chủ vườn" if user_doc else "Chủ vườn"
@@ -75,17 +82,45 @@ async def register_farm_with_iot(
     company_doc = await db["companies"].find_one({})
     company_id = str(company_doc["_id"]) if company_doc else str(ObjectId())
 
+    raw_points = [p.model_dump() for p in data.boundary_points] if data.boundary_points else []
+
+    # Calculate GIS metadata if polygon points exist
+    calc_area = calculate_polygon_area_ha(raw_points) if len(raw_points) >= 3 else data.area_hectare
+    calc_perimeter = calculate_polygon_perimeter_meters(raw_points) if len(raw_points) >= 2 else 0.0
+    calc_centroid = calculate_centroid(raw_points) if raw_points else {"lat": data.gps_lat, "lng": data.gps_lng}
+    calc_bbox = calculate_bounding_box(raw_points) if raw_points else {}
+
+    # Standard GeoJSON Polygon & Center Point
+    geojson_polygon = None
+    if len(raw_points) >= 3:
+        coords = [[p["lng"], p["lat"]] for p in raw_points]
+        if coords[0] != coords[-1]:
+            coords.append(coords[0])
+        geojson_polygon = {"type": "Polygon", "coordinates": [coords]}
+
+    center_point = {"type": "Point", "coordinates": [calc_centroid["lng"], calc_centroid["lat"]]}
+
+    final_lat = calc_centroid["lat"] if len(raw_points) >= 3 else data.gps_lat
+    final_lng = calc_centroid["lng"] if len(raw_points) >= 3 else data.gps_lng
+    final_area = calc_area if len(raw_points) >= 3 else data.area_hectare
+
     farm_doc = {
         "user_id": user_id,
         "company_id": company_id,
         "farm_code": farm_code,
         "farm_name": data.farm_name,
         "district": data.district,
-        "gps_lat": data.gps_lat,
-        "gps_lng": data.gps_lng,
-        "area_hectare": data.area_hectare,
+        "gps_lat": final_lat,
+        "gps_lng": final_lng,
+        "area_hectare": final_area,
         "tree_count": data.tree_count,
         "durian_varieties": data.durian_varieties,
+        "boundary_points": raw_points,
+        "polygon_boundary": geojson_polygon,
+        "center_point": center_point,
+        "calculated_area_hectare": calc_area,
+        "calculated_perimeter_meters": calc_perimeter,
+        "bounding_box": calc_bbox,
         "onboarding_status": "PENDING_IOT",
         "created_at": now,
         "updated_at": now,
@@ -100,7 +135,7 @@ async def register_farm_with_iot(
         user_id=user_id,
         user_name=user_name,
         farm_name=data.farm_name,
-        area_hectare=data.area_hectare,
+        area_hectare=final_area,
         tree_count=data.tree_count,
         items=data.iot_items,
         total_amount=total_amount,
@@ -110,10 +145,14 @@ async def register_farm_with_iot(
         data={
             "farm_id": farm_id,
             "farm_code": farm_code,
+            "gps_lat": final_lat,
+            "gps_lng": final_lng,
+            "calculated_area_hectare": calc_area,
+            "calculated_perimeter_meters": calc_perimeter,
             "onboarding_status": "PENDING_IOT",
             "order": order,
         },
-        message="Đăng ký trang trại và gửi đơn mua thiết bị IoT thành công! Đơn hàng đang chờ Admin duyệt.",
+        message="Đăng ký trang trại GIS và gửi đơn mua thiết bị IoT thành công! Đơn hàng đang chờ Admin duyệt.",
         status_code=201,
     )
 

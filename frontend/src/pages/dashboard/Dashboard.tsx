@@ -262,7 +262,7 @@ export default function DashboardPage() {
   }, [filteredPriorityTrees]);
 
   return (
-    <div className="flex flex-col bg-[#F5F7FB]" style={{ gap: "16px", flex: "1 1 0%", minHeight: 0 }}>
+    <div className="flex flex-col bg-[#F5F7FB] space-y-5 pb-10 min-h-0 flex-1">
       {/* HEADER */}
       <DashboardHeader loading={anyLoading} onRefresh={fetchAll} />
 
@@ -271,34 +271,35 @@ export default function DashboardPage() {
           {error}
         </div>
       )}
+
       {/* ONBOARDING ACTIVATION BANNER FOR NEW USERS */}
       {!isAdmin && (
-        <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-green-800 text-white p-4 rounded-[20px] shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border border-emerald-500/30">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[14px] bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 flex-shrink-0">
-              <span className="text-xl">🌱</span>
+        <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-green-900 text-white p-4.5 rounded-[22px] shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-emerald-500/30">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-[16px] bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 flex-shrink-0 shadow-inner">
+              <span className="text-2xl">🌱</span>
             </div>
             <div>
-              <h3 className="text-sm font-extrabold flex items-center gap-2">
+              <h3 className="text-sm font-black flex items-center gap-2 tracking-tight">
                 Bắt Đầu Kích Hoạt Trang Trại & Kết Nối Thiết Bị IoT
-                <span className="text-[10px] font-extrabold bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full">Hướng dẫn Mới</span>
+                <span className="text-[10px] font-black bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full uppercase tracking-wider">Hướng dẫn Mới</span>
               </h3>
-              <p className="text-xs text-emerald-100 mt-0.5">
+              <p className="text-xs text-emerald-100/90 mt-0.5 font-medium leading-relaxed">
                 Vườn của bạn cần hoàn tất kết nối cảm biến IoT để AI mở khóa tính năng tự động Cảnh báo & Khuyến nghị kỹ thuật.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2.5 w-full md:w-auto flex-shrink-0">
             <a
               href="/register-farm"
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-[12px] shadow-sm whitespace-nowrap transition-all"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-[14px] shadow-md hover:shadow-lg whitespace-nowrap transition-all cursor-pointer"
             >
               + Đăng Ký Vườn Mới
             </a>
             <a
               href="/iot-setup-guide"
-              className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-gray-900 font-extrabold text-xs rounded-[12px] shadow-sm whitespace-nowrap transition-all"
+              className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-gray-900 font-extrabold text-xs rounded-[14px] shadow-md hover:shadow-lg whitespace-nowrap transition-all cursor-pointer"
             >
               🚀 Hướng Dẫn Lắp Đặt IoT
             </a>
@@ -306,10 +307,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ROW 1: 3 KPI Cards for Web Admin OR 5 KPI Cards for Web User */}
+      {/* ROW 1: KPI CARDS */}
       <div className="w-full">
         {dashboardLoading ? (
-          <div className={`grid grid-cols-1 ${isAdmin ? "md:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-5"} gap-4`} style={{ gap: "16px" }}>
+          <div className={`grid grid-cols-1 ${isAdmin ? "md:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-5"} gap-4`}>
             {Array.from({ length: isAdmin ? 3 : 5 }).map((_, i) => <KPISkeleton key={i} />)}
           </div>
         ) : (
@@ -329,20 +330,48 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ROW 2 */}
+      {/* ROW 2: MAIN VISUAL & SPATIAL OPERATIONS (HEATMAP 2/3 + WEATHER 1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch w-full">
+        {/* Col 1-2: Heatmap Card (2/3 width) */}
+        <div className="lg:col-span-2 h-[450px] min-h-[450px] w-full min-w-0">
+          {heatmapLoading ? (
+            <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
+          ) : (
+            <HeatmapCard
+              sections={zoneSections}
+              lastUpdated={heatmapLastUpdated}
+              summaryCounts={heatmapSummary}
+              onRefresh={fetchAll}
+              farmOptions={farmOptions}
+              zoneOptions={zoneOptions}
+              selectedFarm={farmFilter}
+              selectedZone={zoneFilter}
+              onFarmChange={setFarmFilter}
+              onZoneChange={setZoneFilter}
+            />
+          )}
+        </div>
+
+        {/* Col 3: Realtime Weather Card (1/3 width) */}
+        <div className="lg:col-span-1 h-[450px] min-h-[450px] w-full">
+          <WeatherCard />
+        </div>
+      </div>
+
+      {/* ROW 3: SYSTEM OVERVIEW, TREE HEALTH & PERFORMANCE */}
       {isAdmin ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
-          {/* Col 1: System Overview (IoT Pie Chart) */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch w-full">
+          {/* Col 1: System Overview */}
+          <div className="h-[340px] min-h-[340px] w-full">
             {dashboardLoading ? (
               <CardSkeleton height="100%"><div className="flex-1 bg-gray-200 rounded-[12px] animate-pulse" /></CardSkeleton>
             ) : (
-              <SystemOverviewCard data={systemOverview} />
+              <SystemOverviewCard data={systemOverview} variant="admin" />
             )}
           </div>
 
-          {/* Col 2: Bản đồ phân bố nông trại theo khu vực (Pie Chart) */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full min-w-0">
+          {/* Col 2: Regional Farm Map Card */}
+          <div className="h-[340px] min-h-[340px] w-full min-w-0">
             {heatmapLoading ? (
               <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
             ) : (
@@ -350,15 +379,15 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Col 3: Thẻ Thời Tiết Realtime */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-            <WeatherCard />
+          {/* Col 3: Growth Trend Card */}
+          <div className="h-[340px] min-h-[340px] w-full">
+            <GrowthTrendCard />
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
-          {/* Col 1: System Overview */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch w-full">
+          {/* Col 1: System Overview (IoT Inventory) */}
+          <div className="h-[340px] min-h-[340px] w-full">
             {dashboardLoading ? (
               <CardSkeleton height="100%"><div className="flex-1 bg-gray-200 rounded-[12px] animate-pulse" /></CardSkeleton>
             ) : (
@@ -366,54 +395,8 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Col 2: Heatmap Card */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full min-w-0">
-            {heatmapLoading ? (
-              <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
-            ) : (
-              <HeatmapCard
-                sections={zoneSections}
-                lastUpdated={heatmapLastUpdated}
-                summaryCounts={heatmapSummary}
-                onRefresh={fetchAll}
-                farmOptions={farmOptions}
-                zoneOptions={zoneOptions}
-                selectedFarm={farmFilter}
-                selectedZone={zoneFilter}
-                onFarmChange={setFarmFilter}
-                onZoneChange={setZoneFilter}
-              />
-            )}
-          </div>
-
-          {/* Col 3: Chatbot Trợ lý AI */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-            <AIChatbotCard />
-          </div>
-        </div>
-      )}
-
-      {/* ROW 3 */}
-      {isAdmin ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-stretch w-full">
-          {/* Col 1: Growth Trend Line Chart */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-            <GrowthTrendCard />
-          </div>
-
-          {/* Col 2: Tree Distribution */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-            {dashboardLoading ? (
-              <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
-            ) : (
-              <TreeDistributionCard data={filteredFarmHealthData} total={kpiTotalTrees} />
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch w-full">
-          {/* Col 1: Tree Distribution (Pie Chart) */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+          {/* Col 2: Tree Distribution Donut Chart */}
+          <div className="h-[340px] min-h-[340px] w-full">
             {dashboardLoading ? (
               <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
             ) : (
@@ -421,17 +404,20 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Col 2: Farm Performance Card */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
+          {/* Col 3: Farm Performance Card */}
+          <div className="h-[340px] min-h-[340px] w-full">
             <FarmPerformanceCard />
           </div>
-
-          {/* Col 3: Realtime Inspection Card */}
-          <div className="h-[315px] min-h-[315px] max-h-[315px] w-full">
-            <RealtimeInspectionCard data={filteredInspectionRows} />
-          </div>
         </div>
       )}
+
+      {/* ROW 4: REALTIME FIELD INSPECTIONS (DEDICATED FULL/WIDE CARD) */}
+      <div className="w-full h-[350px] min-h-[350px]">
+        <RealtimeInspectionCard data={filteredInspectionRows} />
+      </div>
+
+      {/* FLOATING AI CHATBOT BUBBLE */}
+      <AIChatbotCard />
     </div>
   );
 }

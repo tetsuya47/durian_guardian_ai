@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import {
+  Home,
   LayoutDashboard,
   Building2,
   Sprout,
@@ -36,6 +37,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const isUserAdmin = user?.role === "Admin" || user?.role === "ADMIN" || user?.role === "System Admin";
 
   const adminMenuItems = [
+    { label: "Trang chủ", path: "/home", icon: Home },
     { label: "Bảng điều khiển", path: "/dashboard", icon: LayoutDashboard },
     { label: "Chatbot Trợ lý AI", path: "/ai-chatbot", icon: Bot },
     { label: "Quản lý Người dùng", path: "/users", icon: Users },
@@ -49,6 +51,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   ];
 
   const userMenuItems = [
+    { label: "Trang chủ", path: "/home", icon: Home },
+    { label: "👥 Cộng đồng Nông dân", path: "/community", icon: Users },
     { label: "Bảng điều khiển Vườn", path: "/dashboard", icon: LayoutDashboard },
     { label: "Chatbot Trợ lý AI", path: "/ai-chatbot", icon: Bot },
     { label: "🌱 Đăng ký Vườn mới", path: "/register-farm", icon: Sprout },

@@ -39,6 +39,10 @@ async def seed() -> None:
         print(f"Created admin user bao@gmail.com with ID: {user_id}")
     else:
         user_id = user["_id"]
+        await db["users"].update_one(
+            {"_id": user_id},
+            {"$set": {"password_hash": hash_password("123456"), "role": "Admin"}}
+        )
 
     # 3. Create or get User teo@gmail.com
     teo = await db["users"].find_one({"email": "teo@gmail.com"})
@@ -52,7 +56,7 @@ async def seed() -> None:
             "fullname": "Nguyễn Văn Tèo",
             "email": "teo@gmail.com",
             "password_hash": hash_password("123456"),
-            "role": "User",
+            "role": "Farm Owner",
             "created_at": now,
             "updated_at": now,
         }
@@ -60,6 +64,10 @@ async def seed() -> None:
         print(f"Created user teo@gmail.com with ID: {teo_id}")
     else:
         teo_id = teo["_id"]
+        await db["users"].update_one(
+            {"_id": teo_id},
+            {"$set": {"password_hash": hash_password("123456"), "role": "Farm Owner"}}
+        )
 
     # 2. Check if farm exists for this user
     existing_farm = await db["farms"].find_one({"owner_id": user_id})
@@ -68,12 +76,16 @@ async def seed() -> None:
         await MongoDBManager.close()
         return
 
+    company_doc = await db["companies"].find_one({})
+    company_id = company_doc["_id"] if company_doc else ObjectId()
+
     # 3. Create Demo Farm
     farm_id = ObjectId()
     await db["farms"].insert_one({
         "_id": farm_id,
         "farm_code": "FARM_DL01",
         "farm_name": "Nông Trại Sầu Riêng Đắk Lắk",
+        "company_id": company_id,
         "owner_id": user_id,
         "created_by": user_id,
         "district": "Krông Pắc",
@@ -112,13 +124,13 @@ async def seed() -> None:
         {"code": "SR-M01", "variety": "Monthong", "zone_id": zone_a_id, "status": "Khỏe mạnh"},
         {"code": "SR-M02", "variety": "Monthong", "zone_id": zone_a_id, "status": "Khỏe mạnh"},
         {"code": "SR-M03", "variety": "Monthong", "zone_id": zone_a_id, "status": "Khỏe mạnh"},
-        {"code": "SR-M04", "variety": "Monthong", "zone_id": zone_a_id, "status": "Bệnh thối rễ Phytophthora"},
-        {"code": "SR-M05", "variety": "Monthong", "zone_id": zone_a_id, "status": "Bệnh thối rễ Phytophthora"},
+        {"code": "SR-M04", "variety": "Monthong", "zone_id": zone_a_id, "status": "Bị bệnh"},
+        {"code": "SR-M05", "variety": "Monthong", "zone_id": zone_a_id, "status": "Bị bệnh"},
         {"code": "SR-M06", "variety": "Monthong", "zone_id": zone_a_id, "status": "Khỏe mạnh"},
         {"code": "SR-R01", "variety": "Ri6", "zone_id": zone_b_id, "status": "Khỏe mạnh"},
-        {"code": "SR-R02", "variety": "Ri6", "zone_id": zone_b_id, "status": "Bệnh đốm lá Rhizoctonia"},
-        {"code": "SR-R03", "variety": "Ri6", "zone_id": zone_b_id, "status": "Bệnh đốm lá Rhizoctonia"},
-        {"code": "SR-R04", "variety": "Ri6", "zone_id": zone_b_id, "status": "Bệnh thối rễ Phytophthora"},
+        {"code": "SR-R02", "variety": "Ri6", "zone_id": zone_b_id, "status": "Đang theo dõi"},
+        {"code": "SR-R03", "variety": "Ri6", "zone_id": zone_b_id, "status": "Đang theo dõi"},
+        {"code": "SR-R04", "variety": "Ri6", "zone_id": zone_b_id, "status": "Bị bệnh"},
     ]
 
     tree_ids = []
@@ -131,6 +143,7 @@ async def seed() -> None:
             "farm_id": farm_id,
             "zone_id": item["zone_id"],
             "variety": item["variety"],
+            "tree_age": 3,
             "status": item["status"],
             "health_status": item["status"],
             "planting_date": now - timedelta(days=365 * 3),
