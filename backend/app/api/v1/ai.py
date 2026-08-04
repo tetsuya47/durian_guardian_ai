@@ -9,12 +9,13 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from PIL import Image
 
 from app.ai.service import AIService
+from app.services.risk_prediction_service import RiskPredictionService
 from app.core.dependencies import RoleChecker, get_current_user_id
 from app.core.exceptions import BadRequestException
 from app.core.response import success_response
 from app.database.mongodb import get_database
 from app.models import UserRole
-from app.schemas.disease import DetectionResponse
+from app.schemas.disease import DetectionResponse, RiskPredictionResponse
 from app.schemas.response_models import SuccessResponse
 
 logger = logging.getLogger(__name__)
@@ -94,3 +95,23 @@ async def check_image_quality(
         data=result,
         message="Image quality checked",
     )
+
+
+@router.post("/risk-prediction", response_model=SuccessResponse[RiskPredictionResponse])
+async def predict_disease_risk(
+    tree_id: str | None = None,
+    lat: float = 12.6667,
+    lon: float = 108.0500,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    _=Depends(allow_all),
+):
+    """Predict durian disease risk using Model 3 Random Forest classifier."""
+    risk_service = RiskPredictionService(db)
+    result = await risk_service.predict_tree_risk(tree_id=tree_id, lat=lat, lon=lon)
+    logger.info("Model 3 risk prediction generated for user %s (tree_id=%s)", user_id, tree_id)
+    return success_response(
+        data=RiskPredictionResponse(**result),
+        message="Model 3 Random Forest risk prediction completed",
+    )
+

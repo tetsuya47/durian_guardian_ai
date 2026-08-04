@@ -156,7 +156,7 @@ export default function FarmPerformancePage() {
             <Sparkles className="w-5 h-5 text-amber-500 fill-amber-400" />
           </h1>
           <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Theo dõi và đánh giá hiệu suất, sản lượng thu hoạch thực tế của các trang trại sầu riêng trong hệ thống DGA
+            Theo dõi và đánh giá hiệu suất, sản lượng thu hoạch thực tế của các trang trại sầu riêng trong hệ thống Vie-farm
           </p>
         </div>
 

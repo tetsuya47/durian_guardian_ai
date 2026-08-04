@@ -1,20 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../weather/presentation/providers/weather_providers.dart';
 import '../../domain/entities/recommendation_entities.dart';
 
-class WeatherConditionsCard extends StatelessWidget {
-  final WeatherAdvisoryEntity weather;
+class WeatherConditionsCard extends ConsumerWidget {
+  final WeatherAdvisoryEntity? weather;
 
   const WeatherConditionsCard({
     super.key,
-    required this.weather,
+    this.weather,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final weatherAsync = ref.watch(currentWeatherProvider);
+
+    final String tempStr = weatherAsync.when(
+      data: (w) => '${w.tempCelsius.toStringAsFixed(1)}°C',
+      loading: () => weather != null ? '${weather!.temperature}°C' : '...',
+      error: (_, __) => weather != null ? '${weather!.temperature}°C' : 'N/A',
+    );
+
+    final String humidityStr = weatherAsync.when(
+      data: (w) => '${w.humidityPercent}%',
+      loading: () => weather != null ? '${weather!.humidity}%' : '...',
+      error: (_, __) => weather != null ? '${weather!.humidity}%' : 'N/A',
+    );
+
+    final String rainStr = weatherAsync.when(
+      data: (w) => w.description,
+      loading: () => weather != null ? '${weather!.rainfall} mm' : '...',
+      error: (_, __) => weather != null ? '${weather!.rainfall} mm' : 'N/A',
+    );
+
+    final String windStr = weatherAsync.when(
+      data: (w) => '${w.windSpeedMS} m/s',
+      loading: () => weather != null ? '${weather!.windSpeed} km/h' : '...',
+      error: (_, __) => weather != null ? '${weather!.windSpeed} km/h' : 'N/A',
+    );
 
     return AppCard(
       child: Column(
@@ -45,25 +72,25 @@ class WeatherConditionsCard extends StatelessWidget {
                 context,
                 icon: Icons.device_thermostat_outlined,
                 label: AppStrings.tempLabel,
-                value: '${weather.temperature}°C',
+                value: tempStr,
               ),
               _buildWeatherIndicator(
                 context,
                 icon: Icons.water_drop_outlined,
                 label: AppStrings.humidityLabel,
-                value: '${weather.humidity}%',
+                value: humidityStr,
               ),
               _buildWeatherIndicator(
                 context,
                 icon: Icons.umbrella_outlined,
                 label: AppStrings.rain,
-                value: '${weather.rainfall} mm',
+                value: rainStr,
               ),
               _buildWeatherIndicator(
                 context,
                 icon: Icons.air_outlined,
                 label: AppStrings.wind,
-                value: '${weather.windSpeed} km/h',
+                value: windStr,
               ),
             ],
           ),

@@ -1,4 +1,4 @@
-# 🌳 DURIAN GUARDIAN AI (DGA)
+# 🌳 VIE-FARM
 > **AI Operating System for Smart Durian Farms**  
 > 🛡️ *Protect Every Tree. Predict Every Risk.*
 
@@ -6,7 +6,7 @@
 
 ## 📌 1. PROJECT OVERVIEW
 
-**Durian Guardian AI (DGA)** is an artificial intelligence platform designed to support health management and operation of smart durian farms.
+**Vie-farm** is an artificial intelligence platform designed to support health management and operation of smart durian farms.
 
 Unlike conventional applications that only detect diseases via image recognition, DGA combines **Computer Vision, Weather Intelligence, and Tree History** to comprehensively assess risks, assist in decision-making, and manage entire farms driven by data.
 

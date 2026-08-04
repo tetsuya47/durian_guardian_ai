@@ -79,7 +79,7 @@ export default function RegisterPage() {
               <Leaf className="w-5 h-5 text-emerald-400" />
             </div>
             <span className="text-lg font-bold tracking-wider text-emerald-50">
-              DGA Portal
+              Vie-farm Portal
             </span>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function RegisterPage() {
           <h1 className="text-3xl font-bold text-white leading-tight">
             Tham gia cùng
             <br />
-            <span className="text-emerald-400">Durian Guardian AI</span>
+            <span className="text-emerald-400">Vie-farm AI</span>
           </h1>
           <p className="mt-4 text-emerald-200/60 text-sm leading-relaxed max-w-sm">
             Tạo tài khoản để bắt đầu quản lý trang trại sầu riêng với hỗ trợ
@@ -97,7 +97,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="relative z-10 text-emerald-200/30 text-[11px]">
-          &copy; 2026 Durian Guardian AI. All rights reserved.
+          &copy; 2026 Vie-farm AI. All rights reserved.
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export default function RegisterPage() {
               <Leaf className="w-5 h-5 text-emerald-400" />
             </div>
             <span className="text-lg font-bold tracking-wider text-gray-800">
-              DGA Portal
+              Vie-farm Portal
             </span>
           </div>
 

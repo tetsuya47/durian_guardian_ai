@@ -141,7 +141,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   ),
                   AppSpacing.v8,
                   Text(
-                    'Đăng ký để sử dụng Durian Guardian AI',
+                    'Đăng ký để sử dụng Vie-farm',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withAlpha(150),
                     ),

@@ -159,7 +159,6 @@ class AppStrings {
   static const String materialDosage = 'Liều lượng';
   static const String materialPurpose = 'Mục đích';
   static const String aiNotes = 'Lưu ý của AI';
-  static const String saveRecommendation = 'Lưu khuyến nghị';
   static const String share = 'Chia sẻ';
   static const String printReport = 'In báo cáo';
   static const String generatingRecommendations = 'Đang tạo khuyến nghị...';

@@ -8,14 +8,11 @@ import '../../../../shared/utils/ui_helpers.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../domain/entities/recommendation_entities.dart';
 import '../providers/recommendation_providers.dart';
-import '../widgets/ai_notes_card.dart';
-import '../widgets/care_recommendations_list.dart';
-import '../widgets/care_timeline.dart';
-import '../widgets/health_summary_card.dart';
+import '../../../weather/presentation/widgets/weather_card.dart';
+import '../widgets/disease_calculator_card.dart';
+import '../widgets/smart_task_list_card.dart';
 import '../widgets/recommendation_action_buttons.dart';
 import '../widgets/recommendation_loading_widget.dart';
-import '../widgets/suggested_materials_table.dart';
-import '../widgets/weather_conditions_card.dart';
 
 class RecommendationPage extends ConsumerStatefulWidget {
   const RecommendationPage({super.key});
@@ -121,22 +118,13 @@ class _RecommendationPageState extends ConsumerState<RecommendationPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HealthSummaryCard(riskLevel: result.riskLevel),
+            const WeatherCard(),
             AppSpacing.v16,
-            WeatherConditionsCard(weather: result.weather),
+            const DiseaseCalculatorCard(),
             AppSpacing.v16,
-            CareRecommendationsList(recommendations: result.careRecommendations),
-            AppSpacing.v16,
-            CareTimeline(schedules: result.careSchedules),
-            AppSpacing.v16,
-            SuggestedMaterialsTable(materials: result.materialDetails),
-            AppSpacing.v16,
-            AINotesCard(notes: result.aiNotes),
+            const SmartTaskListCard(),
             AppSpacing.v24,
             RecommendationActionButtons(
-              onSave: () {
-                AppSnackbars.showSuccess(context, 'Đã lưu khuyến nghị chăm sóc thành công!');
-              },
               onShare: () {
                 AppSnackbars.showInfo(context, 'Chức năng chia sẻ khuyến nghị.');
               },

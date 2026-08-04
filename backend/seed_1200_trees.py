@@ -144,8 +144,8 @@ async def seed_1200_trees() -> None:
 
     await db["trees"].insert_many(tree_docs)
     print(f"Successfully seeded {len(tree_docs)} trees in MongoDB!")
-    await MongoDBManager.close()
 
 if __name__ == "__main__":
     asyncio.run(seed_1200_trees())
+    asyncio.run(MongoDBManager.close())
 

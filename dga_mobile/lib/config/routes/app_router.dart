@@ -12,6 +12,7 @@ import '../../features/history/presentation/pages/history_page.dart';
 import '../../features/history/presentation/pages/compare_page.dart';
 import '../../features/history/presentation/pages/leaderboard_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/recommendation/presentation/pages/recommendation_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
@@ -108,10 +109,10 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/recommendation',
-            name: RouteNames.recommendation,
+            path: '/community',
+            name: 'community',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: RecommendationPage(),
+              child: CommunityPage(),
             ),
           ),
           GoRoute(

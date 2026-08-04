@@ -14,8 +14,8 @@ class EnvironmentConfig {
   static const _Env _activeEnv = _Env.device;
 
   /// Host for real-device testing on LAN.
-  /// Current LAN IP for this machine: '172.16.26.120'
-  static const String deviceHost = '172.16.26.120';
+  /// Host for real-device testing on LAN or ADB reverse proxy ('127.0.0.1')
+  static const String deviceHost = '127.0.0.1';
   static const String emulatorHost = '10.0.2.2';
   // ─────────────────────────────────────────────────────────────────────────
 

@@ -10,12 +10,13 @@ from app.core.config import settings
 from app.repositories.farm_repository import FarmRepository
 from app.repositories.weather_repository import WeatherRepository
 from app.utils.openweather_client import OpenWeatherClient, OpenWeatherClientError
+from app.ai.predictor_model3 import Model3Predictor
 
 logger = logging.getLogger(__name__)
 
 
 class WeatherService:
-    """Orchestrates the weather cache-aside workflow.
+    """Orchestrates the weather cache-aside workflow and Model 3 Random Forest risk analysis.
 
     Data flow:
         farm_id
@@ -40,6 +41,11 @@ class WeatherService:
         self.repo = WeatherRepository(db)
         self.client = OpenWeatherClient()
         self.farm_repo = FarmRepository(db)
+        try:
+            self._model3 = Model3Predictor()
+        except Exception as exc:
+            logger.warning("Could not initialize Model3Predictor in WeatherService: %s", exc)
+            self._model3 = None
 
     async def get_current_weather(
         self,
@@ -244,7 +250,53 @@ class WeatherService:
     # ------------------------------------------------------------------ #
 
     def _analyze_durian_risk(self, temp: float, humidity: int, wind_speed: float) -> tuple[str, str]:
-        """Agri-Intelligence rule engine for Durian farming."""
+        """Agri-Intelligence powered by Model 3 Random Forest Risk Prediction engine."""
+        risk = "LOW"
+        advice = "Thời tiết lý tưởng cho vườn sầu riêng phát triển tốt. Đảm bảo chế độ chăm sóc định kỳ."
+
+        if self._model3:
+            try:
+                # Construct 14-feature input for Model 3 Random Forest inference
+                sample_features = {
+                    "temperature": float(temp),
+                    "humidity": float(humidity),
+                    "rainfall": 10.0 if humidity >= 80 else 0.0,
+                    "tree_age": 5,
+                    "variety": "Monthong",
+                    "health_status": "Khỏe mạnh",
+                    "predicted_disease": "Khỏe mạnh",
+                    "confidence": 85.0,
+                    "season": "Khô",
+                    "density_per_hectare": 50.0,
+                    "days_since_last_inspection": 15,
+                    "days_since_last_treatment": 30,
+                    "historical_disease_count": 0,
+                    "historical_disease_frequency": 0.0,
+                }
+                res = self._model3.predict(sample_features)
+                risk_level_raw = res.get("risk_level", "Khỏe mạnh")
+                risk_map = {
+                    "Khỏe mạnh": "LOW",
+                    "Nguy cơ": "MEDIUM",
+                    "Bệnh nhẹ": "MEDIUM",
+                    "Bệnh nặng": "HIGH",
+                }
+                risk = risk_map.get(risk_level_raw, "LOW")
+
+                top_factors = res.get("top_factors", [])
+                top_feat_str = ", ".join([f["feature"] for f in top_factors[:2]]) if top_factors else "nhiệt độ & độ ẩm"
+
+                if risk == "HIGH":
+                    advice = f"CẢNH BÁO AI (Random Forest): Nguy cơ rủi ro cao dựa trên phân tích {top_feat_str}. Nên chủ động phun phòng nấm sinh học và tỉa cành thông thoáng gốc."
+                elif risk == "MEDIUM":
+                    advice = f"CẢNH BÁO AI (Random Forest): Nguy cơ trung bình dựa trên {top_feat_str}. Kiểm tra kỹ mặt dưới lá và bộ gốc, duy trì độ ẩm vừa phải."
+                else:
+                    advice = "Dự báo AI (Random Forest): Điều kiện môi trường an toàn. Vườn sầu riêng phát triển bình thường."
+                return risk, advice
+            except Exception as exc:
+                logger.warning("Model 3 inference fallback in WeatherService: %s", exc)
+
+        # Fallback rule logic if Model 3 is unavailable
         if humidity >= 85 and 24.0 <= temp <= 32.0:
             return (
                 "HIGH",

@@ -124,18 +124,19 @@ class WeatherCard extends ConsumerWidget {
                 ],
               ),
               AppSpacing.v12,
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   _buildMetricPill(
                     icon: Icons.water_drop_outlined,
                     label: 'Độ ẩm: ${weather.humidityPercent}%',
                   ),
-                  const SizedBox(width: 8),
                   _buildMetricPill(
                     icon: Icons.air_outlined,
                     label: 'Gió: ${weather.windSpeedMS} m/s',
                   ),
-                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(

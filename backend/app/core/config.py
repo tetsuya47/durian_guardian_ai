@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    APP_NAME: str = "Durian Guardian AI"
+    APP_NAME: str = "Vie-farm AI"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
 

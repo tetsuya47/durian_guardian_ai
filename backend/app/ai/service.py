@@ -283,13 +283,14 @@ class AIService:
                 "high": 90,
             }
             risk_score = severity_risk_map.get(result.severity, 50)
+            status_enum = "Khỏe mạnh" if result.disease in ("Khỏe mạnh", "Healthy") else "Bị bệnh"
             health_status_vi = "Khỏe mạnh" if result.disease in ("Khỏe mạnh", "Healthy") else result.disease
 
             await self.tree_repo.update(
                 tree_id,
                 {
                     "health_status": health_status_vi,
-                    "status": health_status_vi,
+                    "status": status_enum,
                     "risk_score": risk_score,
                     "last_inspection": datetime.now(timezone.utc),
                 },

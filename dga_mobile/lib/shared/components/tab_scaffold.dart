@@ -15,7 +15,7 @@ class TabScaffold extends ConsumerWidget {
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/disease-detection')) return 1;
-    if (location.startsWith('/recommendation')) return 2;
+    if (location.startsWith('/community')) return 2;
     if (location.startsWith('/history')) return 3;
     if (location.startsWith('/profile')) return 4;
     return 0; // Default to Dashboard
@@ -30,7 +30,7 @@ class TabScaffold extends ConsumerWidget {
         context.go('/disease-detection');
         break;
       case 2:
-        context.go('/recommendation');
+        context.go('/community');
         break;
       case 3:
         ref.invalidate(historyRawLogsProvider);
