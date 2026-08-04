@@ -166,17 +166,16 @@ class Model3Predictor:
             }
 
             # Calculate Weighted Disease Risk Severity Score (0.0 to 1.0)
+            # Classes in model.pkl: ['Cao', 'Thấp', 'Trung bình']
             weighted_risk_score = 0.0
             for i, cls_name in enumerate(label_encoder.classes_):
                 cls_str = str(cls_name).lower()
                 prob = float(pred_proba[i])
-                if "nặng" in cls_str or "high" in cls_str:
-                    weighted_risk_score += prob * 0.95
-                elif "nhẹ" in cls_str or "moderate" in cls_str:
-                    weighted_risk_score += prob * 0.65
-                elif "nguy cơ" in cls_str or "medium" in cls_str or "risk" in cls_str:
-                    weighted_risk_score += prob * 0.35
-                else:
+                if "cao" in cls_str or "high" in cls_str or "nặng" in cls_str:
+                    weighted_risk_score += prob * 0.85
+                elif "trung bình" in cls_str or "medium" in cls_str or "moderate" in cls_str or "nguy cơ" in cls_str:
+                    weighted_risk_score += prob * 0.45
+                else: # Thấp / Low
                     weighted_risk_score += prob * 0.05
 
             # Top 5 feature importances

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_model4_ai_advice(telemetry: dict[str, Any], risk_level: str, risk_score: float) -> tuple[str, list[str]]:
-    """Generate Model 4 AI Agronomist recommendations based on telemetry readings and multi-tier Model 3 risk percentage."""
+    """Generate Model 4 AI Agronomist recommendations based on telemetry readings and 5% step Model 3 risk percentage."""
     moisture = telemetry.get("soil_moisture", 68.5)
     ph = telemetry.get("soil_ph", 6.2)
     temp = telemetry.get("temperature", 28.5)
@@ -20,33 +20,33 @@ def generate_model4_ai_advice(telemetry: dict[str, Any], risk_level: str, risk_s
 
     recommendations = []
     risk_percent = round(risk_score * 100, 1)
+    step_bucket = int(risk_percent // 5) * 5  # Step of 5%: 0, 5, 10, 15, ..., 95
 
-    # ── Tiered Summary Advice based on exact Risk Score Percentage ───────────
-    if risk_percent < 20.0:
-        summary_advice = (
-            f"🌟 NÔNG TRẠI AN TOÀN (Tỷ lệ rủi ro: {risk_percent}%): Vi khí hậu & chỉ số đất nằm trong vùng lý tưởng. "
-            "Cây sầu riêng đang phát triển khỏe mạnh."
-        )
-    elif risk_percent < 45.0:
-        summary_advice = (
-            f"⚠️ CẢNH BÁO NHẸ (Tỷ lệ rủi ro: {risk_percent}%): Phát hiện vi khí hậu có dấu hiệu biến động nhẹ. "
-            "Cần theo dõi và chăm sóc cơi đọt định kỳ."
-        )
-    elif risk_percent < 65.0:
-        summary_advice = (
-            f"🔔 NGUY CƠ TRUNG BÌNH (Tỷ lệ rủi ro: {risk_percent}%): Điều kiện độ ẩm & vi khí hậu kích thích mầm bệnh phát triển. "
-            "Khuyên dùng các biện pháp phòng ngừa bên dưới."
-        )
-    elif risk_percent < 85.0:
-        summary_advice = (
-            f"🔥 CẢNH BÁO CAO (Tỷ lệ rủi ro: {risk_percent}%): Nguy cơ bùng phát dịch nấm Phytophthora & Thối rễ chảy nhựa cao! "
-            "Thực hiện ngay các biện pháp can thiệp khẩn cấp."
-        )
-    else:
-        summary_advice = (
-            f"🚨 BÁO ĐỘNG ĐỎ (Tỷ lệ rủi ro: {risk_percent}%): Nông trại đang ở trong tình trạng bùng phát dịch bệnh nghiêm trọng! "
-            "Cần xử lý thuốc BVTV đặc trị lập tức."
-        )
+    # ── Dynamic 5% Increment Advice Mapping ─────────────────────────────────
+    advice_buckets = {
+        0: f"🌟 NÔNG TRẠI AN TOÀN TUYỆT ĐỐI (Rủi ro: {risk_percent}%): Chỉ số cảm biến ở vùng sinh học hoàn hảo. Cây sầu riêng khỏe mạnh.",
+        5: f"🌟 NÔNG TRẠI RẤT TỐT (Rủi ro: {risk_percent}%): Vi khí hậu ổn định. Cơi đọt xanh mướt, rễ hấp thu dinh dưỡng tối ưu.",
+        10: f"✅ NÔNG TRẠI ỔN ĐỊNH (Rủi ro: {risk_percent}%): Đạt chuẩn an toàn nông nghiệp vi sinh. Duy trì lịch tưới tự động 30s.",
+        15: f"✅ NÔNG TRẠI AN TOÀN (Rủi ro: {risk_percent}%): Không phát hiện áp lực dịch bệnh. Khuyến nghị duy trì chăm sóc định kỳ.",
+        20: f"⚠️ BẮT ĐẦU CHÚ Ý (Rủi ro: {risk_percent}%): Nhiệt độ & độ ẩm bắt đầu có biến động nhẹ. Theo dõi cơi đọt 7 ngày/lần.",
+        25: f"⚠️ CẢNH BÁO NHẸ (Rủi ro: {risk_percent}%): Độ ẩm đất/không khí đang thay đổi. Nên rải 300g Vôi bột nâng pH rễ.",
+        30: f"⚠️ NGUY CƠ NHẸ (Rủi ro: {risk_percent}%): Áp lực bào tử nấm nhẹ. Bổ sung vi sinh Trichoderma thúc đẩy hệ vi sinh đất.",
+        35: f"🔔 NGUY CƠ TRUNG BÌNH THẤP (Rủi ro: {risk_percent}%): Điều kiện thời tiết thuận lợi cho Rầy nhảy & Bọ trĩ phát triển.",
+        40: f"🔔 NGUY CƠ TRUNG BÌNH (Rủi ro: {risk_percent}%): Độ ẩm kéo dài kích thích nấm lá. Phun phòng ngừa Mancozeb / Hexaconazole.",
+        45: f"🔔 NGUY CƠ TRUNG BÌNH CAO (Rủi ro: {risk_percent}%): Chỉ số nguy cơ vượt 45%. Giảm 20% lượng tưới & tỉa thoáng gầm cây.",
+        50: f"⚡ CẢNH BÁO NẤM BỆNH (Rủi ro: {risk_percent}%): Mầm nấm Phytophthora bắt đầu xuất hiện. Phun bảo vệ mặt dưới lá.",
+        55: f"⚡ CẢNH BÁO TĂNG CAO (Rủi ro: {risk_percent}%): Nguy cơ cháy lá đốm mắt cua & Thán thư. Tạm dừng bón đạm (N) dư thừa.",
+        60: f"🔥 BÁO ĐỘNG BỆNH HẠI (Rủi ro: {risk_percent}%): Áp lực dịch bệnh vượt 60%! Kiểm tra cành gốc & khơi thông rãnh mương.",
+        65: f"🔥 NGUY CƠ NẶNG (Rủi ro: {risk_percent}%): Nguy cơ xì mủ nứt thân & thối rễ tơ. Phun Fosetyl-Al quét trực tiếp thân gốc.",
+        70: f"🔥 CẢNH BÁO NẤM NẶNG (Rủi ro: {risk_percent}%): Nấm bệnh tấn công cơi đọt & gốc cây. Phun luân phiên Metalaxyl + Mancozeb.",
+        75: f"🚨 BÁO ĐỘNG ĐỎ CẤP 1 (Rủi ro: {risk_percent}%): Dịch bệnh Phytophthora lây lan nhanh! Cách ly vùng cây ốm ngay lập tức.",
+        80: f"🚨 BÁO ĐỘNG ĐỎ CẤP 2 (Rủi ro: {risk_percent}%): Nguy cơ thối rễ hàng loạt! Phun đặc trị Ridomil Gold + Agrispon gấp.",
+        85: f"🚨 NGUY CƠ NGHÊM TRỌNG (Rủi ro: {risk_percent}%): Dịch bệnh Phytophthora & Thối quả bùng phát toàn diện nông trại!",
+        90: f"💀 BÁO ĐỘNG NGHÊM TRỌNG CẤP CAO (Rủi ro: {risk_percent}%): Cắt bỏ tiêu hủy cành nhiễm thối khô, rải Vôi sát trùng toàn vườn.",
+        95: f"💀 THẢM HỌA DỊCH BỆNH (Rủi ro: {risk_percent}%): Can thiệp khẩn cấp toàn bộ hệ thống bảo vệ thực vật & khoanh vùng dập dịch!",
+    }
+
+    summary_advice = advice_buckets.get(step_bucket, f"⚠️ CẢNH BÁO BỆNH (Rủi ro: {risk_percent}%): Cần theo dõi chỉ số nông trại.")
 
     # ── Moisture Specific Rules ─────────────────────────────────────────────
     if moisture < 60.0:
@@ -64,17 +64,19 @@ def generate_model4_ai_advice(telemetry: dict[str, Any], risk_level: str, risk_s
     else:
         recommendations.append("✅ Độ pH đất cân bằng tốt (5.8 - 6.8). Rễ hấp thu dinh dưỡng tối ưu.")
 
-    # ── Temperature & Fungal Disease Risk Rules ─────────────────────────────
+    # ── Dynamic Recommendation per 5% step range ────────────────────────────
+    if risk_percent >= 65.0:
+        recommendations.append("🛡️ Phun trực tiếp Metalaxyl / Fosetyl-Al quét gốc & mặt dưới lá sầu riêng.")
+    elif risk_percent >= 40.0:
+        recommendations.append("🌿 Bổ sung phân bón lá giàu Kali & Lân phosphonate nâng cao sức đề kháng.")
+
     if temp > 32.0 and humidity > 80.0:
         recommendations.append("🚨 Cảnh báo Nấm Bệnh: Nhiệt độ cao (> 32°C) kết hợp độ ẩm cao (> 80%) tạo điều kiện cho nấm Phytophthora & Thán thư bùng phát.")
-        recommendations.append("🛡️ Khuyến nghị: Phun luân phiên Mancozeb hoặc Ridomil Gold bảo vệ cơi đọt.")
-    elif risk_percent >= 65.0:
-        recommendations.append("🛡️ Phun trực tiếp Metalaxyl / Fosetyl-Al quét gốc & mặt dưới lá sầu riêng.")
 
     if n < 100.0:
         recommendations.append("🌿 Chỉ số Đạm (N) thấp. Bổ sung NPK 20-20-15 hoặc phân gà nở vi sinh thúc cơi đọt.")
-    elif n > 150.0 and risk_percent >= 45.0:
-        recommendations.append("🚫 Đạm dư thừa trong điều kiện nguy cơ bệnh. Tạm dừng bón đạm; chuyển sang bón Kali & Lân phosphonate.")
+    elif n > 150.0 and risk_percent >= 40.0:
+        recommendations.append("🚫 Đạm dư thừa trong điều kiện nguy cơ bệnh. Tạm dừng bón đạm; chuyển sang bón Kali & Lân.")
 
     return summary_advice, recommendations
 

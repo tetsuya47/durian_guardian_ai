@@ -3,8 +3,11 @@ from __future__ import annotations
 import logging
 import urllib.request
 from datetime import datetime, timezone
-from typing import Any, Dict, List
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
+
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
