@@ -157,7 +157,6 @@ class Model3Predictor:
             pred_proba = self._model.predict_proba(X_final)[0]
 
             risk_level = str(label_encoder.inverse_transform([pred_class])[0])
-            risk_score = float(pred_proba[pred_class])
 
             # Class probabilities
             top_indices = np.argsort(pred_proba)[::-1]
@@ -165,6 +164,20 @@ class Model3Predictor:
                 str(label_encoder.classes_[i]): round(float(pred_proba[i]), 4)
                 for i in top_indices
             }
+
+            # Calculate Weighted Disease Risk Severity Score (0.0 to 1.0)
+            weighted_risk_score = 0.0
+            for i, cls_name in enumerate(label_encoder.classes_):
+                cls_str = str(cls_name).lower()
+                prob = float(pred_proba[i])
+                if "nặng" in cls_str or "high" in cls_str:
+                    weighted_risk_score += prob * 0.95
+                elif "nhẹ" in cls_str or "moderate" in cls_str:
+                    weighted_risk_score += prob * 0.65
+                elif "nguy cơ" in cls_str or "medium" in cls_str or "risk" in cls_str:
+                    weighted_risk_score += prob * 0.35
+                else:
+                    weighted_risk_score += prob * 0.05
 
             # Top 5 feature importances
             feature_imp = self._model.feature_importances_
@@ -179,7 +192,7 @@ class Model3Predictor:
 
             return {
                 "risk_level": risk_level,
-                "risk_score": round(risk_score, 4),
+                "risk_score": round(weighted_risk_score, 4),
                 "probabilities": probabilities,
                 "top_factors": top_factors,
             }
