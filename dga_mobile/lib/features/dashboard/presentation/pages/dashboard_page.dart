@@ -48,6 +48,68 @@ class DashboardPage extends ConsumerWidget {
                   AIFarmStatusCard(status: data.farmStatus),
                   AppSpacing.v20,
                   const AgriculturalFeaturesGrid(),
+                  AppSpacing.v16,
+
+                  // Quản Lý Vườn & IoT Banner Card
+                  InkWell(
+                    onTap: () => context.push('/farm-management-iot'),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1B4D3E), Color(0xFF2E7D32)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(12),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(25),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.sensors, color: Colors.amber, size: 26),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '🌳 QUẢN LÝ VƯỜN & IOT',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Xem chỉ số cảm biến 30s + Khuyến nghị Model 3/4 AI',
+                                  style: TextStyle(fontSize: 11, color: Colors.white70),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   AppSpacing.v20,
                   const DurianMarketPriceCard(),
                   AppSpacing.v20,

@@ -77,4 +77,7 @@ class ApiEndpoints {
 
   // ─── Weather ─────────────────────────────────────────────────────────────
   static const String weatherCurrent = '/weather/current';
+
+  // ─── IoT ─────────────────────────────────────────────────────────────────
+  static const String iotTelemetryLatest = '/iot/telemetry/latest';
 }
