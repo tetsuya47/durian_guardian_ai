@@ -50,7 +50,6 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   const userMenuItems = [
     { label: "Bảng điều khiển Vườn", path: "/dashboard", icon: LayoutDashboard },
-    { label: "📡 Giả Lập IoT & Telemetry", path: "/iot-simulator", icon: Cpu },
     { label: "Chatbot Trợ lý AI", path: "/ai-chatbot", icon: Bot },
     { label: "🌱 Đăng ký Vườn mới", path: "/register-farm", icon: Sprout },
     { label: "📈 Năng suất Trang trại", path: "/farm-performance", icon: TrendingUp },

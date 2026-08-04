@@ -24,7 +24,6 @@ import IoTSetupGuidePage from "@/pages/iot/IoTSetupGuidePage";
 import IoTOrdersPage from "@/pages/iot/IoTOrdersPage";
 import IoTManagementPage from "@/pages/iot/IoTManagementPage";
 import UserIoTDevicesPage from "@/pages/iot/UserIoTDevicesPage";
-import IoTSimulatorPage from "@/pages/iot/IoTSimulatorPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -51,10 +50,6 @@ export const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <DashboardPage />,
-      },
-      {
-        path: "iot-simulator",
-        element: <IoTSimulatorPage />,
       },
       {
         path: "ai-chatbot",
