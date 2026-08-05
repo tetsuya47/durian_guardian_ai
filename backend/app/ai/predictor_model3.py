@@ -25,6 +25,12 @@ def _get_model3_exports_dir() -> Path:
     if env_dir and Path(env_dir).exists():
         return Path(env_dir)
 
+    # 1. Local path inside backend (recommended for Render)
+    local_dir = Path(__file__).resolve().parent / "model3_exports"
+    if local_dir.exists():
+        return local_dir
+
+    # 2. Standard path relative to repo root
     repo_dir = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "training"
@@ -34,6 +40,7 @@ def _get_model3_exports_dir() -> Path:
     if repo_dir.exists():
         return repo_dir
 
+    # 3. Secondary path inside backend or export dir
     backend_dir = (
         Path(__file__).resolve().parent.parent.parent
         / "training"
@@ -43,7 +50,7 @@ def _get_model3_exports_dir() -> Path:
     if backend_dir.exists():
         return backend_dir
 
-    return repo_dir
+    return local_dir
 
 _EXPORTS_DIR = _get_model3_exports_dir()
 

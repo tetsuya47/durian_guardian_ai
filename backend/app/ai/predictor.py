@@ -75,7 +75,12 @@ def _get_checkpoint_path() -> Path:
     if env_path and Path(env_path).exists():
         return Path(env_path)
 
-    # Standard path relative to repo root
+    # 1. Local path inside backend (recommended for Render)
+    local_path = Path(__file__).resolve().parent / "best_model.pt"
+    if local_path.exists():
+        return local_path
+
+    # 2. Standard path relative to repo root
     repo_path = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "training"
@@ -86,7 +91,7 @@ def _get_checkpoint_path() -> Path:
     if repo_path.exists():
         return repo_path
 
-    # Secondary path inside backend or export dir
+    # 3. Secondary path inside backend or export dir
     export_path = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "training"
@@ -97,7 +102,7 @@ def _get_checkpoint_path() -> Path:
     if export_path.exists():
         return export_path
 
-    return repo_path
+    return local_path
 
 _CHECKPOINT_PATH = _get_checkpoint_path()
 
