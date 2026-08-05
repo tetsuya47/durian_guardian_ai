@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/skeleton_loading.dart';
@@ -15,10 +13,8 @@ import '../../../authentication/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/edit_profile_sheet.dart';
-import '../widgets/farm_information_card.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_information_card.dart';
-import '../widgets/profile_menu_item.dart';
 import '../widgets/profile_statistics.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -129,14 +125,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final profile = ref.watch(userProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.profileTitle),
-      ),
-      body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _buildBodyByState(context, state, profile),
-        ),
+      backgroundColor: const Color(0xFFF5F7F9),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _buildBodyByState(context, state, profile),
       ),
     );
   }
@@ -144,12 +136,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Widget _buildBodyByState(BuildContext context, String state, UserProfileEntity? profile) {
     if (state == 'loading') {
       return ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(20),
         children: [
+          const SizedBox(height: 40),
           Center(child: SkeletonLoading.avatar(size: 108)),
-          AppSpacing.v24,
+          const SizedBox(height: 24),
           SkeletonLoading.card(height: 120),
-          AppSpacing.v16,
+          const SizedBox(height: 16),
           SkeletonLoading.card(height: 200),
         ],
       );
@@ -167,9 +160,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     if (state == 'loaded' && profile != null) {
       return SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
+            // 1. Header (Gradient + Wave + 120px Avatar + User Info)
             ProfileHeader(
               avatarUrl: profile.avatarUrl,
               fullName: profile.fullName,
@@ -177,69 +170,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               workUnit: profile.workUnit,
               onAvatarEditTap: () => _showUnderDevelopmentMessage('Thay đổi ảnh đại diện'),
             ),
-            AppSpacing.v24,
-            ProfileStatistics(stats: profile.stats),
-            AppSpacing.v20,
-            ProfileInformationCard(
-              profile: profile,
-              onEditTap: () => _showEditBottomSheet(context, profile),
-            ),
-            AppSpacing.v16,
-            if (profile.farmInfo != null)
-              FarmInformationCard(farmInfo: profile.farmInfo!),
-            AppSpacing.v20,
-            // Functional list
-            ProfileMenuItem(
-              icon: Icons.person_outline,
-              title: AppStrings.menuAccountInfo,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuAccountInfo),
-            ),
-            ProfileMenuItem(
-              icon: Icons.lock_outline,
-              title: AppStrings.menuChangePassword,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuChangePassword),
-            ),
-            ProfileMenuItem(
-              icon: Icons.notifications_none,
-              title: AppStrings.menuManageNotifications,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuManageNotifications),
-            ),
-            ProfileMenuItem(
-              icon: Icons.privacy_tip_outlined,
-              title: AppStrings.menuPrivacyPolicy,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuPrivacyPolicy),
-            ),
-            ProfileMenuItem(
-              icon: Icons.description_outlined,
-              title: AppStrings.menuTermsOfUse,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuTermsOfUse),
-            ),
-            ProfileMenuItem(
-              icon: Icons.help_outline,
-              title: AppStrings.menuHelp,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuHelp),
-            ),
-            ProfileMenuItem(
-              icon: Icons.info_outline,
-              title: AppStrings.menuAbout,
-              onTap: () => _showUnderDevelopmentMessage(AppStrings.menuAbout),
-            ),
-            AppSpacing.v24,
-            // Logout Button
-            ElevatedButton.icon(
-              onPressed: () => _showLogoutDialog(context),
-              icon: const Icon(Icons.logout),
-              label: const Text(AppStrings.logout),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: AppColors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            const SizedBox(height: 20),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  // 2. Quick Stats (1 Card with 4 Columns & Vertical Dividers)
+                  ProfileStatistics(stats: profile.stats),
+                  const SizedBox(height: 20),
+
+                  // 3. Personal Information Card
+                  ProfileInformationCard(
+                    profile: profile,
+                    onEditTap: () => _showEditBottomSheet(context, profile),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 4. Account Section Card ("Tài khoản")
+                  _buildAccountCard(context),
+                  const SizedBox(height: 20),
+
+                  // 5. Settings Section Card ("Cài đặt")
+                  _buildSettingsCard(context),
+                  const SizedBox(height: 32),
+                ],
               ),
             ),
-            AppSpacing.v32,
           ],
         ),
       );
@@ -248,7 +205,205 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return const EmptyState(
       icon: Icons.person_off_outlined,
       title: AppStrings.noProfileData,
-      description: 'Không thể tải thông tin hồ sơ. Vui lòng thử lại.',
+      description: AppStrings.cannotLoadProfile,
+    );
+  }
+
+  // Account Card Widget ("Tài khoản")
+  Widget _buildAccountCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Tài khoản',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Item 1: Đổi mật khẩu
+          _buildMenuRow(
+            icon: Icons.lock_outline_rounded,
+            title: 'Đổi mật khẩu',
+            onTap: () => _showUnderDevelopmentMessage('Đổi mật khẩu'),
+          ),
+          _buildRowDivider(),
+
+          // Item 2: Đăng xuất
+          _buildMenuRow(
+            icon: Icons.logout_rounded,
+            title: 'Đăng xuất',
+            onTap: () => _showLogoutDialog(context),
+          ),
+          _buildRowDivider(),
+
+          // Item 3: Xóa tài khoản
+          _buildMenuRow(
+            icon: Icons.delete_outline_rounded,
+            title: 'Xóa tài khoản',
+            titleColor: const Color(0xFFDC2626),
+            iconColor: const Color(0xFFDC2626),
+            iconBgColor: const Color(0xFFFEE2E2),
+            onTap: () => _showUnderDevelopmentMessage('Xóa tài khoản'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Settings Card Widget ("Cài đặt")
+  Widget _buildSettingsCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Cài đặt',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          _buildMenuRow(
+            icon: Icons.notifications_none_rounded,
+            title: 'Thông báo',
+            onTap: () => _showUnderDevelopmentMessage('Thông báo'),
+          ),
+          _buildRowDivider(),
+
+          _buildMenuRow(
+            icon: Icons.language_rounded,
+            title: 'Ngôn ngữ',
+            onTap: () => _showUnderDevelopmentMessage('Ngôn ngữ'),
+          ),
+          _buildRowDivider(),
+
+          _buildMenuRow(
+            icon: Icons.dark_mode_outlined,
+            title: 'Chế độ tối',
+            onTap: () => _showUnderDevelopmentMessage('Chế độ tối'),
+          ),
+          _buildRowDivider(),
+
+          _buildMenuRow(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Chính sách bảo mật',
+            onTap: () => _showUnderDevelopmentMessage('Chính sách bảo mật'),
+          ),
+          _buildRowDivider(),
+
+          _buildMenuRow(
+            icon: Icons.description_outlined,
+            title: 'Điều khoản sử dụng',
+            onTap: () => _showUnderDevelopmentMessage('Điều khoản sử dụng'),
+          ),
+          _buildRowDivider(),
+
+          _buildMenuRow(
+            icon: Icons.info_outline_rounded,
+            title: 'Phiên bản ứng dụng',
+            trailingText: 'v1.2.0',
+            onTap: () => _showUnderDevelopmentMessage('Phiên bản ứng dụng'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRowDivider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Divider(height: 1, color: Color(0xFFF3F4F6)),
+    );
+  }
+
+  Widget _buildMenuRow({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color titleColor = const Color(0xFF374151),
+    Color iconColor = const Color(0xFF1E8E4A),
+    Color iconBgColor = const Color(0xFFE8F5ED),
+    String? trailingText,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: titleColor,
+              ),
+            ),
+          ),
+          if (trailingText != null) ...[
+            Text(
+              trailingText,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF9CA3AF),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: Color(0xFF9CA3AF),
+            size: 18,
+          ),
+        ],
+      ),
     );
   }
 }

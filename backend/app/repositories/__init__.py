@@ -9,6 +9,8 @@ from app.repositories.season_repository import SeasonRepository
 from app.repositories.farm_performance_repository import FarmPerformanceRepository
 from app.repositories.farm_target_repository import FarmTargetRepository
 from app.repositories.harvest_repository import HarvestRepository
+from app.repositories.farm_activity_repository import FarmActivityRepository
+from app.repositories.knowledge_base_repository import KnowledgeBaseRepository
 
 __all__ = [
     "UserRepository",
@@ -22,4 +24,6 @@ __all__ = [
     "FarmPerformanceRepository",
     "FarmTargetRepository",
     "HarvestRepository",
+    "FarmActivityRepository",
+    "KnowledgeBaseRepository",
 ]

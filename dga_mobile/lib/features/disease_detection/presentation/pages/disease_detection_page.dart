@@ -14,10 +14,12 @@ import '../widgets/action_buttons.dart';
 import '../widgets/ai_result_card.dart';
 import '../widgets/analysis_loading_widget.dart';
 import '../widgets/disease_details_card.dart';
+import '../widgets/empty_state_illustration.dart';
 import '../widgets/image_metadata_card.dart';
 import '../widgets/image_preview_card.dart';
 import '../widgets/image_selector_buttons.dart';
 import '../widgets/instructions_card.dart';
+import '../widgets/photo_tips_card.dart';
 import '../widgets/quick_recommendations_card.dart';
 import '../../../history/presentation/providers/history_providers.dart';
 
@@ -135,22 +137,72 @@ class DiseaseDetectionPage extends ConsumerWidget {
     final result = ref.watch(detectionResultProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.diseaseDetection),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history_outlined),
-            onPressed: () {
-              ref.invalidate(historyRawLogsProvider);
-              context.go('/history');
-            },
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFF0F8A4C),
       body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _buildBodyByState(context, ref, state, selectedImage, result),
+        bottom: false,
+        child: Column(
+          children: [
+            // Top Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      } else {
+                        context.go('/dashboard');
+                      }
+                    },
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Chẩn đoán bệnh',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.history_outlined, color: Colors.white, size: 24),
+                    onPressed: () {
+                      ref.invalidate(historyRawLogsProvider);
+                      context.go('/history');
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // White Content Card
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildBodyByState(context, ref, state, selectedImage, result),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -253,6 +305,7 @@ class DiseaseDetectionPage extends ConsumerWidget {
 
     if (state == 'success' && result != null) {
       return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,36 +328,50 @@ class DiseaseDetectionPage extends ConsumerWidget {
       );
     }
 
+    // Default Idle State - Matches screenshot 100% pixel perfect
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Section 1: Instructions Card
           const InstructionsCard(),
-          AppSpacing.v24,
-          Center(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.image_not_supported_outlined,
-                  size: 80,
-                  color: theme.colorScheme.onSurface.withAlpha(50),
-                ),
-                AppSpacing.v16,
-                Text(
-                  AppStrings.noImageForDetection,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withAlpha(120),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 28),
+
+          // Section 2: Empty State Illustration & Text
+          const EmptyStateIllustration(),
+          const SizedBox(height: 18),
+          const Text(
+            'Chưa có ảnh để chẩn đoán',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1F2937),
             ),
           ),
-          AppSpacing.v40,
+          const SizedBox(height: 8),
+          const Text(
+            'Vui lòng chụp hoặc chọn ảnh để bắt đầu\nphân tích bệnh lá sầu riêng.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF6B7280),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Section 3: Action Buttons
           ImageSelectorButtons(
             onCameraTap: () => context.push('/camera-simulator'),
             onGalleryTap: () => _openGallery(context, ref),
           ),
+          const SizedBox(height: 24),
+
+          // Section 4: Photo Tips
+          const PhotoTipsCard(),
+          const SizedBox(height: 24),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/network/url_resolver.dart';
 import '../../domain/entities/history_entities.dart';
 import '../providers/history_providers.dart';
 
@@ -27,15 +28,16 @@ class _ComparePageState extends ConsumerState<ComparePage> {
   }
 
   Widget _buildImage(String path) {
-    if (path.isEmpty) {
+    final resolved = UrlResolver.resolve(path);
+    if (resolved.isEmpty) {
       return Container(
         color: Colors.grey[300],
         child: const Icon(Icons.image, size: 40),
       );
     }
-    if (path.startsWith('http://') || path.startsWith('https://')) {
+    if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
       return Image.network(
-        path,
+        resolved,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: Colors.grey[300],
@@ -43,9 +45,9 @@ class _ComparePageState extends ConsumerState<ComparePage> {
         ),
       );
     }
-    if (path.startsWith('assets/')) {
+    if (resolved.startsWith('assets/')) {
       return Image.asset(
-        path,
+        resolved,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: Colors.grey[300],
@@ -53,7 +55,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
         ),
       );
     }
-    final file = File(path);
+    final file = File(resolved.replaceFirst('file://', ''));
     if (file.existsSync()) {
       return Image.file(
         file,
@@ -66,7 +68,7 @@ class _ComparePageState extends ConsumerState<ComparePage> {
     }
     return Container(
       color: Colors.grey[300],
-      child: const Icon(Icons.image_not_supported, size: 40),
+      child: const Icon(Icons.broken_image, size: 40),
     );
   }
 

@@ -179,9 +179,9 @@ class Model3Predictor:
                 cls_str = str(cls_name).lower()
                 prob = float(pred_proba[i])
                 if "cao" in cls_str or "high" in cls_str or "nặng" in cls_str:
-                    weighted_risk_score += prob * 0.85
+                    weighted_risk_score += prob * 0.98
                 elif "trung bình" in cls_str or "medium" in cls_str or "moderate" in cls_str or "nguy cơ" in cls_str:
-                    weighted_risk_score += prob * 0.45
+                    weighted_risk_score += prob * 0.50
                 else: # Thấp / Low
                     weighted_risk_score += prob * 0.05
 

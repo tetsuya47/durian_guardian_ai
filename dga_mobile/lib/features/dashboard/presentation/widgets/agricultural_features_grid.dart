@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/dio_api_client.dart';
@@ -794,18 +793,19 @@ class _AgriculturalFeaturesGridState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Search Bar (Matching reference image)
+        // Search Bar (Rule 7: Reduced height & exact placeholder)
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(color: const Color(0xFFD0E1D4), width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF2E7D32).withAlpha(12),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                color: const Color(0xFF2E7D32).withAlpha(10),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -816,17 +816,20 @@ class _AgriculturalFeaturesGridState
                 _searchQuery = val.trim();
               });
             },
+            style: const TextStyle(fontSize: 14),
             decoration: const InputDecoration(
-              hintText: 'Nhập từ khóa ...',
+              hintText: 'Tìm bệnh, thuốc, kỹ thuật...',
               hintStyle: TextStyle(
                 color: Color(0xFF8DA69B),
-                fontSize: 14,
+                fontSize: 13,
               ),
               border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 11),
               suffixIcon: Icon(
                 Icons.search,
                 color: Color(0xFF2E7D32),
-                size: 24,
+                size: 22,
               ),
             ),
           ),

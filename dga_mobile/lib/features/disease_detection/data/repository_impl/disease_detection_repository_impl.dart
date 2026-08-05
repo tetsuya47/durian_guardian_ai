@@ -31,7 +31,7 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
   @override
   Future<Result<List<ImageInfoEntity>>> getMockImages() async {
     try {
-      final mockList = MockDetectionDatasource.mockImages;
+      const mockList = MockDetectionDatasource.mockImages;
       final dtos = mockList.map((mock) => ScanImageMetadataDto(
         fileName: mock.fileName,
         fileSize: mock.fileSize,
@@ -196,6 +196,38 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
         ),
       );
 
+      // Save local history item for instant UI update on History Page
+      try {
+        final localHistoryItem = {
+          'id': 'local_${DateTime.now().millisecondsSinceEpoch}',
+          'treeName': 'Cây sầu riêng #01 (Mặc định)',
+          'imageUrl': imageInfo.imageUrl.startsWith('assets/') ? imageInfo.imageUrl : localImagePath,
+          'diseaseName': _translateDisease(diseaseBrief.disease),
+          'confidence': diseaseBrief.confidence,
+          'severity': _translateSeverity(diseaseBrief.severity),
+          'date': _formatScanDateOnly(detectionDto.createdAt),
+          'time': _formatScanTimeOnly(detectionDto.createdAt),
+          'inspectorName': 'Hệ thống AI',
+          'weather': {'temperature': 29.5, 'humidity': 75.0},
+          'recommendations': recommendations,
+          'riskScore': riskScore,
+        };
+
+        final existingJsonStr = _storageService.getString('local_scan_history');
+        List<dynamic> existingList = [];
+        if (existingJsonStr != null && existingJsonStr.isNotEmpty) {
+          existingList = json.decode(existingJsonStr) as List<dynamic>;
+        }
+        existingList.insert(0, localHistoryItem);
+        if (existingList.length > 50) {
+          existingList = existingList.sublist(0, 50);
+        }
+        await _storageService.setString('local_scan_history', json.encode(existingList));
+        dev.log('[DGA] Local history log saved successfully!', name: 'DGA');
+      } catch (e) {
+        dev.log('[DGA] Error saving local scan history: $e', name: 'DGA');
+      }
+
       dev.log('[DGA] Returning Success!', name: 'DGA');
       return Success(resultDto.toDomain());
     } catch (e) {
@@ -275,6 +307,26 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
       return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year} ${parsed.hour.toString().padLeft(2, '0')}:${parsed.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return rawDate;
+    }
+  }
+
+  String _formatScanDateOnly(String rawDate) {
+    try {
+      final parsed = DateTime.parse(rawDate).toLocal();
+      return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
+    } catch (_) {
+      final now = DateTime.now();
+      return '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    }
+  }
+
+  String _formatScanTimeOnly(String rawDate) {
+    try {
+      final parsed = DateTime.parse(rawDate).toLocal();
+      return '${parsed.hour.toString().padLeft(2, '0')}:${parsed.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      final now = DateTime.now();
+      return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     }
   }
 

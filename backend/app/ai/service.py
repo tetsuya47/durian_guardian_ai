@@ -18,31 +18,56 @@ from app.repositories.detection_result_repository import DetectionResultReposito
 from app.repositories.alert_repository import AlertRepository
 from app.schemas import DetectionResponse, DetectionResult
 from app.ai.predictor import DiseasePredictor
+from app.ai.decision_engine.service import AIDecisionEngineService
 
 logger = logging.getLogger(__name__)
 
 
 def _build_recommendation(disease_vi: str, severity: str) -> str:
-    """Short recommendation text for the disease detection response.
-
-    Input-ready recommendation for the client; the dedicated recommendation
-    engine itself is out of scope for disease detection.
-    """
+    """AI Decision Engine recommendation combining Model 1 prediction + Knowledge Base + Actionable Protocol."""
     if disease_vi in ("Khỏe mạnh", "Healthy"):
-        return "Cây khỏe mạnh. Tiếp tục chăm sóc định kỳ."
+        return "🌱 NÔNG TRẠI AN TOÀN: Lá sầu riêng xanh mướt, không có dấu hiệu bệnh hại. Duy trì tưới gốc & bổ sung phân hữu cơ vi sinh định kỳ."
+
+    if "Thán Thư" in disease_vi or "Anthracnose" in disease_vi:
+        return (
+            f"⚡ AI DECISION ENGINE (Mức độ: {severity}): Phát hiện Bệnh Thán Thư (Colletotrichum). "
+            "Phác đồ khuyên dùng: Phun Ridomil Gold 68WG (Metalaxyl + Mancozeb) pha 500g/200L nước hoặc Antracol 70WP vào sáng sớm. "
+            "Tỉa cành rậm rạp & đặt lịch hẹn tái khám sau 7 ngày."
+        )
+    elif "Xì Mủ" in disease_vi or "Phytophthora" in disease_vi:
+        return (
+            f"⚡ AI DECISION ENGINE (Mức độ: {severity}): Cảnh báo Bệnh Xì Mủ Thối Rễ (Phytophthora). "
+            "Phác đồ khuyên dùng: Quét trực tiếp Aliette 800WG hoặc Ridomil Gold đậm đặc lên vết xì mủ ở gốc. "
+            "Rải 500g Vôi bột/gốc để sát trùng nâng pH đất và khơi rãnh thoát nước."
+        )
+    elif "Cháy Lá" in disease_vi or "Rhizoctonia" in disease_vi:
+        return (
+            f"⚡ AI DECISION ENGINE (Mức độ: {severity}): Phát hiện Bệnh Cháy Lá Dính (Rhizoctonia). "
+            "Phác đồ khuyên dùng: Phun Anvil 5SC (Hexaconazole 50g/l) 300ml/200L nước hoặc Validacin 5SL. "
+            "Gỡ chùm lá dính cháy khô & theo dõi cơi đọt non sau 7 ngày."
+        )
+    elif "Nấm Hồng" in disease_vi or "Pink" in disease_vi:
+        return (
+            f"⚡ AI DECISION ENGINE (Mức độ: {severity}): Phát hiện Bệnh Nấm Hồng cành chạc ba. "
+            "Phác đồ khuyên dùng: Phun Coc85 hoặc Champion 77WP quét sương vết nấm. "
+            "Tỉa bớt cành rậm tán dưới để thoáng gầm cây."
+        )
+
     return (
-        f"Phát hiện {disease_vi} (mức độ: {severity}). "
-        "Cần theo dõi sát và xử lý kịp thời theo hướng dẫn kỹ thuật."
+        f"⚡ AI DECISION ENGINE (Mức độ: {severity}): Phát hiện {disease_vi}. "
+        "Cần theo dõi sát cơi đọt và phun thuốc bảo vệ thực vật đặc trị theo hướng dẫn."
     )
 
 
 class AIService:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
+        self.db = db
         self.disease_repo = DiseaseRepository(db)
         self.tree_repo = TreeRepository(db)
         self.inspection_repo = InspectionRepository(db)
         self.detection_result_repo = DetectionResultRepository(db)
         self.alert_repo = AlertRepository(db)
+        self.decision_engine = AIDecisionEngineService(db)
         # Singleton predictor — model is loaded once on first call
         try:
             self._predictor = DiseasePredictor()
@@ -99,55 +124,40 @@ class AIService:
         except Exception as exc:
             logger.warning("Predictor failed during quality check: %s", exc)
 
-        # 4. Comprehensive plant foliage & non-durian image validation:
+        # 4. Strict plant foliage & non-durian image validation:
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # A) Green plant foliage spectrum (H: 28-90, S: 25-255, V: 25-255)
-        mask_green = cv2.inRange(hsv, np.array([28, 25, 25]), np.array([90, 255, 255]))
+        # A) Genuine green plant foliage spectrum (H: 30-88, S: 45-255, V: 35-255)
+        mask_green = cv2.inRange(hsv, np.array([30, 45, 35]), np.array([88, 255, 255]))
         green_ratio = float(np.count_nonzero(mask_green) / mask_green.size)
 
-        # B) Yellow / Diseased foliage & Durian fruit / copper leaf underside spectrum:
-        mask_yellow = cv2.inRange(hsv, np.array([12, 25, 25]), np.array([28, 255, 255]))
-        mask_copper = cv2.inRange(hsv, np.array([5, 40, 40]), np.array([12, 255, 255]))
-        foliage_mask = cv2.bitwise_or(mask_green, cv2.bitwise_or(mask_yellow, mask_copper))
-        foliage_ratio = float(np.count_nonzero(foliage_mask) / foliage_mask.size)
+        # B) Diseased yellow foliage spectrum (H: 15-30, S: 55-255, V: 45-255)
+        mask_yellow = cv2.inRange(hsv, np.array([15, 55, 45]), np.array([30, 255, 255]))
+        yellow_ratio = float(np.count_nonzero(mask_yellow) / mask_yellow.size)
 
-        # C) Human skin / Face spectrum detection (H: 0-20, S: 25-160, V: 70-255)
-        mask_skin = cv2.inRange(hsv, np.array([0, 25, 70]), np.array([20, 160, 255]))
+        foliage_ratio = green_ratio + yellow_ratio
+
+        # C) Non-leaf background checks
+        mask_skin = cv2.inRange(hsv, np.array([0, 30, 70]), np.array([20, 160, 255]))
         skin_ratio = float(np.count_nonzero(mask_skin) / mask_skin.size)
 
-        # D) Blue/cyan background spectrum (H: 90-135, S: 40-255, V: 40-255)
-        mask_blue = cv2.inRange(hsv, np.array([90, 40, 40]), np.array([135, 255, 255]))
+        mask_blue = cv2.inRange(hsv, np.array([90, 45, 40]), np.array([135, 255, 255]))
         blue_ratio = float(np.count_nonzero(mask_blue) / mask_blue.size)
 
-        # E) Red/magenta background spectrum (H: 0-10 or 160-180, S: 50-255, V: 50-255)
-        mask_red1 = cv2.inRange(hsv, np.array([0, 50, 50]), np.array([10, 255, 255]))
-        mask_red2 = cv2.inRange(hsv, np.array([160, 50, 50]), np.array([180, 255, 255]))
-        mask_red = cv2.bitwise_or(mask_red1, mask_red2)
-        red_ratio = float(np.count_nonzero(mask_red) / mask_red.size)
-
-        # F) Monochromatic / White paper / document background check
         mean_saturation = float(np.mean(hsv[:, :, 1]))
 
-        # G) Validation Decision for Durian Leaf / Plant Foliage:
-        # 1. Nếu mô hình AI (EfficientNet-B0) nhận diện ra bệnh/lá (confidence >= 0.25) -> Chấp nhận
-        if confidence >= 0.25:
-            leaf_detected = True
-        elif green_ratio >= 0.05 or foliage_ratio >= 0.08:
-            leaf_detected = True
-        # 2. Chỉ loại bỏ nếu ảnh HOÀN TOÀN không chứa cây lá
-        elif skin_ratio > 0.35 and green_ratio < 0.02 and foliage_ratio < 0.05:
+        # D) Validation Decision for Durian Leaf / Plant Foliage:
+        # A valid plant/leaf image MUST contain sufficient green/yellow foliage diệp lục (foliage_ratio >= 0.08 or green_ratio >= 0.05)
+        if green_ratio < 0.05 and foliage_ratio < 0.08:
             leaf_detected = False
-        elif blue_ratio > 0.40 and green_ratio < 0.02 and foliage_ratio < 0.05:
+        elif skin_ratio > 0.25 and green_ratio < 0.08:
             leaf_detected = False
-        elif red_ratio > 0.40 and green_ratio < 0.02 and foliage_ratio < 0.05:
+        elif blue_ratio > 0.30 and green_ratio < 0.08:
             leaf_detected = False
-        elif mean_saturation < 15.0 and green_ratio < 0.02 and foliage_ratio < 0.05:
-            leaf_detected = False
-        elif foliage_ratio < 0.05:
+        elif mean_saturation < 18.0 and green_ratio < 0.08:
             leaf_detected = False
         else:
-            leaf_detected = True if prediction is not None else False
+            leaf_detected = True
 
         passed = bool((not blur) and (brightness == "good") and leaf_detected)
 
@@ -254,6 +264,24 @@ class AIService:
             rel_image_url = f"/uploads/{saved_name}"
 
             # Phase 2: Create Detection Result record in detection_results collection
+            severity_risk_map = {
+                "none": 10,
+                "low": 40,
+                "medium": 70,
+                "high": 90,
+            }
+            risk_score = severity_risk_map.get(result.severity.lower() if isinstance(result.severity, str) else "medium", 50)
+
+            # Model 4 AI Decision Engine & AI Agronomist execution
+            ai_decision_dict, agronomist_recommendation = await self.decision_engine.run_decision_engine(
+                tree_id=tree_id,
+                disease_name=result.disease,
+                confidence=result.confidence,
+                severity=result.severity,
+                risk_score=float(risk_score),
+                risk_level="High" if risk_score >= 70 else "Medium" if risk_score >= 40 else "Low",
+            )
+
             count_det = await self.detection_result_repo.collection.count_documents({})
             detection_code = f"DET{count_det + 1:05d}"
 
@@ -271,18 +299,10 @@ class AIService:
                 "image_path": rel_image_url,
                 "image_quality": "good" if quality.get("passed") else "normal",
                 "processing_time_ms": inference_time_ms,
-                "recommendation": _build_recommendation(result.disease, result.severity),
+                "recommendation": agronomist_recommendation,
+                "ai_decision": ai_decision_dict,
                 "created_at": datetime.now(timezone.utc),
             })
-
-            # Phase 3: Update Tree master entity (health_status, risk_score, last_inspection)
-            severity_risk_map = {
-                "none": 10,
-                "low": 40,
-                "medium": 70,
-                "high": 90,
-            }
-            risk_score = severity_risk_map.get(result.severity, 50)
             status_enum = "Khỏe mạnh" if result.disease in ("Khỏe mạnh", "Healthy") else "Bị bệnh"
             health_status_vi = "Khỏe mạnh" if result.disease in ("Khỏe mạnh", "Healthy") else result.disease
 

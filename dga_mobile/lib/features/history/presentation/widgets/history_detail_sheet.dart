@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/network/url_resolver.dart';
 import '../../domain/entities/history_entities.dart';
 
 class HistoryDetailSheet extends StatelessWidget {
@@ -56,12 +58,15 @@ class HistoryDetailSheet extends StatelessWidget {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${AppStrings.detailScanTitle} (${log.id})',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    '${AppStrings.detailScanTitle} (${log.id})',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 IconButton(
@@ -73,17 +78,7 @@ class HistoryDetailSheet extends StatelessWidget {
             AppSpacing.v16,
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: log.imageUrl,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorWidget: (context, url, error) => Container(
-                  height: 200,
-                  color: AppColors.primary.withAlpha(30),
-                  child: const Icon(Icons.image_not_supported_outlined, size: 48),
-                ),
-              ),
+              child: _buildSmartImage(log.imageUrl, height: 200, width: double.infinity),
             ),
             AppSpacing.v16,
             Text(
@@ -94,15 +89,19 @@ class HistoryDetailSheet extends StatelessWidget {
             ),
             AppSpacing.v4,
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  log.diseaseName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: severityColor,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    log.diseaseName,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: severityColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
@@ -183,13 +182,85 @@ class HistoryDetailSheet extends StatelessWidget {
             color: theme.colorScheme.onSurface.withAlpha(140),
           ),
         ),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSmartImage(String url, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
+    final resolvedUrl = UrlResolver.resolve(url);
+    if (resolvedUrl.isEmpty) {
+      return _buildErrorWidget(width, height);
+    }
+
+    // 1. Asset Image
+    if (resolvedUrl.startsWith('assets/')) {
+      return Image.asset(
+        resolvedUrl,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(width, height),
+      );
+    }
+
+    // 2. Local File
+    if (resolvedUrl.startsWith('/') || resolvedUrl.startsWith('file:')) {
+      final cleanPath = resolvedUrl.replaceFirst('file://', '');
+      final file = File(cleanPath);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => _buildErrorWidget(width, height),
+        );
+      }
+    }
+
+    // 3. Network Image
+    return CachedNetworkImage(
+      imageUrl: resolvedUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      placeholder: (context, url) => Container(
+        width: width,
+        height: height,
+        color: Colors.grey.withAlpha(30),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      errorWidget: (context, url, error) => _buildErrorWidget(width, height),
+    );
+  }
+
+  Widget _buildErrorWidget(double? width, double? height) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          size: 48,
+          color: Color(0xFF94A3B8),
+        ),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,19 +17,35 @@ class _FarmManagementIoTPageState
     extends ConsumerState<FarmManagementIoTPage> {
   bool _isLoading = true;
   Map<String, dynamic>? _analysisData;
+  // ignore: unused_field
   String? _errorMessage;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchIoTAnalysis();
+    _fetchIoTAnalysis(showSpinner: true);
+    // Auto refresh every 5 seconds so live IoT simulator changes trigger immediate UI updates
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) {
+        _fetchIoTAnalysis(showSpinner: false);
+      }
+    });
   }
 
-  Future<void> _fetchIoTAnalysis() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchIoTAnalysis({bool showSpinner = false}) async {
+    if (showSpinner) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final client = ref.read(dioApiClientProvider);
@@ -46,21 +63,27 @@ class _FarmManagementIoTPageState
           dataMap = Map<String, dynamic>.from(raw);
         }
 
-        setState(() {
-          _analysisData = dataMap;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _analysisData = dataMap;
+            _isLoading = false;
+          });
+        }
       } else {
+        if (mounted && showSpinner) {
+          setState(() {
+            _errorMessage = 'Không nhận được dữ liệu cảm biến IoT.';
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (exc) {
+      if (mounted && showSpinner) {
         setState(() {
-          _errorMessage = 'Không nhận được dữ liệu cảm biến IoT.';
+          _errorMessage = 'Lỗi kết nối máy chủ IoT: $exc';
           _isLoading = false;
         });
       }
-    } catch (exc) {
-      setState(() {
-        _errorMessage = 'Lỗi kết nối máy chủ IoT: $exc';
-        _isLoading = false;
-      });
     }
   }
 
@@ -96,13 +119,13 @@ class _FarmManagementIoTPageState
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _fetchIoTAnalysis,
+            onPressed: () => _fetchIoTAnalysis(showSpinner: true),
             tooltip: 'Làm mới dữ liệu',
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _fetchIoTAnalysis,
+        onRefresh: () => _fetchIoTAnalysis(showSpinner: true),
         color: const Color(0xFF2E7D32),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -160,21 +183,6 @@ class _FarmManagementIoTPageState
                                   style: TextStyle(fontSize: 11, color: Colors.white70),
                                 ),
                               ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.greenAccent.shade400,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              '• LIVE 30s',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
                             ),
                           ),
                         ],
@@ -260,9 +268,15 @@ class _FarmManagementIoTPageState
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: riskScore > 0.6
+                            ? const Color(0xFFFFEBEE)
+                            : (riskScore > 0.3 ? const Color(0xFFFFF8E1) : Colors.white),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFC8E6C9)),
+                        border: Border.all(
+                          color: riskScore > 0.6
+                              ? Colors.red.shade300
+                              : (riskScore > 0.3 ? Colors.amber.shade300 : const Color(0xFFC8E6C9)),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withAlpha(6),
@@ -276,11 +290,18 @@ class _FarmManagementIoTPageState
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.shield_outlined, color: Color(0xFF2E7D32)),
+                              Icon(
+                                riskScore > 0.6
+                                    ? Icons.warning_amber_rounded
+                                    : (riskScore > 0.3 ? Icons.report_problem_outlined : Icons.shield_outlined),
+                                color: riskScore > 0.6
+                                    ? Colors.red
+                                    : (riskScore > 0.3 ? Colors.amber.shade900 : const Color(0xFF2E7D32)),
+                              ),
                               const SizedBox(width: 8),
                               const Expanded(
                                 child: Text(
-                                  'Model 3 — Dự Báo Nguy Cơ Bệnh Nông Trại',
+                                  'Dự Báo Nguy Cơ Bệnh Nông Trại',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -291,9 +312,9 @@ class _FarmManagementIoTPageState
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: riskLevel == 'High' || riskLevel == 'Bệnh nặng'
-                                      ? Colors.red.shade50
-                                      : Colors.green.shade50,
+                                  color: riskScore > 0.6
+                                      ? Colors.red.shade100
+                                      : (riskScore > 0.3 ? Colors.amber.shade100 : Colors.green.shade50),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -301,9 +322,9 @@ class _FarmManagementIoTPageState
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: riskLevel == 'High' || riskLevel == 'Bệnh nặng'
-                                        ? Colors.red
-                                        : const Color(0xFF2E7D32),
+                                    color: riskScore > 0.6
+                                        ? Colors.red.shade800
+                                        : (riskScore > 0.3 ? Colors.amber.shade900 : const Color(0xFF2E7D32)),
                                   ),
                                 ),
                               ),
@@ -319,10 +340,12 @@ class _FarmManagementIoTPageState
                               ),
                               Text(
                                 '${(riskScore * 100).toStringAsFixed(1)}%',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2E7D32),
+                                  color: riskScore > 0.6
+                                      ? Colors.red.shade800
+                                      : (riskScore > 0.3 ? Colors.amber.shade900 : const Color(0xFF2E7D32)),
                                 ),
                               ),
                             ],
@@ -331,7 +354,9 @@ class _FarmManagementIoTPageState
                           LinearProgressIndicator(
                             value: riskScore,
                             backgroundColor: Colors.grey.shade200,
-                            color: riskScore > 0.5 ? Colors.orange : const Color(0xFF2E7D32),
+                            color: riskScore > 0.6
+                                ? Colors.red
+                                : (riskScore > 0.3 ? Colors.amber.shade800 : const Color(0xFF2E7D32)),
                             minHeight: 8,
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -357,12 +382,15 @@ class _FarmManagementIoTPageState
                             children: [
                               Icon(Icons.auto_awesome, color: Colors.amber),
                               SizedBox(width: 8),
-                              Text(
-                                'Model 4 — Đề Xuất Kỹ Thuật AI Agronomist',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1B4D3E),
+                              Expanded(
+                                child: Text(
+                                  'Đề Xuất Kỹ Thuật AI Agronomist',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1B4D3E),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],

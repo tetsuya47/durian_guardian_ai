@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
 
 class ImageSelectorButtons extends StatelessWidget {
   final VoidCallback onCameraTap;
@@ -14,39 +12,107 @@ class ImageSelectorButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Row(
       children: [
-        // Camera Button
+        // Left Button: Chụp ảnh
         Expanded(
-          child: ElevatedButton.icon(
-            onPressed: onCameraTap,
-            icon: const Icon(Icons.camera_alt_outlined),
-            label: const Text(AppStrings.takePhoto),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          child: Material(
+            color: const Color(0xFF0F8A4C),
+            borderRadius: BorderRadius.circular(24),
+            child: InkWell(
+              onTap: onCameraTap,
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Chụp ảnh',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Sử dụng camera',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-        AppSpacing.h12,
-        // Gallery Button
+        const SizedBox(width: 14),
+        // Right Button: Thư viện ảnh
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onGalleryTap,
-            icon: const Icon(Icons.image_search_outlined),
-            label: const Text(AppStrings.gallery),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              side: BorderSide(color: theme.colorScheme.primary, width: 1.5),
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            child: InkWell(
+              onTap: onGalleryTap,
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFF0F8A4C), width: 1.5),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8F5EE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.image_rounded,
+                        color: Color(0xFF0F8A4C),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Thư viện ảnh',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F8A4C),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Chọn ảnh có sẵn',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

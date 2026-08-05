@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/utils/ui_helpers.dart';
 import '../../domain/entities/disease_detection_entities.dart';
 import '../providers/disease_detection_providers.dart';
+import '../../../history/presentation/providers/history_providers.dart';
 
 class ImageEditorWizard extends ConsumerStatefulWidget {
   const ImageEditorWizard({super.key});
@@ -55,6 +56,7 @@ class _ImageEditorWizardState extends ConsumerState<ImageEditorWizard> {
         success: (data) {
           container.read(detectionResultProvider.notifier).state = data;
           container.read(detectionStateProvider.notifier).state = 'success';
+          container.invalidate(historyRawLogsProvider);
         },
         failure: (msg, err) {
           container.read(detectionErrorMessageProvider.notifier).state = msg;

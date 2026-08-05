@@ -10,7 +10,7 @@ class MockDiseaseDetectionRepository implements DiseaseDetectionRepository {
   @override
   Future<Result<List<ImageInfoEntity>>> getMockImages() async {
     try {
-      final mockList = MockDetectionDatasource.mockImages;
+      const mockList = MockDetectionDatasource.mockImages;
       final dtos = mockList.map((mock) => ScanImageMetadataDto(
         fileName: mock.fileName,
         fileSize: mock.fileSize,

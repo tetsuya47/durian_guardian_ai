@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_strings.dart';
 import '../styles/app_styles.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
@@ -14,12 +13,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
-      decoration: BoxDecoration(
-        boxShadow: AppShadow.medium,
-        borderRadius: const BorderRadius.only(
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.08),
+            blurRadius: 16,
+            offset: Offset(0, -4),
+          ),
+        ],
+        borderRadius: BorderRadius.only(
           topLeft: AppRadius.radiusMedium,
           topRight: AppRadius.radiusMedium,
         ),
@@ -35,40 +38,44 @@ class CustomBottomNavigationBar extends StatelessWidget {
             currentIndex: currentIndex,
             onTap: onTap,
             type: BottomNavigationBarType.fixed,
-            backgroundColor: theme.brightness == Brightness.light
-                ? theme.scaffoldBackgroundColor
-                : theme.cardColor,
-            selectedItemColor: theme.colorScheme.primary,
-            unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-            selectedLabelStyle: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+            backgroundColor: Colors.white,
+            selectedItemColor: const Color(0xFF16A34A),
+            unselectedItemColor: const Color(0xFF94A3B8),
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+              fontFamily: 'Be Vietnam Pro',
             ),
-            unselectedLabelStyle: theme.textTheme.labelSmall,
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              fontFamily: 'Be Vietnam Pro',
+            ),
             items: const [
               BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_outlined),
-                activeIcon: Icon(Icons.dashboard),
-                label: AppStrings.dashboard,
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Trang chủ',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.camera_alt_outlined),
-                activeIcon: Icon(Icons.camera_alt),
-                label: AppStrings.diseaseDetection,
+                icon: Icon(Icons.qr_code_scanner_outlined),
+                activeIcon: Icon(Icons.qr_code_scanner),
+                label: 'Quét AI',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.groups_outlined),
-                activeIcon: Icon(Icons.groups),
+                icon: Icon(Icons.book_outlined),
+                activeIcon: Icon(Icons.book),
+                label: 'Nhật ký',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.people_outline),
+                activeIcon: Icon(Icons.people),
                 label: 'Cộng đồng',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history_outlined),
-                activeIcon: Icon(Icons.history),
-                label: AppStrings.history,
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline),
                 activeIcon: Icon(Icons.person),
-                label: AppStrings.profile,
+                label: 'Hồ sơ',
               ),
             ],
           ),

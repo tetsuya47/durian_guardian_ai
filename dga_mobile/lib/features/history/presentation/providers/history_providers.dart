@@ -97,11 +97,38 @@ final filteredHistoryLogsProvider = Provider<List<HistoryLogEntity>>((ref) {
         }).toList();
       }
 
+      int compareDates(HistoryLogEntity a, HistoryLogEntity b) {
+        try {
+          final partsA = a.date.split('/');
+          final timeA = a.time.split(':');
+          final dateA = DateTime(
+            int.parse(partsA[2]),
+            int.parse(partsA[1]),
+            int.parse(partsA[0]),
+            int.parse(timeA[0]),
+            int.parse(timeA[1]),
+          );
+
+          final partsB = b.date.split('/');
+          final timeB = b.time.split(':');
+          final dateB = DateTime(
+            int.parse(partsB[2]),
+            int.parse(partsB[1]),
+            int.parse(partsB[0]),
+            int.parse(timeB[0]),
+            int.parse(timeB[1]),
+          );
+          return dateB.compareTo(dateA); // Newest first
+        } catch (_) {
+          return b.id.compareTo(a.id);
+        }
+      }
+
       // 4. Sắp xếp kết quả (Mới nhất / Cũ nhất / Độ tin cậy / Tên cây)
       if (sort == 'Mới nhất') {
-        filtered.sort((a, b) => b.id.compareTo(a.id));
+        filtered.sort((a, b) => compareDates(a, b));
       } else if (sort == 'Cũ nhất') {
-        filtered.sort((a, b) => a.id.compareTo(b.id));
+        filtered.sort((a, b) => compareDates(b, a));
       } else if (sort == 'Độ tin cậy') {
         filtered.sort((a, b) => b.confidence.compareTo(a.confidence));
       } else if (sort == 'Tên cây') {

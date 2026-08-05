@@ -119,11 +119,11 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.contact_phone, color: Colors.green),
+            Icon(Icons.contact_phone, color: Colors.green),
             AppSpacing.h8,
-            const Text('Hỏi Kinh Nghiệm'),
+            Text('Hỏi Kinh Nghiệm'),
           ],
         ),
         content: Column(
@@ -148,11 +148,11 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> with SingleTi
               ],
             ),
             AppSpacing.v8,
-            Row(
+            const Row(
               children: [
-                const Icon(Icons.chat_bubble_outline, size: 20, color: Colors.blue),
+                Icon(Icons.chat_bubble_outline, size: 20, color: Colors.blue),
                 AppSpacing.h8,
-                const Text('Gửi tin nhắn nội bộ', style: TextStyle(fontSize: 15, color: Colors.blue)),
+                Text('Gửi tin nhắn nội bộ', style: TextStyle(fontSize: 15, color: Colors.blue)),
               ],
             ),
           ],

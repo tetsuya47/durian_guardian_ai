@@ -7,7 +7,7 @@ import '../../domain/repositories/history_repository.dart';
 import '../datasources/history_remote_datasource.dart';
 import '../models/history_dtos.dart';
 import '../models/history_mappers.dart';
-import '../../../../core/network/environment_config.dart';
+import '../../../../core/network/url_resolver.dart';
 
 class HistoryRepositoryImpl implements HistoryRepository {
   final HistoryRemoteDataSource _remoteDataSource;
@@ -18,8 +18,40 @@ class HistoryRepositoryImpl implements HistoryRepository {
   @override
   Future<Result<List<HistoryLogEntity>>> getHistoryLogs() async {
     try {
-      final trees = await _remoteDataSource.getTrees();
       final List<HistoryLogDto> allLogs = [];
+
+      // Load locally cached scan logs from StorageService for instant availability
+      final localJsonStr = _storageService.getString('local_scan_history');
+      if (localJsonStr != null && localJsonStr.isNotEmpty) {
+        try {
+          final List<dynamic> localItems = json.decode(localJsonStr) as List<dynamic>;
+          for (final item in localItems) {
+            if (item is Map<String, dynamic>) {
+              allLogs.add(
+                HistoryLogDto(
+                  id: item['id'] as String? ?? 'local_${DateTime.now().millisecondsSinceEpoch}',
+                  treeName: item['treeName'] as String? ?? 'Cây sầu riêng #01 (Mặc định)',
+                  imageUrl: _resolveUrl(item['imageUrl'] as String?),
+                  diseaseName: item['diseaseName'] as String? ?? 'Không phát hiện bệnh hại',
+                  confidence: (item['confidence'] as num?)?.toDouble() ?? 0.9,
+                  severity: item['severity'] as String? ?? 'Nhẹ',
+                  date: item['date'] as String? ?? '',
+                  time: item['time'] as String? ?? '',
+                  inspectorName: item['inspectorName'] as String? ?? 'Hệ thống AI',
+                  weather: HistoryWeatherDto(
+                    temperature: (item['weather']?['temperature'] as num?)?.toDouble() ?? 29.5,
+                    humidity: (item['weather']?['humidity'] as num?)?.toDouble() ?? 75.0,
+                  ),
+                  recommendations: (item['recommendations'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+                  riskScore: (item['riskScore'] as num?)?.toDouble() ?? 30.0,
+                ),
+              );
+            }
+          }
+        } catch (_) {}
+      }
+
+      final trees = await _remoteDataSource.getTrees();
 
       final treeMap = <String, String>{};
       for (final tree in trees) {
@@ -202,17 +234,6 @@ class HistoryRepositoryImpl implements HistoryRepository {
   }
 
   String _resolveUrl(String? relativePath) {
-    if (relativePath == null || relativePath.isEmpty) return '';
-    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
-      return relativePath;
-    }
-    var cleaned = relativePath.replaceAll(r'\', '/');
-    if (cleaned.contains('/uploads/')) {
-      cleaned = cleaned.substring(cleaned.indexOf('/uploads/') + '/uploads/'.length);
-    } else if (cleaned.startsWith('uploads/')) {
-      cleaned = cleaned.substring('uploads/'.length);
-    }
-    cleaned = cleaned.replaceFirst(RegExp(r'^\.\/'), '').replaceFirst(RegExp(r'^\/'), '');
-    return '${EnvironmentConfig.uploadsBaseUrl}/$cleaned';
+    return UrlResolver.resolve(relativePath);
   }
 }
