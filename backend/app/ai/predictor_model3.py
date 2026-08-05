@@ -25,6 +25,12 @@ def _get_model3_exports_dir() -> Path:
     if env_dir and Path(env_dir).exists():
         return Path(env_dir)
 
+    # 1. Local path inside backend (recommended for Render)
+    local_dir = Path(__file__).resolve().parent / "model3_exports"
+    if local_dir.exists():
+        return local_dir
+
+    # 2. Standard path relative to repo root
     repo_dir = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "training"
@@ -34,6 +40,7 @@ def _get_model3_exports_dir() -> Path:
     if repo_dir.exists():
         return repo_dir
 
+    # 3. Secondary path inside backend or export dir
     backend_dir = (
         Path(__file__).resolve().parent.parent.parent
         / "training"
@@ -43,7 +50,7 @@ def _get_model3_exports_dir() -> Path:
     if backend_dir.exists():
         return backend_dir
 
-    return repo_dir
+    return local_dir
 
 _EXPORTS_DIR = _get_model3_exports_dir()
 
@@ -157,7 +164,6 @@ class Model3Predictor:
             pred_proba = self._model.predict_proba(X_final)[0]
 
             risk_level = str(label_encoder.inverse_transform([pred_class])[0])
-            risk_score = float(pred_proba[pred_class])
 
             # Class probabilities
             top_indices = np.argsort(pred_proba)[::-1]
@@ -165,6 +171,19 @@ class Model3Predictor:
                 str(label_encoder.classes_[i]): round(float(pred_proba[i]), 4)
                 for i in top_indices
             }
+
+            # Calculate Weighted Disease Risk Severity Score (0.0 to 1.0)
+            # Classes in model.pkl: ['Cao', 'Thấp', 'Trung bình']
+            weighted_risk_score = 0.0
+            for i, cls_name in enumerate(label_encoder.classes_):
+                cls_str = str(cls_name).lower()
+                prob = float(pred_proba[i])
+                if "cao" in cls_str or "high" in cls_str or "nặng" in cls_str:
+                    weighted_risk_score += prob * 0.85
+                elif "trung bình" in cls_str or "medium" in cls_str or "moderate" in cls_str or "nguy cơ" in cls_str:
+                    weighted_risk_score += prob * 0.45
+                else: # Thấp / Low
+                    weighted_risk_score += prob * 0.05
 
             # Top 5 feature importances
             feature_imp = self._model.feature_importances_
@@ -179,7 +198,7 @@ class Model3Predictor:
 
             return {
                 "risk_level": risk_level,
-                "risk_score": round(risk_score, 4),
+                "risk_score": round(weighted_risk_score, 4),
                 "probabilities": probabilities,
                 "top_factors": top_factors,
             }

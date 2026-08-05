@@ -285,11 +285,10 @@ export default function RegisterFarmPage() {
                     key={v}
                     type="button"
                     onClick={() => handleToggleVariety(v)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all border cursor-pointer ${
-                      active
-                        ? "bg-emerald-700 text-white border-emerald-700 shadow-xs"
-                        : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all border cursor-pointer ${active
+                      ? "bg-emerald-700 text-white border-emerald-700 shadow-xs"
+                      : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+                      }`}
                   >
                     {active ? "✓ " : "+ "}
                     {v}
