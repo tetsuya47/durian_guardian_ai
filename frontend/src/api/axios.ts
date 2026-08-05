@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "https://deviate-decompose-unaudited.ngrok-free.dev/api/v1";
+const baseURL = import.meta.env.VITE_API_BASE_URL || "https://durian-guardian-ai.onrender.com/api/v1";
 
 const apiClient = axios.create({
   baseURL,
