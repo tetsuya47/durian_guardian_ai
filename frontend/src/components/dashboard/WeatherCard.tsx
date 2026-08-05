@@ -49,12 +49,12 @@ export default function WeatherCard() {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden" padding={false} hover={false}>
-      <div className="flex flex-col justify-between h-full p-4 space-y-3">
+      <div className="flex flex-col justify-between h-full p-3.5 space-y-2.5">
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-gray-100">
           <SectionTitle
             icon={<CloudSun className="w-5 h-5 text-amber-500" />}
-            title="Thời tiết Nông nghiệp Realtime"
+            title="Thời tiết Realtime"
             size="section"
             subtitle={weather.location_name || "Vùng Tây Nguyên"}
           />
@@ -62,51 +62,55 @@ export default function WeatherCard() {
             type="button"
             onClick={fetchWeather}
             title="Cập nhật thời tiết"
-            className="p-1.5 rounded-[8px] bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all"
+            className="p-1 rounded-[8px] bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all flex-shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-emerald-600" : ""}`} />
           </button>
         </div>
 
-        {/* Main Temperature & Weather Info */}
-        <div className="bg-gradient-to-r from-amber-50/80 via-emerald-50/60 to-teal-50/80 p-3.5 rounded-[16px] border border-emerald-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-white/80 backdrop-blur-md border border-amber-200/60 flex items-center justify-center shadow-xs">
-              <CloudSun className="w-7 h-7 text-amber-500" />
-            </div>
-            <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-gray-900 leading-none">{weather.temp_celsius}°C</span>
-                <span className="text-[11px] font-semibold text-gray-500">(Cảm nhận {weather.feels_like_celsius}°C)</span>
+        {/* Main Temperature & Weather Info (Compact Stacked Grid) */}
+        <div className="bg-gradient-to-br from-amber-50/90 via-emerald-50/70 to-teal-50/90 p-3 rounded-[14px] border border-emerald-100/80 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-[12px] bg-white/90 backdrop-blur-md border border-amber-200/60 flex items-center justify-center shadow-2xs flex-shrink-0">
+                <CloudSun className="w-6 h-6 text-amber-500" />
               </div>
-              <p className="text-xs font-bold text-emerald-800 mt-1 capitalize">{weather.description}</p>
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl font-black text-gray-900 leading-none">{weather.temp_celsius}°C</span>
+                  <span className="text-[10px] font-semibold text-gray-500">({weather.feels_like_celsius}°C)</span>
+                </div>
+                <p className="text-[11px] font-bold text-emerald-800 mt-0.5 capitalize truncate max-w-[130px]">
+                  {weather.description}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="text-right space-y-1">
-            <div className="flex items-center justify-end gap-1 text-[11px] font-bold text-gray-700">
-              <Droplets className="w-3.5 h-3.5 text-blue-500" />
-              <span>Độ ẩm: {weather.humidity_percent}%</span>
+          <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-emerald-100/60 text-[10px] font-extrabold text-gray-700">
+            <div className="flex items-center gap-1 bg-white/70 p-1 rounded-md border border-emerald-100/40">
+              <Droplets className="w-3 h-3 text-blue-500 flex-shrink-0" />
+              <span className="truncate">Độ ẩm: <b>{weather.humidity_percent}%</b></span>
             </div>
-            <div className="flex items-center justify-end gap-1 text-[11px] font-bold text-gray-700">
-              <Wind className="w-3.5 h-3.5 text-teal-600" />
-              <span>Gió: {weather.wind_speed_m_s} m/s</span>
+            <div className="flex items-center gap-1 bg-white/70 p-1 rounded-md border border-emerald-100/40">
+              <Wind className="w-3 h-3 text-teal-600 flex-shrink-0" />
+              <span className="truncate">Gió: <b>{weather.wind_speed_m_s} m/s</b></span>
             </div>
           </div>
         </div>
 
         {/* AI Agri-Risk Recommendation */}
-        <div className="bg-amber-50/90 p-3 rounded-[14px] border border-amber-200/80 text-xs text-amber-950 font-medium space-y-1">
-          <div className="flex items-center justify-between">
-            <strong className="font-extrabold text-amber-900 flex items-center gap-1.5 text-[11px]">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              Khuyến nghị AI Agronomist cho vườn:
+        <div className="bg-amber-50/90 p-2.5 rounded-[12px] border border-amber-200/80 text-[11px] text-amber-950 font-medium space-y-1 my-auto">
+          <div className="flex items-center justify-between gap-1 flex-wrap">
+            <strong className="font-extrabold text-amber-900 flex items-center gap-1 text-[10px] truncate">
+              <Sparkles className="w-3 h-3 text-amber-600 flex-shrink-0" />
+              Khuyến nghị AI:
             </strong>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-md">
-              Rủi ro: {weather.fungal_disease_risk === "HIGH" ? "🔴 CAO" : weather.fungal_disease_risk === "MEDIUM" ? "🟡 TRUNG BÌNH" : "🟢 THẤP"}
+            <span className="text-[9px] font-black uppercase bg-amber-200/90 text-amber-950 px-1.5 py-0.5 rounded">
+              RỦI RO: {weather.fungal_disease_risk === "HIGH" ? "CAO" : weather.fungal_disease_risk === "MEDIUM" ? "TRUNG BÌNH" : "THẤP"}
             </span>
           </div>
-          <p className="text-[11px] text-amber-900 leading-relaxed font-semibold">
+          <p className="text-[10px] text-amber-900 leading-snug font-semibold line-clamp-2">
             {weather.agricultural_advice}
           </p>
         </div>

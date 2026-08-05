@@ -50,6 +50,10 @@ class FarmRegisterWithIoTRequest(BaseModel):
     durian_varieties: list[str] = Field(default_factory=lambda: ["Ri6"])
     iot_items: list[dict] = Field(default_factory=list)
     boundary_points: list[PolygonPoint] = Field(default_factory=list)
+    elevation_msl_meters: float | None = None
+    slope_gradient_percent: float | None = None
+    slope_aspect_heading: str | None = None
+    soil_texture_type: str | None = None
 
 
 class FarmOut(BaseModel):
@@ -69,5 +73,9 @@ class FarmOut(BaseModel):
     calculated_area_hectare: float | None = None
     calculated_perimeter_meters: float | None = None
     bounding_box: dict | None = None
+    elevation_msl_meters: float | None = None
+    slope_gradient_percent: float | None = None
+    slope_aspect_heading: str | None = None
+    soil_texture_type: str | None = None
     created_at: datetime
 

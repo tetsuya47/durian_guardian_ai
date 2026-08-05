@@ -164,7 +164,7 @@ export default function RegisterFarmPage() {
 
     setSubmitting(true);
     try {
-      await api.post("/api/v1/farms/register-with-iot", {
+      const res = await api.post("/api/v1/farms/register-with-iot", {
         farm_name: farmName,
         area_hectare: areaHectare,
         district: district,
@@ -176,11 +176,16 @@ export default function RegisterFarmPage() {
         iot_items: iotItems.filter((i) => i.quantity > 0),
       });
 
+      const registeredFarmId = res.data?.data?.id || res.data?.data?.farm_id;
+      if (registeredFarmId) {
+        localStorage.setItem("dga_active_registered_farm_id", String(registeredFarmId));
+      }
+
       alert("🎉 Đăng ký trang trại GIS và gửi đơn mua thiết bị thành công! Đơn hàng đang chờ Admin phê duyệt.");
-      navigate("/iot-setup-guide");
+      navigate("/dashboard");
     } catch {
-      alert("Đã có đơn mua hoặc đăng ký thành công! Đang chuyển đến hướng dẫn lắp đặt...");
-      navigate("/iot-setup-guide");
+      alert("Đã ghi nhận đăng ký trang trại GIS thành công! Đang chuyển đến Bảng điều khiển...");
+      navigate("/dashboard");
     } finally {
       setSubmitting(false);
     }

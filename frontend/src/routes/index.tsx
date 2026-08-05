@@ -26,7 +26,27 @@ import IoTManagementPage from "@/pages/iot/IoTManagementPage";
 import UserIoTDevicesPage from "@/pages/iot/UserIoTDevicesPage";
 import UserHomePage from "@/pages/home/UserHomePage";
 import UserCommunityPage from "@/pages/community/UserCommunityPage";
+import WorkPlanningPage from "@/pages/farms/WorkPlanningPage";
+import WorkerAssignmentPage from "@/pages/farms/WorkerAssignmentPage";
+import LogApprovalPage from "@/pages/farms/LogApprovalPage";
+import FarmReportsPage from "@/pages/farms/FarmReportsPage";
 import ProtectedRoute from "./ProtectedRoute";
+import { useAuth } from "@/hooks/useAuth";
+
+function RootRedirect() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "Admin" || user?.role === "ADMIN" || user?.role === "System Admin";
+  return <Navigate to={isAdmin ? "/dashboard" : "/home"} replace />;
+}
+
+function HomeRouteGuard() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "Admin" || user?.role === "ADMIN" || user?.role === "System Admin";
+  if (isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <UserHomePage />;
+}
 
 export const router = createBrowserRouter([
   {
@@ -47,11 +67,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <RootRedirect />,
       },
       {
         path: "home",
-        element: <UserHomePage />,
+        element: <HomeRouteGuard />,
       },
       {
         path: "community",
@@ -63,7 +83,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "ai-chatbot",
-        element: <AIChatbotPage />,
+        element: <Navigate to="/dashboard" replace />,
       },
       {
         path: "farm-performance",
@@ -78,6 +98,22 @@ export const router = createBrowserRouter([
         element: <RegisterFarmPage />,
       },
       {
+        path: "work-planning",
+        element: <WorkPlanningPage />,
+      },
+      {
+        path: "worker-assignment",
+        element: <WorkerAssignmentPage />,
+      },
+      {
+        path: "log-approval",
+        element: <LogApprovalPage />,
+      },
+      {
+        path: "farm-reports",
+        element: <FarmReportsPage />,
+      },
+      {
         path: "iot-setup-guide",
         element: <IoTSetupGuidePage />,
       },
@@ -87,7 +123,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "my-iot-devices",
-        element: <UserIoTDevicesPage />,
+        element: <Navigate to="/dashboard" replace />,
       },
       {
         path: "companies",

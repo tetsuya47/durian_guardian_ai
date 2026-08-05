@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  Leaf,
   Mail,
   Lock,
   Eye,
@@ -11,15 +10,32 @@ import {
   CloudSun,
   Layers,
   ShieldAlert,
-  Check,
+  ArrowRight,
+  Sprout,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
 const FEATURES = [
-  { icon: Brain, text: "AI Disease Detection" },
-  { icon: CloudSun, text: "Weather Intelligence" },
-  { icon: Layers, text: "Farm Digital Twin" },
-  { icon: ShieldAlert, text: "Early Warning System" },
+  {
+    icon: Brain,
+    title: "AI Disease Detection",
+    desc: "Phát hiện bệnh sớm bằng trí tuệ nhân tạo",
+  },
+  {
+    icon: CloudSun,
+    title: "Weather Intelligence",
+    desc: "Dự báo thời tiết chính xác cho từng khu vực",
+  },
+  {
+    icon: Layers,
+    title: "Farm Digital Twin",
+    desc: "Mô phỏng và quản lý trang trại số 3D",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Early Warning System",
+    desc: "Cảnh báo rủi ro sớm giúp giảm thiểu thiệt hại",
+  },
 ];
 
 export default function LoginPage() {
@@ -71,244 +87,250 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 animate-[fadeIn_0.5s_ease-out]">
-      {/* ── Left Hero Panel ── */}
-      <div
-        className="hidden md:flex md:w-[58%] lg:w-[58%] relative overflow-hidden flex-col justify-between"
-        style={{
-          /* TODO: Replace with background image when public/images/login-bg.jpg is available
-             backgroundImage: "url('/images/login-bg.jpg')", */
-          background: "linear-gradient(160deg, #05231A 0%, #0F3D2E 40%, #145A3C 100%)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {/* Overlay */}
+    <div className="h-screen w-screen overflow-hidden flex bg-[#F8FAF8] select-none font-sans">
+      {/* ── 1. HERO SECTION (BÊN TRÁI - Desktop 60%, Laptop 55%, Tablet 50%, Mobile Hidden) ── */}
+      <div className="hidden md:flex md:w-[50%] lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col justify-between p-8 lg:p-12 xl:p-14 text-white">
+        {/* Background Image: /images/login/hero-durian.jpg */}
         <div
-          className="absolute inset-0"
-          style={{ backgroundColor: "rgba(5,55,35,0.70)" }}
+          className="absolute inset-0 bg-cover bg-center pointer-events-none"
+          style={{
+            backgroundImage: "url('/images/login/hero-durian.jpg')",
+          }}
         />
 
-        {/* Subtle pattern */}
-        <div className="absolute inset-0 opacity-[0.03]">
-          <svg width="100%" height="100%">
-            <pattern id="hero-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="0.5" />
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#hero-grid)" />
-          </svg>
+        {/* Overlay: linear-gradient(90deg, rgba(0, 50, 20, 0.25) 0%, rgba(0, 50, 20, 0.15) 100%) */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "linear-gradient(90deg, rgba(0, 50, 20, 0.25) 0%, rgba(0, 50, 20, 0.15) 100%)",
+          }}
+        />
+
+        {/* Top Left Logo Pill Badge */}
+        <div className="relative z-10 flex items-center">
+          <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-md flex items-center gap-2.5 border border-white/30">
+            <div className="w-6 h-6 rounded-full bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center font-bold">
+              <Sprout className="w-4 h-4" />
+            </div>
+            <div className="text-xs font-black tracking-tight leading-none">
+              <span className="text-[#1B5E20]">Vie-farm</span>{" "}
+              <span className="text-gray-500 font-medium">Portal</span>
+            </div>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col h-full px-12 lg:px-20 py-14 justify-between">
-          {/* Top: Logo */}
-          <div className="flex items-center gap-3 animate-[fadeSlideDown_0.6s_ease-out]">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 backdrop-blur-sm flex items-center justify-center border border-emerald-500/20">
-              <Leaf className="w-5.5 h-5.5 text-emerald-400" />
-            </div>
-            <span className="text-lg font-bold tracking-wide text-white/90">
-              Vie-farm Portal
-            </span>
-          </div>
-
-          {/* Center: Title + Features */}
-          <div className="flex-1 flex flex-col justify-center max-w-xl animate-[fadeSlideUp_0.7s_ease-out]">
-            <h1 className="text-5xl lg:text-[3.5rem] font-extrabold text-white leading-[1.1] tracking-tight">
-              Vie-farm
-              <br />
-              <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
+        {/* Center Main Headline & Description & 4 Feature Cards */}
+        <div className="relative z-10 my-auto space-y-6 max-w-2xl">
+          <div className="space-y-1">
+            <h1 className="text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight leading-none text-white drop-shadow-md">
+              Vie-farm{" "}
+              <span className="text-[#4ADE80]">
                 AI
               </span>{" "}
-              <span className="text-white/90">Operating System</span>
+              Operating System
             </h1>
-
-            <p className="mt-3 text-xl font-medium text-emerald-300/80">
+            <p className="text-sm xl:text-base font-bold text-emerald-200 pt-1 drop-shadow-sm">
               for Smart Durian Farms
             </p>
+          </div>
 
-            <p className="mt-6 text-[16px] leading-relaxed text-white/50 max-w-lg">
-              Nền tảng AI giúp doanh nghiệp quản lý trang trại sầu riêng,
-              phát hiện bệnh sớm, phân tích rủi ro,
-              theo dõi sức khỏe cây theo thời gian thực.
-            </p>
+          <p className="text-xs lg:text-sm text-white/95 leading-relaxed max-w-xl font-medium drop-shadow-xs bg-emerald-950/40 p-3.5 rounded-2xl backdrop-blur-xs border border-white/15">
+            Nền tảng AI giúp doanh nghiệp quản lý trang trại sầu riêng, phát hiện bệnh sớm, phân tích rủi ro, theo dõi sức khỏe cây theo thời gian thực.
+          </p>
 
-            {/* Feature list */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {FEATURES.map((f) => (
-                <div
-                  key={f.text}
-                  className="flex items-center gap-3 px-4 py-4 rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/[0.08]"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-                    <f.icon className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <span className="text-[14px] font-medium text-white/70">
-                    {f.text}
-                  </span>
+          {/* 4 Feature Cards (2x2 Grid) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            {FEATURES.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-[#1B5E20]/85 backdrop-blur-md rounded-[20px] p-3.5 border border-emerald-400/30 shadow-md flex items-start gap-3 transition-all hover:bg-[#1B5E20]/95 hover:border-emerald-300/60"
+              >
+                <div className="w-9 h-9 rounded-xl bg-[#2E7D32] text-[#E8F5E9] flex items-center justify-center flex-shrink-0 border border-emerald-400/40 shadow-xs">
+                  <item.icon className="w-4.5 h-4.5" />
                 </div>
-              ))}
-            </div>
+                <div className="space-y-0.5 min-w-0">
+                  <h3 className="text-xs font-black text-white leading-snug">{item.title}</h3>
+                  <p className="text-[11px] text-emerald-100/90 font-medium leading-tight">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Bottom: Tagline */}
-          <div className="animate-[fadeSlideUp_0.8s_ease-out]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-[2px] bg-emerald-500/40 rounded-full" />
-            </div>
-            <p className="text-[13px] font-semibold text-emerald-300/60 tracking-wide uppercase">
-              Protect Every Tree. Predict Every Risk.
-            </p>
-          </div>
+        {/* Decorative Bottom Leaf Accent */}
+        <div className="relative z-10 text-[11px] font-bold text-emerald-200 flex items-center gap-2 drop-shadow-xs">
+          <div className="w-6 h-[2px] bg-emerald-400 rounded-full" />
+          <span>Hệ thống Quản trị Trang trại Sầu Riêng Thông Minh</span>
         </div>
       </div>
 
-      {/* ── Right Login Panel ── */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-10">
-        <div className="w-full max-w-[580px] animate-[fadeIn_0.6s_ease-out_0.15s_both]">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-3 mb-10 md:hidden">
-            <div className="w-11 h-11 rounded-2xl bg-[#0F3D2E] flex items-center justify-center">
-              <Leaf className="w-5 h-5 text-emerald-400" />
-            </div>
-            <span className="text-lg font-bold tracking-wide text-gray-800">
-              Vie-farm Portal
-            </span>
-          </div>
-
-          {/* White card */}
-          <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-8 sm:p-16">
-            {/* Header */}
-            <div className="mb-10">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
-                <Leaf className="w-7 h-7 text-[#1E8449]" />
+      {/* ── 2. LOGIN PANEL (BÊN PHẢI - Desktop 40%, Laptop 45%, Tablet 50%, Mobile 100%) ── */}
+      <div className="flex-1 flex flex-col justify-between items-center p-6 sm:p-8 lg:p-10 min-h-screen overflow-y-auto bg-[#F8FAF8]">
+        <div className="w-full flex-1 flex flex-col items-center justify-center my-auto">
+          {/* Centered Login Card (bo 28px, shadow 0 12px 40px rgba(0,0,0,0.08)) */}
+          <div className="bg-white rounded-[28px] p-7 sm:p-9 shadow-[0_12px_40px_rgba(0,0,0,0.08)] max-w-[420px] w-full border border-[#E8F5E9] space-y-5">
+            {/* Circular Durian Sprout Emblem */}
+            <div className="flex justify-center">
+              <div className="w-14 h-14 rounded-full bg-[#E8F5E9] border border-[#2E7D32]/25 flex items-center justify-center text-[#2E7D32] shadow-inner">
+                <Sprout className="w-7 h-7 text-[#2E7D32]" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-                Đăng nhập
+            </div>
+
+            {/* Form Title & Subtitle */}
+            <div className="text-center space-y-1">
+              <h2 className="text-2xl font-black text-[#1B5E20] tracking-tight">
+                Chào mừng trở lại!
               </h2>
-              <p className="mt-2 text-[15px] text-gray-400">
-                Đăng nhập để truy cập hệ thống.
+              <p className="text-xs text-gray-500 font-medium">
+                Đăng nhập để truy cập hệ thống Vie-farm Portal
               </p>
             </div>
 
-            {/* Error */}
+            {/* Error Banner */}
             {error && (
-              <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-[13px] text-red-600 font-medium flex items-center gap-2 animate-[shake_0.3s_ease-in-out]">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                {error}
+              <div className="px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-bold flex items-center gap-2 animate-[shake_0.3s_ease-in-out]">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-600 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
-              <div>
-                <label className="block text-[14px] font-semibold text-gray-600 mb-2">
-                  Email
-                </label>
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Input (h-14, bo 16px, bg-[#F8FAF8]) */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-extrabold text-gray-700">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                  <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    autoComplete="email"
-                    autoFocus
-                    className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl bg-gray-50/50 text-[16px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E8449]/15 focus:border-[#1E8449] focus:bg-white transition-all duration-200"
+                    placeholder="bao@gmail.com"
+                    className="w-full pl-10 pr-4 h-14 text-xs bg-[#F8FAF8] border border-[#2E7D32] rounded-[16px] focus:outline-none focus:ring-2 focus:ring-[#2E7D32] font-semibold text-gray-900 placeholder-gray-400 transition-all"
                   />
                 </div>
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="block text-[14px] font-semibold text-gray-600 mb-2">
-                  Mật khẩu
-                </label>
+              {/* Password Input (h-14, bo 16px, bg-[#F8FAF8]) */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-extrabold text-gray-700">Mật khẩu</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Nhập mật khẩu"
-                    autoComplete="current-password"
-                    className="w-full pl-12 pr-12 py-3.5 border border-gray-200 rounded-xl bg-gray-50/50 text-[16px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E8449]/15 focus:border-[#1E8449] focus:bg-white transition-all duration-200"
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 h-14 text-xs bg-[#F8FAF8] border border-gray-200 focus:border-[#2E7D32] rounded-[16px] focus:outline-none focus:ring-2 focus:ring-[#2E7D32] font-semibold text-gray-900 placeholder-gray-400 transition-all"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors duration-200"
-                    tabIndex={-1}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Remember me + Forgot */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              {/* Checkbox & Forgot Password Same Row */}
+              <div className="flex items-center justify-between text-xs font-medium text-gray-600 pt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-[18px] h-[18px] rounded border-gray-300 text-[#1E8449] focus:ring-[#1E8449]/20 cursor-pointer"
+                    className="w-4 h-4 rounded border-gray-300 text-[#2E7D32] focus:ring-[#2E7D32] cursor-pointer"
                   />
-                  <span className="text-[14px] text-gray-500">Ghi nhớ đăng nhập</span>
+                  <span>Ghi nhớ đăng nhập</span>
                 </label>
                 <button
                   type="button"
-                  className="text-[14px] font-medium text-[#1E8449] hover:text-[#176B3A] transition-colors duration-200"
+                  onClick={() => alert("Vui lòng liên hệ Quản trị viên hệ thống để khôi phục mật khẩu.")}
+                  className="font-bold text-[#2E7D32] hover:underline cursor-pointer"
                 >
                   Quên mật khẩu?
                 </button>
               </div>
 
-              {/* Submit */}
+              {/* Primary Submit Button (h-14, bo 16px or pill, #2E7D32) */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-[#1E8449] hover:bg-[#176B3A] active:scale-[0.98] text-white rounded-xl text-[16px] font-semibold transition-all duration-200 flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_2px_12px_rgba(30,132,73,0.25)] hover:shadow-[0_4px_20px_rgba(30,132,73,0.35)]"
+                className="w-full h-14 px-6 rounded-full bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group active:scale-[0.99] disabled:opacity-50"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                    Đang đăng nhập...
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang xử lý...</span>
                   </>
                 ) : (
-                  "Đăng nhập"
+                  <>
+                    <span>Đăng nhập</span>
+                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                      <ArrowRight className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  </>
                 )}
               </button>
             </form>
 
-            {/* Divider */}
-            <div className="flex items-center gap-4 my-8">
-              <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-[13px] font-medium text-gray-300 uppercase tracking-wider">
-                or
-              </span>
-              <div className="flex-1 h-px bg-gray-100" />
+            {/* Divider with text "hoặc" */}
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-100" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-gray-400 font-medium">hoặc</span>
+              </div>
             </div>
 
-            {/* Register link */}
-            <p className="text-center text-[15px] text-gray-400">
+            {/* Button Google (bo 16px) */}
+            <button
+              type="button"
+              onClick={() => alert("Tính năng Đăng nhập với Google đang được bảo trì.")}
+              className="w-full h-12 px-4 rounded-[16px] border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>Đăng nhập với Google</span>
+            </button>
+
+            {/* Link "Chưa có tài khoản? Đăng ký ngay" */}
+            <p className="text-center text-xs text-gray-600 font-medium pt-1">
               Chưa có tài khoản?{" "}
-              <Link
-                to="/register"
-                className="font-semibold text-[#1E8449] hover:text-[#176B3A] transition-colors duration-200"
-              >
+              <Link to="/register" className="text-[#2E7D32] font-extrabold hover:underline">
                 Đăng ký ngay
               </Link>
             </p>
           </div>
 
-          {/* Footer */}
-          <p className="mt-6 text-center text-[12px] text-gray-300">
-            &copy; 2026 Durian Guardian AI. All rights reserved.
-          </p>
+          {/* Footer slogan bên dưới card */}
+          <div className="mt-6 text-center text-xs font-bold text-[#1B5E20] flex items-center justify-center gap-1.5">
+            <span>🌿</span>
+            <span>Bảo vệ từng cây – Kiến tạo tương lai xanh</span>
+            <span>🍃</span>
+          </div>
         </div>
       </div>
     </div>

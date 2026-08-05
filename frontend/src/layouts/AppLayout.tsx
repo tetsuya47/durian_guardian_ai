@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import AIChatbotCard from "@/components/dashboard/AIChatbotCard";
 
 function getInitialCollapsed(): boolean {
   const stored = localStorage.getItem("dga_compact_sidebar");
@@ -59,6 +60,9 @@ export default function AppLayout() {
           <Footer />
         </main>
       </div>
+
+      {/* Global Floating AI Assistant Chatbot Bubble Widget */}
+      <AIChatbotCard />
     </div>
   );
 }

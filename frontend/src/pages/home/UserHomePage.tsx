@@ -529,77 +529,15 @@ export default function UserHomePage() {
 
   return (
     <div className="flex flex-col space-y-6 pb-12">
-      {/* 1. TOP HERO HEADER & WEATHER CARD */}
-      <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 p-6 sm:p-8 text-white shadow-xl">
-        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div className="lg:col-span-7 space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-              <Sparkles className="w-3.5 h-3.5" /> TRANG CHỦ CỔNG NÔNG DÂN DGA
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-              Kỹ Thuật Canh Tác Sầu Riêng Thông Minh & Giá Thị Trường Realtime
-            </h1>
-            <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl font-medium leading-relaxed">
-              Cập nhật thời tiết nông nghiệp, giá sầu riêng Ri6 & Monthong hôm nay, tra cứu AI chẩn đoán sâu bệnh và các giải pháp sinh học bảo vệ vườn.
-            </p>
-
-            {/* Smart AI Quick Search Bar */}
-            <div className="pt-2">
-              <div className="relative max-w-lg">
-                <Search className="w-4 h-4 text-emerald-700 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Nhập triệu chứng sâu bệnh (VD: cháy chóp lá, xì mủ gốc, bọ trĩ...)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-24 py-2.5 text-xs text-gray-900 bg-white/95 backdrop-blur-md rounded-[14px] focus:outline-none focus:ring-2 focus:ring-emerald-400 font-bold placeholder-gray-400 shadow-lg"
-                />
-                <button
-                  onClick={() => navigate("/ai-chatbot")}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] px-3 py-1.5 rounded-[10px] flex items-center gap-1 transition-all"
-                >
-                  <Sparkles className="w-3 h-3" /> Tra cứu AI
-                </button>
-              </div>
-            </div>
+      {/* 1. CLEAN ECOLOGICAL PAGE HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-[22px] border border-gray-200/90 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-[14px] bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+            <Home className="w-6 h-6" />
           </div>
-
-          {/* Realtime Weather Card Widget */}
-          <div className="lg:col-span-5 bg-white/10 backdrop-blur-xl border border-white/15 p-4.5 rounded-[20px] text-white space-y-3 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[10px] bg-amber-400/20 text-amber-300 flex items-center justify-center">
-                  <Sun className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-black tracking-wide">THỜI TIẾT NÔNG NGHIỆP</h3>
-                  <p className="text-[11px] text-emerald-200 font-bold">{weather.location}</p>
-                </div>
-              </div>
-              <span className="text-2xl font-black text-amber-300">{weather.temp}°C</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-[11px]">
-              <div className="flex items-center gap-1">
-                <Droplets className="w-3.5 h-3.5 text-blue-300" />
-                <span>Độ ẩm: <strong>{weather.humidity}%</strong></span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Wind className="w-3.5 h-3.5 text-teal-300" />
-                <span>Gió: <strong>{weather.wind_speed} km/h</strong></span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CloudRain className="w-3.5 h-3.5 text-indigo-300" />
-                <span>Mưa: <strong>{weather.rain_probability}%</strong></span>
-              </div>
-            </div>
-
-            <div className="bg-emerald-950/60 rounded-[12px] p-2.5 text-[11px] text-emerald-100 font-medium border border-emerald-500/20 flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <span>{weather.recommendation}</span>
-            </div>
+          <div>
+            <h1 className="text-xl font-black text-gray-900 leading-tight">Cổng Thông Tin & Thị Trường Sầu Riêng</h1>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">Cập nhật giá thu mua tại vườn, tra cứu dịch bệnh & hướng dẫn kỹ thuật canh tác</p>
           </div>
         </div>
       </div>

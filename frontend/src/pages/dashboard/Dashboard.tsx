@@ -18,12 +18,13 @@ import KPISection from "../../components/dashboard/KPISection";
 import SystemOverviewCard from "../../components/dashboard/SystemOverviewCard";
 import HeatmapCard from "../../components/dashboard/HeatmapCard";
 import RegionalFarmMapCard from "../../components/dashboard/RegionalFarmMapCard";
-import AIChatbotCard from "../../components/dashboard/AIChatbotCard";
 import WeatherCard from "../../components/dashboard/WeatherCard";
 import GrowthTrendCard from "../../components/dashboard/GrowthTrendCard";
 import { useAuth } from "../../hooks/useAuth";
 import TreeDistributionCard from "../../components/dashboard/TreeDistributionCard";
-import RealtimeInspectionCard from "../../components/dashboard/RealtimeInspectionCard";
+import WorkPlanningCard from "../../components/dashboard/WorkPlanningCard";
+import WeeklyInspectionScheduleCard from "../../components/dashboard/WeeklyInspectionScheduleCard";
+import UserIoTDevicesCard from "../../components/dashboard/UserIoTDevicesCard";
 import FarmPerformanceCard from "../../components/dashboard/FarmPerformanceCard";
 import { KPISkeleton, CardSkeleton } from "../../components/dashboard/Shared/SkeletonCard";
 import type { CellData, ZoneSection } from "../../components/dashboard/HeatmapGrid";
@@ -122,7 +123,22 @@ export default function DashboardPage() {
   const kpiEmergencyCount = backendKpi.high_risk_trees;
 
   const farmOptions = useMemo(
-    () => [{ value: "all", label: "Tất cả trang trại" }, ...widgets.farms.map((f) => ({ value: f.id, label: f.name }))],
+    () => [
+      { value: "all", label: "Tất cả trang trại" },
+      ...widgets.farms.map((f) => ({
+        value: f.id,
+        label: f.name,
+        gps_lat: f.gps_lat,
+        gps_lng: f.gps_lng,
+        boundary_points: f.boundary_points || [],
+        calculated_area_hectare: f.calculated_area_hectare,
+        calculated_perimeter_meters: f.calculated_perimeter_meters,
+        elevation_msl_meters: f.elevation_msl_meters,
+        slope_gradient_percent: f.slope_gradient_percent,
+        slope_aspect_heading: f.slope_aspect_heading,
+        soil_texture_type: f.soil_texture_type,
+      })),
+    ],
     [widgets.farms],
   );
 
@@ -272,8 +288,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ONBOARDING ACTIVATION BANNER FOR NEW USERS */}
-      {!isAdmin && (
+      {/* ONBOARDING ACTIVATION BANNER FOR NEW USERS WITHOUT REGISTERED FARM */}
+      {!isAdmin && ((backendKpi?.total_farms || 0) === 0 && (kpiTotalTrees || 0) === 0 && farmOptions.length === 0) && (
         <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-green-900 text-white p-4.5 rounded-[22px] shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-emerald-500/30">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-[16px] bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 flex-shrink-0 shadow-inner">
@@ -330,35 +346,27 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ROW 2: MAIN VISUAL & SPATIAL OPERATIONS (HEATMAP 2/3 + WEATHER 1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch w-full">
-        {/* Col 1-2: Heatmap Card (2/3 width) */}
-        <div className="lg:col-span-2 h-[450px] min-h-[450px] w-full min-w-0">
-          {heatmapLoading ? (
-            <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
-          ) : (
-            <HeatmapCard
-              sections={zoneSections}
-              lastUpdated={heatmapLastUpdated}
-              summaryCounts={heatmapSummary}
-              onRefresh={fetchAll}
-              farmOptions={farmOptions}
-              zoneOptions={zoneOptions}
-              selectedFarm={farmFilter}
-              selectedZone={zoneFilter}
-              onFarmChange={setFarmFilter}
-              onZoneChange={setZoneFilter}
-            />
-          )}
-        </div>
-
-        {/* Col 3: Realtime Weather Card (1/3 width) */}
-        <div className="lg:col-span-1 h-[450px] min-h-[450px] w-full">
-          <WeatherCard />
-        </div>
+      {/* ROW 2: MAIN VISUAL & SPATIAL OPERATIONS (100% FULL WIDTH HEATMAP) */}
+      <div className="w-full h-[620px] min-h-[620px]">
+        {heatmapLoading ? (
+          <CardSkeleton height="100%"><div className="bg-gray-200 animate-pulse flex-1 w-full rounded-[12px]" /></CardSkeleton>
+        ) : (
+          <HeatmapCard
+            sections={zoneSections}
+            lastUpdated={heatmapLastUpdated}
+            summaryCounts={heatmapSummary}
+            onRefresh={fetchAll}
+            farmOptions={farmOptions}
+            zoneOptions={zoneOptions}
+            selectedFarm={farmFilter}
+            selectedZone={zoneFilter}
+            onFarmChange={setFarmFilter}
+            onZoneChange={setZoneFilter}
+          />
+        )}
       </div>
 
-      {/* ROW 3: SYSTEM OVERVIEW, TREE HEALTH & PERFORMANCE */}
+      {/* ROW 3: SYSTEM OVERVIEW, TREE HEALTH, PERFORMANCE & WEATHER */}
       {isAdmin ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch w-full">
           {/* Col 1: System Overview */}
@@ -385,18 +393,9 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch w-full">
-          {/* Col 1: System Overview (IoT Inventory) */}
-          <div className="h-[340px] min-h-[340px] w-full">
-            {dashboardLoading ? (
-              <CardSkeleton height="100%"><div className="flex-1 bg-gray-200 rounded-[12px] animate-pulse" /></CardSkeleton>
-            ) : (
-              <SystemOverviewCard data={systemOverview} variant="user" />
-            )}
-          </div>
-
-          {/* Col 2: Tree Distribution Donut Chart */}
-          <div className="h-[340px] min-h-[340px] w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch w-full">
+          {/* Col 1: Tree Distribution Donut Chart */}
+          <div className="h-[350px] min-h-[350px] w-full">
             {dashboardLoading ? (
               <CardSkeleton height="100%"><div className="flex-1 flex items-center gap-4"><div className="bg-gray-200 rounded-full animate-pulse flex-1 h-full" /><div className="bg-gray-200 rounded-[6px] animate-pulse w-[100px] h-16" /></div></CardSkeleton>
             ) : (
@@ -404,20 +403,30 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Col 3: Farm Performance Card */}
-          <div className="h-[340px] min-h-[340px] w-full">
-            <FarmPerformanceCard />
+          {/* Col 2: Realtime Weather Card */}
+          <div className="h-[350px] min-h-[350px] w-full">
+            <WeatherCard />
           </div>
         </div>
       )}
 
-      {/* ROW 4: REALTIME FIELD INSPECTIONS (DEDICATED FULL/WIDE CARD) */}
-      <div className="w-full h-[350px] min-h-[350px]">
-        <RealtimeInspectionCard data={filteredInspectionRows} />
-      </div>
+      {/* ROW 4: ADMIN vs USER SPECIFIC CARD */}
+      {isAdmin ? (
+        <div className="w-full">
+          <WeeklyInspectionScheduleCard data={filteredInspectionRows} />
+        </div>
+      ) : (
+        <div className="w-full">
+          <WorkPlanningCard />
+        </div>
+      )}
 
-      {/* FLOATING AI CHATBOT BUBBLE */}
-      <AIChatbotCard />
+      {/* ROW 5: QUẢN LÝ THIẾT BỊ IOT CỦA VƯỜN CARD (POSSITIONED DIRECTLY BELOW INSPECTION SCHEDULE CARD) */}
+      {!isAdmin && (
+        <div className="w-full">
+          <UserIoTDevicesCard />
+        </div>
+      )}
     </div>
   );
 }

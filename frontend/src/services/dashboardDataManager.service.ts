@@ -82,6 +82,15 @@ export interface WidgetAlert {
 export interface WidgetFarmOption {
   id: string;
   name: string;
+  gps_lat?: number;
+  gps_lng?: number;
+  boundary_points?: { lat: number; lng: number }[];
+  calculated_area_hectare?: number;
+  calculated_perimeter_meters?: number;
+  elevation_msl_meters?: number;
+  slope_gradient_percent?: number;
+  slope_aspect_heading?: string;
+  soil_texture_type?: string;
 }
 
 export interface WidgetZoneOption {

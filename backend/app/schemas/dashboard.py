@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DetectionBrief(BaseModel):
@@ -116,6 +116,15 @@ class WidgetAlertCounts(BaseModel):
 class WidgetFarmOption(BaseModel):
     id: str
     name: str
+    gps_lat: float | None = None
+    gps_lng: float | None = None
+    boundary_points: list[dict] = Field(default_factory=list)
+    calculated_area_hectare: float | None = None
+    calculated_perimeter_meters: float | None = None
+    elevation_msl_meters: float | None = None
+    slope_gradient_percent: float | None = None
+    slope_aspect_heading: str | None = None
+    soil_texture_type: str | None = None
 
 
 class WidgetZoneOption(BaseModel):

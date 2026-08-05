@@ -159,15 +159,20 @@ async def seed() -> None:
         {"tree_code": "SR-R01", "tree_id": tree_ids[6], "disease": "Không phát hiện bệnh (Khỏe mạnh)", "severity": "Nhẹ", "conf": 0.97, "days_ago": 5},
     ]
 
-    for rec in sample_records:
+    for i, rec in enumerate(sample_records):
         rec_time = now - timedelta(days=rec["days_ago"])
         insp_id = ObjectId()
         await db["inspections"].insert_one({
             "_id": insp_id,
+            "inspection_code": f"INSP-{i+1:04d}",
             "farm_id": farm_id,
             "tree_id": rec["tree_id"],
             "inspector_id": user_id,
             "created_by": user_id,
+            "inspection_date": rec_time,
+            "health_status": "Khỏe mạnh" if "Khỏe" in rec["disease"] else "Bị bệnh",
+            "predicted_disease": rec["disease"],
+            "confidence": rec["conf"],
             "status": "completed",
             "created_at": rec_time,
         })

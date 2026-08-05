@@ -104,22 +104,22 @@ export default function AIChatbotCard() {
   return (
     <>
       {/* FLOATING CHAT BUBBLE BUTTON IN BOTTOM RIGHT CORNER */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center">
+      <div className="fixed bottom-6 right-6 z-[9999] flex items-center">
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className="group relative flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 text-white p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl hover:shadow-emerald-950/40 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-emerald-400/40"
+            className="group relative flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-emerald-950/40 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-emerald-400/40 select-none"
           >
-            <div className="relative">
-              <Bot className="w-6 h-6 text-emerald-100 group-hover:rotate-12 transition-transform" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-emerald-900 animate-ping" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-emerald-900" />
+            <div className="relative flex-shrink-0">
+              <Bot className="w-5 h-5 text-emerald-100 group-hover:rotate-12 transition-transform" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-emerald-900 animate-ping" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-emerald-900" />
             </div>
 
-            <span className="hidden sm:inline text-xs font-black tracking-wide">TRỢ LÝ AI SẦU RIÊNG</span>
+            <span className="text-xs font-black tracking-wide whitespace-nowrap">TRỢ LÝ AI SẦU RIÊNG</span>
 
             {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-1.5 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-md">
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-md">
                 {unreadCount}
               </span>
             )}
@@ -129,7 +129,7 @@ export default function AIChatbotCard() {
 
       {/* POPUP CHAT WINDOW DRAWER */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[540px] max-h-[85vh] bg-white rounded-[24px] shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up">
+        <div className="fixed bottom-6 right-6 z-[9999] w-[360px] sm:w-[390px] max-w-[calc(100vw-2.5rem)] h-[520px] max-h-[82vh] bg-white rounded-[24px] shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden">
           {/* Top Premium Gradient Header */}
           <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 text-white p-4 flex items-center justify-between shadow-md flex-shrink-0">
             <div className="flex items-center gap-3">

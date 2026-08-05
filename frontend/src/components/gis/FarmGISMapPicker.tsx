@@ -203,6 +203,28 @@ export default function FarmGISMapPicker({
 
     centerMarkerRef.current = cMarker;
 
+    // Auto-detect browser device GPS location directly on page load
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = Number(pos.coords.latitude.toFixed(6));
+          const lng = Number(pos.coords.longitude.toFixed(6));
+          setCenterPos({ lat, lng });
+
+          if (map) {
+            map.setView([lat, lng], 17);
+          }
+          if (cMarker) {
+            cMarker.setLatLng([lat, lng]);
+          }
+        },
+        (err) => {
+          console.warn("Auto-geolocation error or permission denied:", err.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
     return () => {
       map.remove();
       mapRef.current = null;
@@ -332,7 +354,8 @@ export default function FarmGISMapPicker({
         },
         () => {
           alert("Không thể tự động lấy vị trí GPS hiện tại. Vui lòng cho phép quyền vị trí trên trình duyệt.");
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
   };

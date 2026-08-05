@@ -14,6 +14,14 @@ from app.schemas.response_models import MessageResponse, PaginatedResponse, Succ
 from app.services import FarmService
 from app.repositories.iot_order_repository import IoTOrderRepository
 
+from app.utils.gis import (
+    calculate_polygon_area_ha,
+    calculate_polygon_perimeter_meters,
+    calculate_centroid,
+    calculate_bounding_box,
+    calculate_terrain_analysis,
+)
+
 router = APIRouter(prefix="/farms", tags=["Farms"])
 
 allow_all = RoleChecker([r.value for r in UserRole])
@@ -104,6 +112,13 @@ async def register_farm_with_iot(
     final_lng = calc_centroid["lng"] if len(raw_points) >= 3 else data.gps_lng
     final_area = calc_area if len(raw_points) >= 3 else data.area_hectare
 
+    # 3D Terrain Analysis calculation
+    terrain_info = calculate_terrain_analysis(raw_points, final_lat, final_lng)
+    elev_msl = data.elevation_msl_meters or terrain_info["elevation_msl_meters"]
+    slope_grad = data.slope_gradient_percent or terrain_info["slope_gradient_percent"]
+    slope_asp = data.slope_aspect_heading or terrain_info["slope_aspect_heading"]
+    soil_type = data.soil_texture_type or terrain_info["soil_texture_type"]
+
     farm_doc = {
         "user_id": user_id,
         "company_id": company_id,
@@ -121,6 +136,10 @@ async def register_farm_with_iot(
         "calculated_area_hectare": calc_area,
         "calculated_perimeter_meters": calc_perimeter,
         "bounding_box": calc_bbox,
+        "elevation_msl_meters": elev_msl,
+        "slope_gradient_percent": slope_grad,
+        "slope_aspect_heading": slope_asp,
+        "soil_texture_type": soil_type,
         "onboarding_status": "PENDING_IOT",
         "created_at": now,
         "updated_at": now,

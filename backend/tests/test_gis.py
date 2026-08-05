@@ -4,6 +4,7 @@ from app.utils.gis import (
     calculate_centroid,
     calculate_bounding_box,
     haversine_distance_meters,
+    calculate_terrain_analysis,
 )
 
 
@@ -33,3 +34,17 @@ def test_gis_polygon_calculations():
     assert centroid["lng"] == 108.0505
     assert bbox["min_lat"] == 12.666
     assert bbox["max_lat"] == 12.667
+
+
+def test_calculate_terrain_analysis():
+    points = [
+        {"lat": 12.6660, "lng": 108.0500},
+        {"lat": 12.6670, "lng": 108.0500},
+        {"lat": 12.6670, "lng": 108.0510},
+        {"lat": 12.6660, "lng": 108.0510},
+    ]
+    t = calculate_terrain_analysis(points, 12.6665, 108.0505)
+    assert t["elevation_msl_meters"] > 100.0
+    assert t["slope_gradient_percent"] > 0.0
+    assert "slope_aspect_heading" in t
+    assert "soil_texture_type" in t
