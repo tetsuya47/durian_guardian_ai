@@ -155,7 +155,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         collapsed ? "max-lg:-translate-x-full" : "max-lg:translate-x-0"
       }`}
       style={{
-        width: collapsed ? "72px" : "220px",
+        width: collapsed ? "72px" : "240px",
         backgroundColor: "#0F3D2E",
       }}
     >

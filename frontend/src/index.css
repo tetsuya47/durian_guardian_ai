@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%; /* #F8FAFC */
+    --foreground: 222.2 84% 4.9%; /* #111827 */
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 158 84% 39%; /* #10B981 */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -28,11 +28,11 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%; /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 158 84% 39%;
 
-    --radius: 0.5rem;
+    --radius: 0.875rem; /* 14px */
   }
 
   .dark {
@@ -45,7 +45,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 158 84% 39%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -62,50 +62,52 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 222.2 84% 83.1%;
+    --ring: 158 84% 39%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
-    font-family: 'Be Vietnam Pro', sans-serif;
+    @apply border-[#E5E7EB];
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Be Vietnam Pro', sans-serif;
+    @apply bg-[#F8FAFC] text-[#111827];
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   html,
   body {
     overflow-x: hidden;
   }
-  input:disabled,
-  select:disabled,
-  textarea:disabled {
-    background-color: #F9FAFB !important;
-    color: #6B7280 !important;
-    -webkit-text-fill-color: #6B7280 !important;
-    opacity: 1;
-  }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* Modern Enterprise SaaS Soft Shadow & Hover Effects */
+.shadow-saas {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+.saas-card {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
-@keyframes fadeSlideDown {
-  from { opacity: 0; transform: translateY(-12px); }
-  to { opacity: 1; transform: translateY(0); }
+.saas-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
+.saas-button-primary {
+  background-color: #10B981;
+  color: #FFFFFF;
+  border-radius: 14px;
+  font-weight: 600;
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+
+.saas-button-primary:hover {
+  background-color: #059669;
 }

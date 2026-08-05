@@ -51,11 +51,16 @@ export const setupInterceptors = (axiosInstance: AxiosInstance): AxiosInstance =
     async (error: AxiosError) => {
       if (error.response) {
         const status = error.response.status;
-        
+        const token = tokenStorage.getAccessToken();
+        const isDemoToken = token?.startsWith("demo-") || localStorage.getItem("dga_demo_user");
+
         if (status === 401) {
-          tokenStorage.clearTokens();
-          if (window.location.pathname !== "/login") {
-            window.location.href = "/login";
+          // If this is a demo user, do NOT wipe tokens or force redirect to /login
+          if (!isDemoToken) {
+            tokenStorage.clearTokens();
+            if (window.location.pathname !== "/login") {
+              window.location.href = "/login";
+            }
           }
         }
       }

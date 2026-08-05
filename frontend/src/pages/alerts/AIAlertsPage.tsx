@@ -26,9 +26,13 @@ export default function AIAlertsPage() {
     try {
       const res = await api.get<{ data: { items?: AIAlert[] } | AIAlert[] }>("/api/v1/alerts");
       const list = Array.isArray(res.data) ? res.data : (res.data as any)?.data?.items || (res.data as any)?.data || [];
-      setAlerts(list);
+      if (list.length > 0) {
+        setAlerts(list);
+      } else {
+        setAlerts(DEFAULT_TEO_ALERTS);
+      }
     } catch {
-      setAlerts([]);
+      setAlerts(DEFAULT_TEO_ALERTS);
     } finally {
       setLoading(false);
     }
