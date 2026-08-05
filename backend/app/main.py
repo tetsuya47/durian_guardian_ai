@@ -12,8 +12,7 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1 import api_router
@@ -38,13 +37,21 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS_LIST,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    @app.middleware("http")
+    async def add_cors_headers(request: Request, call_next):
+        origin = request.headers.get("origin")
+        if request.method == "OPTIONS":
+            response = Response(status_code=204)
+        else:
+            response = await call_next(request)
+        
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, ngrok-skip-browser-warning, X-Requested-With"
+            response.headers["Access-Control-Max-Age"] = "86400"
+        return response
 
     register_exception_handlers(app)
 

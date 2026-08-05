@@ -103,7 +103,7 @@ export default function RegionalFarmMapCard() {
           },
         ]);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const filteredRegions = selectedRegion === "all"

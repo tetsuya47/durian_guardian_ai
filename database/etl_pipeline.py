@@ -1822,35 +1822,38 @@ def load_documents(
     logger.info("Inserted %d trees (%d duplicates skipped)",
                  stats.trees_loaded, stats.trees_removed_duplicates)
 
-    # Build tree_map from actual DB documents
-    for tdoc in db.trees.find():
-        # Get farm_code from farms collection via farm_id
-        farm_doc = db.farms.find_one({"_id": tdoc["farm_id"]})
-        if farm_doc:
-            tree_map[(farm_doc["farm_code"], tdoc["tree_code"])] = tdoc["_id"]
+    # Build tree_map from actual DB documents by loading farms in memory first
+    farms_lookup = {f["_id"]: f["farm_code"] for f in db.farms.find({}, {"_id": 1, "farm_code": 1})}
+    for tdoc in db.trees.find({}, {"_id": 1, "farm_id": 1, "tree_code": 1}):
+        farm_id = tdoc.get("farm_id")
+        farm_code = farms_lookup.get(farm_id)
+        if farm_code:
+            tree_map[(farm_code, tdoc["tree_code"])] = tdoc["_id"]
 
     # ── 6. Inspections: fix references and insert ────────────────────
+    # Load all trees in memory to avoid N+1 queries during inspection lookup
+    trees_lookup = {
+        t["_id"]: {
+            "farm_id": t.get("farm_id"),
+            "zone_id": t.get("zone_id")
+        } for t in db.trees.find({}, {"_id": 1, "farm_id": 1, "zone_id": 1})
+    }
+    farm_ids_set = set(farms_lookup.keys())
+
     final_inspections = []
     for insp in inspections:
-        # Find tree_id in tree_map
-        # We need to look up the tree_key for this inspection
-        # The tree_key was (farm_id_str, tree_code) during transform
-        # Since we lost that info, we need to derive it from what we have
-        tree_doc = db.trees.find_one({"_id": insp["tree_id"]})
-        if not tree_doc:
+        tree_info = trees_lookup.get(insp["tree_id"])
+        if not tree_info:
             stats.orphan_inspections += 1
             continue
 
-        farm_doc = db.farms.find_one({"_id": tree_doc["farm_id"]})
-        if not farm_doc:
+        farm_id = tree_info.get("farm_id")
+        if not farm_id or farm_id not in farm_ids_set:
             stats.orphan_inspections += 1
             continue
 
-        insp["farm_id"] = tree_doc["farm_id"]
-
-        # zone_id from tree
-        zone_oid = tree_doc.get("zone_id")
-        insp["zone_id"] = zone_oid
+        insp["farm_id"] = farm_id
+        insp["zone_id"] = tree_info.get("zone_id")
 
         final_inspections.append(insp)
 
@@ -2128,10 +2131,21 @@ def run_etl(
         logger.info("")
         logger.info("  Reference integrity checks:")
 
+        # Load ID sets in memory to avoid N+1 queries
+        company_ids = {doc["_id"] for doc in db.companies.find({}, {"_id": 1})}
+        farm_ids = {doc["_id"] for doc in db.farms.find({}, {"_id": 1})}
+        zone_ids = {doc["_id"] for doc in db.zones.find({}, {"_id": 1})}
+        tree_ids = {doc["_id"] for doc in db.trees.find({}, {"_id": 1})}
+        disease_ids = {doc["_id"] for doc in db.diseases.find({}, {"_id": 1})}
+        inspection_ids = {doc["_id"] for doc in db.inspections.find({}, {"_id": 1})}
+        user_ids = {doc["_id"] for doc in db.users.find({}, {"_id": 1})}
+        season_ids = {doc["_id"] for doc in db.seasons.find({}, {"_id": 1})}
+        detection_result_ids = {doc["_id"] for doc in db.detection_results.find({}, {"_id": 1})}
+
         # Farms -> Companies
         orphan_farms = 0
-        for f in db.farms.find({"company_id": {"$exists": True}}):
-            if not db.companies.find_one({"_id": f["company_id"]}):
+        for f in db.farms.find({"company_id": {"$exists": True}}, {"company_id": 1}):
+            if f["company_id"] not in company_ids:
                 orphan_farms += 1
         stats.orphan_farms = orphan_farms
         logger.info("  Orphan farms (no company): %d", orphan_farms)
@@ -2144,8 +2158,8 @@ def run_etl(
 
         # Zones -> Farms
         orphan_zones = 0
-        for z in db.zones.find({"farm_id": {"$exists": True}}):
-            if not db.farms.find_one({"_id": z["farm_id"]}):
+        for z in db.zones.find({"farm_id": {"$exists": True}}, {"farm_id": 1}):
+            if z["farm_id"] not in farm_ids:
                 orphan_zones += 1
         stats.orphan_zones = orphan_zones
         logger.info("  Orphan zones (no farm): %d", orphan_zones)
@@ -2153,10 +2167,10 @@ def run_etl(
         # Trees -> Farms, Zones
         orphan_trees_farm = 0
         orphan_trees_zone = 0
-        for t in db.trees.find():
-            if not db.farms.find_one({"_id": t["farm_id"]}):
+        for t in db.trees.find({}, {"farm_id": 1, "zone_id": 1}):
+            if t["farm_id"] not in farm_ids:
                 orphan_trees_farm += 1
-            if t.get("zone_id") and not db.zones.find_one({"_id": t["zone_id"]}):
+            if t.get("zone_id") and t["zone_id"] not in zone_ids:
                 orphan_trees_zone += 1
         stats.orphan_trees = orphan_trees_farm + orphan_trees_zone
         logger.info("  Orphan trees (no farm): %d", orphan_trees_farm)
@@ -2165,12 +2179,10 @@ def run_etl(
         # Inspections -> Trees, Diseases
         orphan_insp_tree = 0
         orphan_insp_disease = 0
-        for ins in db.inspections.find():
-            if not db.trees.find_one({"_id": ins["tree_id"]}):
+        for ins in db.inspections.find({}, {"tree_id": 1, "disease_id": 1}):
+            if ins["tree_id"] not in tree_ids:
                 orphan_insp_tree += 1
-            if ins.get("disease_id") and not db.diseases.find_one(
-                {"_id": ins["disease_id"]}
-            ):
+            if ins.get("disease_id") and ins["disease_id"] not in disease_ids:
                 orphan_insp_disease += 1
         stats.orphan_inspections = orphan_insp_tree + orphan_insp_disease
         logger.info("  Orphan inspections (no tree): %d", orphan_insp_tree)
@@ -2178,71 +2190,71 @@ def run_etl(
 
         # Detection Results -> Inspections
         orphan_detections = 0
-        for dr in db.detection_results.find():
-            if not db.inspections.find_one({"_id": dr["inspection_id"]}):
+        for dr in db.detection_results.find({}, {"inspection_id": 1}):
+            if dr["inspection_id"] not in inspection_ids:
                 orphan_detections += 1
         logger.info("  Orphan detection results (no inspection): %d", orphan_detections)
 
         # Disease History -> Trees
         orphan_history = 0
-        for dh in db.disease_history.find():
-            if not db.trees.find_one({"_id": dh["tree_id"]}):
+        for dh in db.disease_history.find({}, {"tree_id": 1}):
+            if dh["tree_id"] not in tree_ids:
                 orphan_history += 1
         logger.info("  Orphan disease history (no tree): %d", orphan_history)
 
         # Alerts -> Farms, Trees
         orphan_alerts_farm = 0
         orphan_alerts_tree = 0
-        for al in db.alerts.find():
-            if not db.farms.find_one({"_id": al["farm_id"]}):
+        for al in db.alerts.find({}, {"farm_id": 1, "tree_id": 1}):
+            if al["farm_id"] not in farm_ids:
                 orphan_alerts_farm += 1
-            if not db.trees.find_one({"_id": al["tree_id"]}):
+            if al["tree_id"] not in tree_ids:
                 orphan_alerts_tree += 1
         logger.info("  Orphan alerts (no farm): %d", orphan_alerts_farm)
         logger.info("  Orphan alerts (no tree): %d", orphan_alerts_tree)
 
         # Seasons -> Farms
         orphan_seasons = 0
-        for s in db.seasons.find():
-            if not db.farms.find_one({"_id": s["farm_id"]}):
+        for s in db.seasons.find({}, {"farm_id": 1}):
+            if s["farm_id"] not in farm_ids:
                 orphan_seasons += 1
         logger.info("  Orphan seasons (no farm): %d", orphan_seasons)
 
         # Harvests -> Seasons
         orphan_harvests = 0
-        for h in db.harvests.find():
-            if not db.seasons.find_one({"_id": h["season_id"]}):
+        for h in db.harvests.find({}, {"season_id": 1}):
+            if h["season_id"] not in season_ids:
                 orphan_harvests += 1
         logger.info("  Orphan harvests (no season): %d", orphan_harvests)
 
         # Farm Targets -> Seasons
         orphan_targets = 0
-        for t in db.farm_targets.find():
-            if not db.seasons.find_one({"_id": t["season_id"]}):
+        for t in db.farm_targets.find({}, {"season_id": 1}):
+            if t["season_id"] not in season_ids:
                 orphan_targets += 1
         logger.info("  Orphan farm_targets (no season): %d", orphan_targets)
 
         # Farm Performance -> Seasons
         orphan_perf = 0
-        for p in db.farm_performance.find():
-            if not db.seasons.find_one({"_id": p["season_id"]}):
+        for p in db.farm_performance.find({}, {"season_id": 1}):
+            if p["season_id"] not in season_ids:
                 orphan_perf += 1
         logger.info("  Orphan farm_performance (no season): %d", orphan_perf)
 
         # Neighbor Contact Requests -> source farm, target farm, source user, target user
         orphan_ncr = 0
-        for ncr in db.neighbor_contact_requests.find():
-            if not db.farms.find_one({"_id": ncr["source_farm_id"]}):
+        for ncr in db.neighbor_contact_requests.find({}, {"source_farm_id": 1, "target_farm_id": 1, "source_user_id": 1, "target_user_id": 1, "inspection_id": 1, "detection_result_id": 1}):
+            if ncr["source_farm_id"] not in farm_ids:
                 orphan_ncr += 1
-            if not db.farms.find_one({"_id": ncr["target_farm_id"]}):
+            elif ncr["target_farm_id"] not in farm_ids:
                 orphan_ncr += 1
-            if not db.users.find_one({"_id": ncr["source_user_id"]}):
+            elif ncr["source_user_id"] not in user_ids:
                 orphan_ncr += 1
-            if not db.users.find_one({"_id": ncr["target_user_id"]}):
+            elif ncr["target_user_id"] not in user_ids:
                 orphan_ncr += 1
-            if ncr.get("inspection_id") and not db.inspections.find_one({"_id": ncr["inspection_id"]}):
+            elif ncr.get("inspection_id") and ncr["inspection_id"] not in inspection_ids:
                 orphan_ncr += 1
-            if ncr.get("detection_result_id") and not db.detection_results.find_one({"_id": ncr["detection_result_id"]}):
+            elif ncr.get("detection_result_id") and ncr["detection_result_id"] not in detection_result_ids:
                 orphan_ncr += 1
         logger.info("  Orphan neighbor_contact_requests: %d", orphan_ncr)
 

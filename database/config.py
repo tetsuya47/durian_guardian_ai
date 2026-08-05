@@ -17,7 +17,7 @@ class Settings:
     # ── MongoDB Connection ───────────────────────────────────────────
     MONGODB_URI: str = os.getenv(
         "MONGODB_URI",
-        "mongodb://localhost:27017",
+        "mongodb+srv://sanghoanga8_db_user:9390PahlsR5J2d8X@durianguardianai.72acfra.mongodb.net/?appName=DurianGuardianAI",
     )
     MONGODB_USERNAME: str = os.getenv("MONGODB_USERNAME", "")
     MONGODB_PASSWORD: str = os.getenv("MONGODB_PASSWORD", "")
@@ -27,7 +27,7 @@ class Settings:
     )
 
     # ── Database ─────────────────────────────────────────────────────
-    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "durian_guardian_ai")
+    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "DurianGuardianAI")
 
     # ── Connection Pool ──────────────────────────────────────────────
     MIN_POOL_SIZE: int = int(os.getenv("MIN_POOL_SIZE", "5"))

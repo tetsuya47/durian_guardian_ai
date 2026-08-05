@@ -338,11 +338,10 @@ export default function IoTSetupGuidePage() {
         <button
           type="button"
           onClick={() => setActiveMainTab("guide")}
-          className={`px-5 py-3 rounded-[14px] font-extrabold text-xs transition-all flex items-center gap-2 ${
-            activeMainTab === "guide"
+          className={`px-5 py-3 rounded-[14px] font-extrabold text-xs transition-all flex items-center gap-2 ${activeMainTab === "guide"
               ? "bg-emerald-700 text-white shadow-md"
               : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-          }`}
+            }`}
         >
           <FileText className="w-4 h-4" />
           📖 Hướng Dẫn Lắp Đặt Theo Thiết Bị
@@ -351,11 +350,10 @@ export default function IoTSetupGuidePage() {
         <button
           type="button"
           onClick={() => setActiveMainTab("incident")}
-          className={`px-5 py-3 rounded-[14px] font-extrabold text-xs transition-all flex items-center gap-2 ${
-            activeMainTab === "incident"
+          className={`px-5 py-3 rounded-[14px] font-extrabold text-xs transition-all flex items-center gap-2 ${activeMainTab === "incident"
               ? "bg-amber-500 text-gray-950 shadow-md"
               : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-          }`}
+            }`}
         >
           <AlertTriangle className="w-4 h-4" />
           ⚠️ Báo Cáo Sự Cố & Yêu Cầu Sửa Chữa ({tickets.length})
@@ -384,11 +382,10 @@ export default function IoTSetupGuidePage() {
                       setSelectedDeviceId(dev.id);
                       setActiveStep(1);
                     }}
-                    className={`p-3.5 rounded-[16px] border text-left transition-all flex flex-col justify-between ${
-                      isSelected
+                    className={`p-3.5 rounded-[16px] border text-left transition-all flex flex-col justify-between ${isSelected
                         ? "bg-emerald-50 border-emerald-500 ring-2 ring-emerald-400 shadow-sm"
                         : "bg-gray-50/70 border-gray-200 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center ${isSelected ? "bg-emerald-600 text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
@@ -423,9 +420,8 @@ export default function IoTSetupGuidePage() {
                     <button
                       key={s.id}
                       onClick={() => setActiveStep(s.id)}
-                      className={`w-7 h-7 rounded-full text-xs font-extrabold transition-all ${
-                        activeStep === s.id ? "bg-emerald-700 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                      className={`w-7 h-7 rounded-full text-xs font-extrabold transition-all ${activeStep === s.id ? "bg-emerald-700 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
                     >
                       {s.id}
                     </button>
@@ -444,11 +440,10 @@ export default function IoTSetupGuidePage() {
                     key={step.id}
                     type="button"
                     onClick={() => setActiveStep(step.id)}
-                    className={`p-4 rounded-[18px] border text-left transition-all ${
-                      isCurrent
+                    className={`p-4 rounded-[18px] border text-left transition-all ${isCurrent
                         ? "bg-emerald-50 border-emerald-500 ring-2 ring-emerald-300 shadow-sm"
                         : "bg-white border-gray-200 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center ${isCurrent ? "bg-emerald-700 text-white" : "bg-gray-100 text-gray-600"}`}>
@@ -652,19 +647,18 @@ export default function IoTSetupGuidePage() {
                     </div>
 
                     <span
-                      className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full w-fit ${
-                        ticket.status === "Pending"
+                      className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full w-fit ${ticket.status === "Pending"
                           ? "bg-amber-100 text-amber-800"
                           : ticket.status === "In_Review"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-emerald-100 text-emerald-800"
-                      }`}
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-emerald-100 text-emerald-800"
+                        }`}
                     >
                       {ticket.status === "Pending"
                         ? "⏳ Chờ Kỹ sư xử lý"
                         : ticket.status === "In_Review"
-                        ? "🔍 Kỹ sư đang phản hồi"
-                        : "🟢 Đã khắc phục xong"}
+                          ? "🔍 Kỹ sư đang phản hồi"
+                          : "🟢 Đã khắc phục xong"}
                     </span>
                   </div>
 
