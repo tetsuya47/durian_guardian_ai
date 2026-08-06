@@ -33,7 +33,11 @@ class FarmRepository(BaseRepository):
                     {"user_id": owner_id},
                     {"user_id": str(owner_id)},
                     {"owner_id": owner_id},
+                    {"owner_id": str(owner_id)},
                     {"created_by": owner_id},
+                    {"created_by": str(owner_id)},
+                    {"owner_user_id": user_oid},
+                    {"owner_user_id": str(owner_id)},
                 ]
 
         if keyword:

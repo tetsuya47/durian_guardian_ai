@@ -149,11 +149,51 @@ const FALLBACK_FARMS: WidgetFarmOption[] = [
     gps_lng: 108.0387,
     calculated_area_hectare: 3.48,
     calculated_perimeter_meters: 815,
+    elevation_msl_meters: 525,
+    slope_gradient_percent: 8.2,
+    slope_aspect_heading: "Đông - Đông Nam",
+    soil_texture_type: "Đất đỏ Bazan nguyên sinh",
     boundary_points: [
       { lat: 12.6862, lng: 108.0375 },
       { lat: 12.6870, lng: 108.0398 },
       { lat: 12.6845, lng: 108.0405 },
       { lat: 12.6838, lng: 108.0380 },
+    ],
+  },
+  {
+    id: "farm-2",
+    name: "Trang trại Sầu Riêng Cư M'gar (Đắk Lắk)",
+    gps_lat: 12.7210,
+    gps_lng: 108.0820,
+    calculated_area_hectare: 4.25,
+    calculated_perimeter_meters: 940,
+    elevation_msl_meters: 480,
+    slope_gradient_percent: 6.5,
+    slope_aspect_heading: "Nam - Đông Nam",
+    soil_texture_type: "Đất phù sa cổ",
+    boundary_points: [
+      { lat: 12.7225, lng: 108.0805 },
+      { lat: 12.7232, lng: 108.0835 },
+      { lat: 12.7198, lng: 108.0840 },
+      { lat: 12.7190, lng: 108.0810 },
+    ],
+  },
+  {
+    id: "farm-3",
+    name: "Trang trại Sầu Riêng Ea Kar (Đắk Lắk)",
+    gps_lat: 12.6500,
+    gps_lng: 108.0100,
+    calculated_area_hectare: 5.10,
+    calculated_perimeter_meters: 1050,
+    elevation_msl_meters: 550,
+    slope_gradient_percent: 9.0,
+    slope_aspect_heading: "Tây Bắc",
+    soil_texture_type: "Đất đỏ Bazan",
+    boundary_points: [
+      { lat: 12.6515, lng: 108.0085 },
+      { lat: 12.6522, lng: 108.0115 },
+      { lat: 12.6485, lng: 108.0120 },
+      { lat: 12.6480, lng: 108.0090 },
     ],
   },
 ];
@@ -212,14 +252,42 @@ const FALLBACK_WIDGETS: WidgetsData = {
   ],
 };
 
+export const EMPTY_USER_KPI: BackendKpi = {
+  total_farms: 0,
+  total_trees: 0,
+  healthy_trees: 0,
+  diseased_trees: 0,
+  high_risk_trees: 0,
+  area_hectare: 0,
+  total_zones: 0,
+  estimated_yield: 0,
+};
+
+export const EMPTY_USER_WIDGETS: WidgetsData = {
+  inspections: [],
+  detections: [],
+  priorityTrees: [],
+  alertCounts: { high: 0, medium: 0, low: 0 },
+  alerts: [],
+  farms: [],
+  zones: [],
+};
+
 export async function loadDashboardCore(): Promise<DashboardResult> {
   try {
-    const resp = await api.get("/dashboard").then((r) => r.data);
-    const backendKpi = resp?.kpi;
-    const isKpiValid = backendKpi && Number(backendKpi.total_trees) > 0;
+    const res = await api.get("/dashboard");
+    const rawData = res.data?.data || res.data;
+    const backendKpi = rawData?.kpi || res.data?.kpi;
+    const systemOverview = rawData?.system_overview || res.data?.system_overview;
+    if (backendKpi !== undefined && backendKpi !== null) {
+      return {
+        backendKpi,
+        systemOverview: systemOverview || FALLBACK_OVERVIEW,
+      };
+    }
     return {
-      backendKpi: isKpiValid ? backendKpi : FALLBACK_KPI,
-      systemOverview: resp?.system_overview || FALLBACK_OVERVIEW,
+      backendKpi: FALLBACK_KPI,
+      systemOverview: FALLBACK_OVERVIEW,
     };
   } catch {
     return {
@@ -231,9 +299,10 @@ export async function loadDashboardCore(): Promise<DashboardResult> {
 
 export async function loadHeatmap(): Promise<HeatmapResult> {
   try {
-    const resp = await api.get("/dashboard/heatmap").then((r) => r.data);
-    const list = resp?.data;
-    return { heatmapData: Array.isArray(list) && list.length > 0 ? list : FALLBACK_HEATMAP };
+    const res = await api.get("/dashboard/heatmap");
+    const rawData = res.data?.data || res.data;
+    const list = Array.isArray(rawData) ? rawData : rawData?.data || rawData?.trees;
+    return { heatmapData: Array.isArray(list) ? list : FALLBACK_HEATMAP };
   } catch {
     return { heatmapData: FALLBACK_HEATMAP };
   }
@@ -241,10 +310,23 @@ export async function loadHeatmap(): Promise<HeatmapResult> {
 
 export async function loadWidgets(): Promise<WidgetsResult> {
   try {
-    const resp = await api.get("/dashboard/widgets").then((r) => r.data);
-    const hasFarms = resp?.farms && resp.farms.length > 0;
+    const res = await api.get("/dashboard/widgets");
+    const rawData = res.data?.data || res.data;
+    if (rawData && (Array.isArray(rawData.farms) || Array.isArray(rawData.inspections))) {
+      return {
+        widgets: {
+          inspections: rawData.inspections || [],
+          detections: rawData.detections || [],
+          priorityTrees: rawData.priorityTrees || [],
+          alertCounts: rawData.alertCounts || { high: 0, medium: 0, low: 0 },
+          alerts: rawData.alerts || [],
+          farms: rawData.farms || [],
+          zones: rawData.zones || [],
+        },
+      };
+    }
     return {
-      widgets: hasFarms ? resp : FALLBACK_WIDGETS,
+      widgets: FALLBACK_WIDGETS,
     };
   } catch {
     return {

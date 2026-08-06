@@ -20,6 +20,7 @@ import Card from "./Shared/Card";
 import SectionTitle from "./Shared/SectionTitle";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 export interface UserIoTDevice {
   id: string;
@@ -50,34 +51,55 @@ const MOCK_TEO_IOT_DEVICES: UserIoTDevice[] = [
 
 export default function UserIoTDevicesCard() {
   const navigate = useNavigate();
-  const [devices, setDevices] = useState<UserIoTDevice[]>(MOCK_TEO_IOT_DEVICES);
+  const { user } = useAuth();
+  const [devices, setDevices] = useState<UserIoTDevice[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const fetchUserDevices = () => {
+  const fetchUserDevices = async () => {
     setLoading(true);
-    api
-      .get<{ data: { items?: UserIoTDevice[] } | UserIoTDevice[] }>("/iot/my-devices")
-      .then((res) => {
-        const items = Array.isArray(res.data)
-          ? res.data
-          : (res.data as any)?.data?.items || (res.data as any)?.data || [];
-        if (items && items.length > 0) {
-          setDevices(items);
-        } else {
-          setDevices(MOCK_TEO_IOT_DEVICES);
-        }
-      })
-      .catch(() => {
+    const isTeo = user?.email === "teo@gmail.com" || (user?.full_name || "").toLowerCase().includes("tèo");
+
+    try {
+      // Check if user has registered farms in MongoDB
+      const farmRes = await api.get<{ data: { items?: any[] } | any[] }>("/api/v1/farms?per_page=1");
+      const farmItems = Array.isArray(farmRes.data)
+        ? farmRes.data
+        : (farmRes.data as any)?.data?.items || (farmRes.data as any)?.data || [];
+
+      if (!isTeo && farmItems.length === 0) {
+        setDevices([]);
+        setLoading(false);
+        return;
+      }
+
+      const res = await api.get<{ data: { items?: UserIoTDevice[] } | UserIoTDevice[] }>("/iot/my-devices");
+      const items = Array.isArray(res.data)
+        ? res.data
+        : (res.data as any)?.data?.items || (res.data as any)?.data || [];
+      
+      if (items && items.length > 0) {
+        setDevices(items);
+      } else if (isTeo || farmItems.length > 0) {
         setDevices(MOCK_TEO_IOT_DEVICES);
-      })
-      .finally(() => setLoading(false));
+      } else {
+        setDevices([]);
+      }
+    } catch {
+      if (isTeo) {
+        setDevices(MOCK_TEO_IOT_DEVICES);
+      } else {
+        setDevices([]);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchUserDevices();
-  }, []);
+  }, [user]);
 
   const activeCount = devices.filter((d) => d.status === "Active").length;
   const stockCount = devices.filter((d) => d.status === "In_Stock" || d.status === "InStock").length;

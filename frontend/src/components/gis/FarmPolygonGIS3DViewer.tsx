@@ -1,15 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Mountain, Compass, Layers, RotateCcw, Box } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 interface LatLngPoint {
   lat: number;
   lng: number;
 }
 
+export interface FarmPolygonItem {
+  value: string;
+  label: string;
+  gps_lat?: number;
+  gps_lng?: number;
+  boundary_points?: LatLngPoint[];
+  calculated_area_hectare?: number;
+  calculated_perimeter_meters?: number;
+  elevation_msl_meters?: number;
+  slope_gradient_percent?: number;
+  slope_aspect_heading?: string;
+  soil_texture_type?: string;
+}
+
 interface FarmPolygonGIS3DViewerProps {
-  boundaryPoints: LatLngPoint[];
+  boundaryPoints?: LatLngPoint[];
   centerLat?: number;
   centerLng?: number;
   farmName?: string;
@@ -19,6 +33,8 @@ interface FarmPolygonGIS3DViewerProps {
   slopePercent?: number;
   slopeAspect?: string;
   soilType?: string;
+  farms?: FarmPolygonItem[];
+  selectedFarmId?: string;
 }
 
 const TILE_LAYERS = {
@@ -39,6 +55,15 @@ const TILE_LAYERS = {
   },
 };
 
+const POLYGON_COLORS = [
+  { stroke: "#10B981", fill: "#059669" }, // Emerald Green
+  { stroke: "#3B82F6", fill: "#2563EB" }, // Royal Blue
+  { stroke: "#F59E0B", fill: "#D97706" }, // Amber Gold
+  { stroke: "#8B5CF6", fill: "#7C3AED" }, // Purple
+  { stroke: "#EC4899", fill: "#DB2777" }, // Pink
+  { stroke: "#14B8A6", fill: "#0D9488" }, // Teal
+];
+
 export default function FarmPolygonGIS3DViewer({
   boundaryPoints,
   centerLat,
@@ -50,16 +75,14 @@ export default function FarmPolygonGIS3DViewer({
   slopePercent = 8.5,
   slopeAspect = "Đông - Đông Nam",
   soilType = "Đất đỏ Bazan nguyên sinh",
+  farms = [],
+  selectedFarmId = "all",
 }: FarmPolygonGIS3DViewerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const polygonRef = useRef<L.Polygon | null>(null);
 
   const [activeLayer, setActiveLayer] = useState<"satellite" | "terrain" | "osm">("satellite");
-  const [pitch, setPitch] = useState<number>(45); // 3D Pitch tilt angle in degrees
-  const [bearing, setBearing] = useState<number>(15); // 3D Rotation bearing in degrees
-  const [showMesh, setShowMesh] = useState<boolean>(true);
 
   // Fix Leaflet marker icons
   useEffect(() => {
@@ -71,10 +94,37 @@ export default function FarmPolygonGIS3DViewer({
     });
   }, []);
 
-  const initialLat = centerLat || (boundaryPoints.length > 0 ? boundaryPoints[0].lat : 12.6667);
-  const initialLng = centerLng || (boundaryPoints.length > 0 ? boundaryPoints[0].lng : 108.0500);
+  const resetMapView = () => {
+    if (!mapRef.current) return;
+    mapRef.current.invalidateSize();
 
-  // Initialize Leaflet Map
+    const validFarms: FarmPolygonItem[] = farms.filter(
+      (f) => f.value !== "all" && f.boundary_points && f.boundary_points.length >= 3
+    );
+
+    if (selectedFarmId && selectedFarmId !== "all") {
+      const selected = validFarms.find((f) => f.value === selectedFarmId);
+      if (selected && selected.boundary_points && selected.boundary_points.length >= 3) {
+        const bounds = L.latLngBounds(selected.boundary_points.map((p) => [p.lat, p.lng]));
+        mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+        return;
+      }
+    }
+
+    const allPts: [number, number][] = [];
+    validFarms.forEach((f) => {
+      f.boundary_points?.forEach((p) => allPts.push([p.lat, p.lng]));
+    });
+
+    if (allPts.length > 0) {
+      mapRef.current.fitBounds(L.latLngBounds(allPts), { padding: [50, 50], maxZoom: 17 });
+    } else if (boundaryPoints && boundaryPoints.length >= 3) {
+      const bounds = L.latLngBounds(boundaryPoints.map((p) => [p.lat, p.lng]));
+      mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+    }
+  };
+
+  // Initialize Leaflet Map and render polygons
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (mapRef.current) {
@@ -82,9 +132,42 @@ export default function FarmPolygonGIS3DViewer({
       mapRef.current = null;
     }
 
+    // Determine list of farms to display
+    let farmListToRender: FarmPolygonItem[] = farms.filter(
+      (f) => f.value !== "all" && f.boundary_points && f.boundary_points.length >= 3
+    );
+
+    // Fallback single farm if no farms list provided
+    if (farmListToRender.length === 0 && boundaryPoints && boundaryPoints.length >= 3) {
+      farmListToRender = [
+        {
+          value: "single",
+          label: farmName,
+          gps_lat: centerLat || boundaryPoints[0].lat,
+          gps_lng: centerLng || boundaryPoints[0].lng,
+          boundary_points: boundaryPoints,
+          calculated_area_hectare: areaHectare,
+          calculated_perimeter_meters: perimeterMeters,
+          elevation_msl_meters: elevationMsl,
+          slope_gradient_percent: slopePercent,
+          slope_aspect_heading: slopeAspect,
+          soil_texture_type: soilType,
+        },
+      ];
+    }
+
+    let startLat = centerLat || 12.6851;
+    let startLng = centerLng || 108.0387;
+
+    if (farmListToRender.length > 0) {
+      const first = farmListToRender[0];
+      startLat = first.gps_lat || (first.boundary_points ? first.boundary_points[0].lat : startLat);
+      startLng = first.gps_lng || (first.boundary_points ? first.boundary_points[0].lng : startLng);
+    }
+
     const map = L.map(mapContainerRef.current, {
-      center: [initialLat, initialLng],
-      zoom: 16,
+      center: [startLat, startLng],
+      zoom: 15,
       zoomControl: false,
     });
 
@@ -100,65 +183,118 @@ export default function FarmPolygonGIS3DViewer({
     tileLayerRef.current = tileLayer;
     mapRef.current = map;
 
-    // Draw Polygon if points exist
-    if (boundaryPoints && boundaryPoints.length >= 3) {
-      const latLngs: [number, number][] = boundaryPoints.map((p) => [p.lat, p.lng]);
-      const poly = L.polygon(latLngs, {
-        color: "#10B981",
-        weight: 3.5,
-        fillColor: "#059669",
-        fillOpacity: 0.35,
-        dashArray: "6, 6",
-      }).addTo(map);
+    const allPts: [number, number][] = [];
 
-      polygonRef.current = poly;
+    // Draw polygons for ALL farms
+    farmListToRender.forEach((farm, idx) => {
+      if (!farm.boundary_points || farm.boundary_points.length < 3) return;
 
-      // Add vertex marker pins
-      boundaryPoints.forEach((pt, idx) => {
-        L.marker([pt.lat, pt.lng], {
-          icon: L.divIcon({
-            className: "polygon-vertex-icon-gis",
-            html: `<div style="background:#ffffff;border:3px solid #10B981;width:18px;height:18px;border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#059669;font-size:10px;font-weight:bold;">${idx + 1}</div>`,
-            iconSize: [18, 18],
-            iconAnchor: [9, 9],
-          }),
-        }).addTo(map).bindTooltip(`Góc mốc #${idx + 1}`, { permanent: false, direction: "top" });
+      const latLngs: [number, number][] = farm.boundary_points.map((p) => {
+        allPts.push([p.lat, p.lng]);
+        return [p.lat, p.lng];
       });
 
-      // Add Center Pin with Badge
+      const colorScheme = POLYGON_COLORS[idx % POLYGON_COLORS.length];
+      const isSelected = selectedFarmId !== "all" && farm.value === selectedFarmId;
+
+      const poly = L.polygon(latLngs, {
+        color: isSelected ? "#EF4444" : colorScheme.stroke,
+        weight: isSelected ? 4.5 : 3.5,
+        fillColor: isSelected ? "#DC2626" : colorScheme.fill,
+        fillOpacity: isSelected ? 0.5 : 0.35,
+        dashArray: isSelected ? undefined : "6, 6",
+      }).addTo(map);
+
+      const popupHtml = `
+        <div style="font-family: system-ui, sans-serif; padding: 4px; min-width: 190px;">
+          <div style="font-weight: 800; font-size: 13px; color: #111827; margin-bottom: 6px; border-bottom: 1.5px solid ${colorScheme.stroke}; padding-bottom: 4px;">
+            📍 ${farm.label}
+          </div>
+          <div style="font-size: 11px; color: #374151; line-height: 1.6;">
+            <div>📐 <strong>Diện tích:</strong> ${farm.calculated_area_hectare || "N/A"} ha</div>
+            <div>📏 <strong>Chu vi:</strong> ${farm.calculated_perimeter_meters || "N/A"} m</div>
+            <div>⛰️ <strong>Độ cao MSL:</strong> ${farm.elevation_msl_meters || 520} m</div>
+            <div>🌱 <strong>Thổ nhưỡng:</strong> ${farm.soil_texture_type?.split("(")[0] || "Đất đỏ Bazan"}</div>
+          </div>
+        </div>
+      `;
+      poly.bindPopup(popupHtml);
+
+      // Farm Center Marker & Label Badge
       const bounds = poly.getBounds();
       const center = bounds.getCenter();
-      L.marker([center.lat, center.lng], {
-        icon: L.divIcon({
-          className: "custom-center-pin-gis",
-          html: `<div style="background:linear-gradient(135deg,#059669,#047857);width:32px;height:32px;border-radius:50%;border:3px solid #ffffff;box-shadow:0 6px 14px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:16px;">📍</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
-        }),
-      }).addTo(map).bindTooltip(`Tâm Vườn: ${farmName}<br/>Độ cao MSL: ${elevationMsl}m`, { permanent: false, direction: "top" });
 
-      // Invalidate size and fit bounds tightly after render
-      setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize();
-          mapRef.current.fitBounds(poly.getBounds(), { padding: [50, 50], maxZoom: 18 });
+      const centerPin = L.divIcon({
+        className: "custom-farm-pin-gis",
+        html: `
+          <div style="
+            background: linear-gradient(135deg, ${colorScheme.fill}, ${colorScheme.stroke});
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+          ">
+            <span>📍 ${farm.label}</span>
+          </div>
+        `,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+
+      const marker = L.marker([center.lat, center.lng], { icon: centerPin }).addTo(map);
+      marker.bindPopup(popupHtml);
+
+      // Render vertex markers if selected or few farms
+      if (farmListToRender.length <= 2 || isSelected) {
+        farm.boundary_points.forEach((pt, vIdx) => {
+          L.marker([pt.lat, pt.lng], {
+            icon: L.divIcon({
+              className: "polygon-vertex-icon-gis",
+              html: `<div style="background:#ffffff;border:2.5px solid ${colorScheme.stroke};width:16px;height:16px;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;color:${colorScheme.fill};font-size:9px;font-weight:bold;">${vIdx + 1}</div>`,
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            }),
+          }).addTo(map).bindTooltip(`${farm.label} - Mốc #${vIdx + 1}`, { permanent: false, direction: "top" });
+        });
+      }
+    });
+
+    // Auto-fit bounds
+    setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+
+        if (selectedFarmId !== "all") {
+          const selected = farmListToRender.find((f) => f.value === selectedFarmId);
+          if (selected && selected.boundary_points) {
+            const selectedBounds = L.latLngBounds(selected.boundary_points.map((p) => [p.lat, p.lng]));
+            mapRef.current.fitBounds(selectedBounds, { padding: [50, 50], maxZoom: 18 });
+            return;
+          }
         }
-      }, 150);
-    } else {
-      setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize();
+
+        if (allPts.length > 0) {
+          mapRef.current.fitBounds(L.latLngBounds(allPts), { padding: [50, 50], maxZoom: 17 });
         }
-      }, 150);
-    }
+      }
+    }, 150);
 
     return () => {
       map.remove();
       mapRef.current = null;
     };
-  }, [boundaryPoints, initialLat, initialLng]);
+  }, [boundaryPoints, farms, selectedFarmId, centerLat, centerLng]);
 
-  // Handle Layer Toggle
+  // Handle Layer Switch
   useEffect(() => {
     if (!mapRef.current || !tileLayerRef.current) return;
     mapRef.current.removeLayer(tileLayerRef.current);
@@ -172,13 +308,6 @@ export default function FarmPolygonGIS3DViewer({
 
     tileLayerRef.current = newTileLayer;
   }, [activeLayer]);
-
-  const handleResetBounds = () => {
-    if (mapRef.current && polygonRef.current) {
-      mapRef.current.invalidateSize();
-      mapRef.current.fitBounds(polygonRef.current.getBounds(), { padding: [50, 50], maxZoom: 18 });
-    }
-  };
 
   return (
     <div className="relative w-full h-full min-h-[460px] rounded-[20px] overflow-hidden border border-emerald-900/30 shadow-lg bg-emerald-950">
@@ -208,11 +337,11 @@ export default function FarmPolygonGIS3DViewer({
         {/* Reset Viewport Bounds Button */}
         <button
           type="button"
-          onClick={handleResetBounds}
+          onClick={resetMapView}
           className="bg-emerald-950/90 hover:bg-emerald-900/90 text-emerald-200 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-xl border border-emerald-500/30 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer hover:scale-105 active:scale-95"
         >
           <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Zoom về Ranh giới Vườn</span>
+          <span>{selectedFarmId === "all" ? "Zoom xem tất cả nông trại" : "Zoom về Ranh giới Vườn"}</span>
         </button>
       </div>
     </div>

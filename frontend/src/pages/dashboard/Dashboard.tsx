@@ -366,9 +366,9 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ROW 3: SYSTEM OVERVIEW, TREE HEALTH, PERFORMANCE & WEATHER */}
+      {/* ROW 3: SYSTEM OVERVIEW & REGIONAL FARM MAP */}
       {isAdmin ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch w-full">
           {/* Col 1: System Overview */}
           <div className="h-[340px] min-h-[340px] w-full">
             {dashboardLoading ? (
@@ -385,11 +385,6 @@ export default function DashboardPage() {
             ) : (
               <RegionalFarmMapCard />
             )}
-          </div>
-
-          {/* Col 3: Growth Trend Card */}
-          <div className="h-[340px] min-h-[340px] w-full">
-            <GrowthTrendCard />
           </div>
         </div>
       ) : (
@@ -410,22 +405,23 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ROW 4: ADMIN vs USER SPECIFIC CARD */}
-      {isAdmin ? (
-        <div className="w-full">
-          <WeeklyInspectionScheduleCard data={filteredInspectionRows} />
-        </div>
-      ) : (
-        <div className="w-full">
-          <WorkPlanningCard />
+      {/* ROW 4: GROWTH TREND CARD (ADMIN SEPARATE ROW) */}
+      {isAdmin && (
+        <div className="w-full h-[380px] min-h-[380px]">
+          <GrowthTrendCard />
         </div>
       )}
 
-      {/* ROW 5: QUẢN LÝ THIẾT BỊ IOT CỦA VƯỜN CARD (POSSITIONED DIRECTLY BELOW INSPECTION SCHEDULE CARD) */}
+      {/* USER SPECIFIC CARDS (WORK PLANNING & IOT DEVICES) */}
       {!isAdmin && (
-        <div className="w-full">
-          <UserIoTDevicesCard />
-        </div>
+        <>
+          <div className="w-full">
+            <WorkPlanningCard />
+          </div>
+          <div className="w-full">
+            <UserIoTDevicesCard />
+          </div>
+        </>
       )}
     </div>
   );

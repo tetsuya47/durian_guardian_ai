@@ -91,6 +91,18 @@ def create_app() -> FastAPI:
         logger.info("Admin user created: bao@gmail.com")
 
     @app.on_event("startup")
+    async def _seed_teos_farm_data() -> None:
+        try:
+            backend_dir = Path(__file__).resolve().parent.parent
+            if str(backend_dir) not in sys.path:
+                sys.path.insert(0, str(backend_dir))
+            from seed_teos_farm import seed_teos_farm
+            await seed_teos_farm()
+            logger.info("Auto-seeded Nguyễn Văn Tèo farm dataset in MongoDB.")
+        except Exception as exc:
+            logger.error("Failed to seed Nguyễn Văn Tèo farm: %s", exc, exc_info=True)
+
+    @app.on_event("startup")
     async def _seed_trees_if_empty() -> None:
         db = MongoDBManager.get_db()
         tree_count = await db["trees"].count_documents({})

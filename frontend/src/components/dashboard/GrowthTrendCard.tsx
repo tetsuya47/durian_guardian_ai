@@ -56,9 +56,9 @@ export default function GrowthTrendCard() {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden" padding={false} hover={false}>
-      <div className="flex flex-col justify-between h-full p-4 space-y-2">
+      <div className="flex flex-col justify-between h-full p-5 space-y-3">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gray-100 flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100 flex-shrink-0">
           <SectionTitle
             icon={<TrendingUp className="w-5 h-5 text-blue-600" />}
             title="Biểu đồ Tăng Trưởng Người Dùng & Nông Trại Theo Tháng"
@@ -74,7 +74,7 @@ export default function GrowthTrendCard() {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="text-[11px] font-bold text-gray-700 bg-gray-100 border border-gray-200 rounded-[8px] px-2 py-1 focus:outline-none"
+              className="text-[11px] font-bold text-gray-700 bg-gray-100 border border-gray-200 rounded-[8px] px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="6m">6 tháng gần nhất</option>
               <option value="12m">1 năm gần nhất</option>
@@ -83,28 +83,34 @@ export default function GrowthTrendCard() {
         </div>
 
         {/* LINE CHART CONTAINER */}
-        <div className="w-full h-[180px] my-auto">
+        <div className="w-full flex-1 min-h-[200px] min-w-0 my-1">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+            <LineChart data={data} margin={{ top: 15, right: 25, left: -15, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
               <XAxis dataKey="month" stroke="#64748B" fontSize={11} fontWeight="bold" tickLine={false} />
-              <YAxis stroke="#64748B" fontSize={11} fontWeight="bold" tickLine={false} />
+              <YAxis stroke="#64748B" fontSize={11} fontWeight="bold" tickLine={false} width={35} />
               <Tooltip
-                contentStyle={{ borderRadius: "12px", border: "1px solid #E2E8F0", fontSize: "11px", fontWeight: "bold" }}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "1px solid #E2E8F0",
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                }}
                 formatter={(value: number, name: string) => [
                   `${value} ${name.includes("Người dùng") ? "người dùng" : "nông trại"}`,
                   name,
                 ]}
               />
-              <Legend wrapperStyle={{ fontSize: "11px", fontWeight: "bold", paddingTop: "4px" }} />
+              <Legend wrapperStyle={{ fontSize: "11px", fontWeight: "bold", paddingTop: "8px" }} />
               <Line
                 type="monotone"
                 dataKey="newUsers"
                 name="👤 Người dùng mới"
                 stroke="#2563EB"
                 strokeWidth={3}
-                dot={{ r: 4, fill: "#2563EB" }}
-                activeDot={{ r: 6 }}
+                dot={{ r: 4.5, fill: "#2563EB" }}
+                activeDot={{ r: 7 }}
               />
               <Line
                 type="monotone"
@@ -112,26 +118,26 @@ export default function GrowthTrendCard() {
                 name="🌴 Nông trại mới"
                 stroke="#10B981"
                 strokeWidth={3}
-                dot={{ r: 4, fill: "#10B981" }}
-                activeDot={{ r: 6 }}
+                dot={{ r: 4.5, fill: "#10B981" }}
+                activeDot={{ r: 7 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         {/* Summary Footer */}
-        <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-600 flex-shrink-0">
+        <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-600 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-blue-700 font-bold">
+            <span className="flex items-center gap-1.5 text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
               <Users className="w-3.5 h-3.5 text-blue-600" />
               Tổng người dùng mới: <strong>+{totalNewUsers}</strong>
             </span>
-            <span className="flex items-center gap-1 text-emerald-700 font-bold">
+            <span className="flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
               <Building2 className="w-3.5 h-3.5 text-emerald-600" />
               Tổng nông trại mới: <strong>+{totalNewFarms}</strong>
             </span>
           </div>
-          <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+          <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200">
             Cập nhật theo tháng
           </span>
         </div>

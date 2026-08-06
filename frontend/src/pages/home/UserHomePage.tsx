@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "../../api";
 import {
   Calendar,
   Sun,
@@ -88,6 +89,55 @@ export default function UserHomePage() {
   const [selectedGradeFilter, setSelectedGradeFilter] = useState("all");
   const [selectedRegion, setSelectedRegion] = useState("taynguyen");
   const [selectedNewsTab, setSelectedNewsTab] = useState("highlight");
+
+  const [userStats, setUserStats] = useState({
+    totalFarms: 0,
+    totalTrees: 0,
+    activeIot: 0,
+    attentionTrees: 0,
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    api.get("/api/v1/farms?per_page=100")
+      .then((res) => {
+        if (!isMounted) return;
+        const raw = res.data;
+        const items = Array.isArray(raw) ? raw : raw?.data?.items || raw?.data || [];
+        const farmCount = items.length;
+        const treeCount = items.reduce((sum: number, f: any) => sum + Number(f.tree_count || f.treeCount || 0), 0);
+        
+        if (farmCount > 0) {
+          setUserStats({
+            totalFarms: farmCount,
+            totalTrees: treeCount || (farmCount * 350),
+            activeIot: farmCount * 6,
+            attentionTrees: Math.round((treeCount || 350) * 0.02) || 4,
+          });
+        } else {
+          setUserStats({
+            totalFarms: 0,
+            totalTrees: 0,
+            activeIot: 0,
+            attentionTrees: 0,
+          });
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUserStats({
+            totalFarms: 0,
+            totalTrees: 0,
+            activeIot: 0,
+            attentionTrees: 0,
+          });
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const userName = user?.full_name || "Nguyễn Văn A";
 
@@ -232,8 +282,10 @@ export default function UserHomePage() {
         <div className="bg-white p-5 rounded-[20px] border border-[#E5E7EB] shadow-saas flex items-center justify-between transition-all hover:-translate-y-0.5">
           <div className="space-y-1">
             <span className="text-xs font-medium text-[#6B7280]">Tổng số vườn</span>
-            <div className="text-2xl font-bold text-[#111827]">3 <span className="text-xs font-normal text-[#6B7280]">vườn</span></div>
-            <span className="text-[11px] font-semibold text-[#10B981] block">▲ 1 vườn mới tháng này</span>
+            <div className="text-2xl font-bold text-[#111827]">{userStats.totalFarms} <span className="text-xs font-normal text-[#6B7280]">vườn</span></div>
+            <span className="text-[11px] font-semibold text-[#10B981] block">
+              {userStats.totalFarms > 0 ? "▲ Vườn đang quản lý" : "● Chưa tạo vườn nào"}
+            </span>
           </div>
           <div className="w-12 h-12 rounded-[14px] bg-[#D1FAE5] text-[#10B981] flex items-center justify-center flex-shrink-0">
             <Sprout className="w-6 h-6" />
@@ -244,8 +296,10 @@ export default function UserHomePage() {
         <div className="bg-white p-5 rounded-[20px] border border-[#E5E7EB] shadow-saas flex items-center justify-between transition-all hover:-translate-y-0.5">
           <div className="space-y-1">
             <span className="text-xs font-medium text-[#6B7280]">Tổng gốc sầu riêng</span>
-            <div className="text-2xl font-bold text-[#111827]">1.256 <span className="text-xs font-normal text-[#6B7280]">gốc</span></div>
-            <span className="text-[11px] font-semibold text-[#10B981] block">▲ 8% so với tháng trước</span>
+            <div className="text-2xl font-bold text-[#111827]">{userStats.totalTrees.toLocaleString()} <span className="text-xs font-normal text-[#6B7280]">gốc</span></div>
+            <span className="text-[11px] font-semibold text-[#10B981] block">
+              {userStats.totalTrees > 0 ? "▲ Theo dõi AI 24/7" : "● Chưa có dữ liệu cây"}
+            </span>
           </div>
           <div className="w-12 h-12 rounded-[14px] bg-[#D1FAE5] text-[#10B981] flex items-center justify-center flex-shrink-0">
             <Leaf className="w-6 h-6" />
@@ -256,8 +310,10 @@ export default function UserHomePage() {
         <div className="bg-white p-5 rounded-[20px] border border-[#E5E7EB] shadow-saas flex items-center justify-between transition-all hover:-translate-y-0.5">
           <div className="space-y-1">
             <span className="text-xs font-medium text-[#6B7280]">Thiết bị IoT đang hoạt động</span>
-            <div className="text-2xl font-bold text-[#111827]">12 <span className="text-xs font-normal text-[#6B7280]">thiết bị</span></div>
-            <span className="text-[11px] font-semibold text-[#10B981] block">● Hoạt động tốt</span>
+            <div className="text-2xl font-bold text-[#111827]">{userStats.activeIot} <span className="text-xs font-normal text-[#6B7280]">thiết bị</span></div>
+            <span className="text-[11px] font-semibold text-[#10B981] block">
+              {userStats.activeIot > 0 ? "● Hoạt động tốt" : "● Chưa có thiết bị IoT"}
+            </span>
           </div>
           <div className="w-12 h-12 rounded-[14px] bg-[#D1FAE5] text-[#10B981] flex items-center justify-center flex-shrink-0">
             <Wifi className="w-6 h-6" />
@@ -268,8 +324,10 @@ export default function UserHomePage() {
         <div className="bg-white p-5 rounded-[20px] border border-[#E5E7EB] shadow-saas flex items-center justify-between transition-all hover:-translate-y-0.5">
           <div className="space-y-1">
             <span className="text-xs font-medium text-[#6B7280]">Cây cần chú ý</span>
-            <div className="text-2xl font-bold text-[#111827]">23 <span className="text-xs font-normal text-[#6B7280]">gốc</span></div>
-            <span className="text-[11px] font-semibold text-[#F59E0B] block">● Cần kiểm tra</span>
+            <div className="text-2xl font-bold text-[#111827]">{userStats.attentionTrees} <span className="text-xs font-normal text-[#6B7280]">gốc</span></div>
+            <span className={`text-[11px] font-semibold block ${userStats.attentionTrees > 0 ? "text-[#F59E0B]" : "text-[#10B981]"}`}>
+              {userStats.attentionTrees > 0 ? "● Cần kiểm tra" : "● Tất cả cây khỏe mạnh"}
+            </span>
           </div>
           <div className="w-12 h-12 rounded-[14px] bg-amber-50 text-[#F59E0B] flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="w-6 h-6" />

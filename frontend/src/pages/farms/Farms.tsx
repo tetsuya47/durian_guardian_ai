@@ -315,8 +315,9 @@ export default function FarmsPage() {
   });
 
   // Dynamic statistics aggregations
+  const displayTotalFarms = filteredFarms.length || totalFarms;
   const totalAreaHectare = Number(filteredFarms.reduce((sum, f) => sum + (f.area_hectare || 0), 0).toFixed(1));
-  const averageAreaHectare = totalFarms > 0 ? Number((totalAreaHectare / totalFarms).toFixed(1)) : 0;
+  const averageAreaHectare = displayTotalFarms > 0 ? Number((totalAreaHectare / displayTotalFarms).toFixed(1)) : 0;
   const totalTrees = filteredFarms.reduce((sum, f) => sum + (f.tree_count || 0), 0);
 
   // Column mapping
@@ -449,7 +450,7 @@ export default function FarmsPage() {
         <StatCard
           compact
           title="Tổng trang trại"
-          value={loading ? "..." : totalFarms.toLocaleString()}
+          value={loading ? "..." : displayTotalFarms.toLocaleString()}
           icon={Sprout}
         />
         <StatCard
