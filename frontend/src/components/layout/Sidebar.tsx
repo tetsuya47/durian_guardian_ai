@@ -86,8 +86,8 @@ const USER_MENU_GROUPS: MenuGroup[] = [
     icon: TrendingUp,
     children: [
       { label: "Năng suất trang trại", path: "/farm-performance", icon: BarChart3 },
-      { label: "Báo cáo", path: "/farm-performance", icon: FileText },
-      { label: "Thống kê", path: "/farm-performance", icon: PieChart },
+      { label: "Báo cáo", path: "/farm-reports", icon: FileText },
+      { label: "Thống kê", path: "/farm-statistics", icon: PieChart },
     ],
   },
   {

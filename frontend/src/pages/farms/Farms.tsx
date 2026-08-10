@@ -165,26 +165,7 @@ export default function FarmsPage() {
     return company ? company.company_name : "—";
   };
 
-  const DEFAULT_TEO_FARMS: Farm[] = useMemo(() => [
-    {
-      _id: "farm-teo-01",
-      id: "farm-teo-01",
-      farm_code: "FRM-EAYONG-01",
-      farm_name: "Trang trại Sầu Riêng Sinh Thái Krông Pắc",
-      company_id: "comp-teo",
-      company_name: "Hợp Tác Xã Sầu Riêng Ea Yông",
-      district: "Krông Pắc",
-      province: "Đắk Lắk",
-      address: "Xã Ea Yông, Huyện Krông Pắc, Tỉnh Đắk Lắk",
-      area_hectare: 5.85,
-      tree_count: 350,
-      status: "Hoạt động",
-      created_at: "2026-01-15T08:00:00Z",
-      updated_at: "2026-08-01T10:00:00Z",
-    },
-  ], []);
-
-  const safeFarms = useMemo(() => (Array.isArray(farms) && farms.length > 0 ? farms : DEFAULT_TEO_FARMS), [farms, DEFAULT_TEO_FARMS]);
+  const safeFarms = useMemo(() => (Array.isArray(farms) ? farms : []), [farms]);
   const totalAreaAll = useMemo(() => safeFarms.reduce((s, f) => s + (f.area_hectare || 0), 0), [safeFarms]);
   const totalTreesAll = useMemo(() => safeFarms.reduce((s, f) => s + (f.tree_count || 0), 0), [safeFarms]);
 

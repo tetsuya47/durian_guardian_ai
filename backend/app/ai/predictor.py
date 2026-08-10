@@ -12,13 +12,28 @@ import threading
 from pathlib import Path
 from typing import Optional
 
-import torch
-import torch.nn as nn
-import torchvision.models as tv_models
-import torchvision.transforms as T
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+# Safely import PyTorch / torchvision to prevent app startup crashes
+HAS_TORCH = False
+TORCH_IMPORT_ERROR: Optional[str] = None
+torch = None
+nn = None
+tv_models = None
+T = None
+
+try:
+    import torch
+    import torch.nn as nn
+    import torchvision.models as tv_models
+    import torchvision.transforms as T
+    HAS_TORCH = True
+except Exception as exc:
+    TORCH_IMPORT_ERROR = str(exc)
+    logger.warning("PyTorch/torchvision failed to import: %s", exc)
+
 
 # ──────────────────────────────────────────────────────────────
 # Constants
@@ -119,6 +134,8 @@ NUM_CLASSES = 11
 
 def _build_model() -> nn.Module:
     """Create EfficientNet-B0 with 11-class classifier head."""
+    if not HAS_TORCH:
+        raise RuntimeError(f"PyTorch is not available: {TORCH_IMPORT_ERROR}")
     model = tv_models.efficientnet_b0(weights=None)
     # Replace final Linear layer: (1280→1000) → (1280→11)
     # EfficientNet-B0 classifier = Sequential(Dropout(0.2), Linear(1280, 1000))
@@ -132,6 +149,8 @@ def _build_model() -> nn.Module:
 # ──────────────────────────────────────────────────────────────
 
 def _build_transform() -> T.Compose:
+    if not HAS_TORCH:
+        raise RuntimeError(f"PyTorch is not available: {TORCH_IMPORT_ERROR}")
     return T.Compose([
         T.Resize((224, 224)),
         T.ToTensor(),
@@ -168,6 +187,10 @@ class DiseasePredictor:
         with self._lock:
             if self._initialized:
                 return
+            if not HAS_TORCH:
+                raise RuntimeError(
+                    f"PyTorch failed to load on this system ({TORCH_IMPORT_ERROR}). Disease detection model cannot be initialized."
+                )
             self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self._model = self._load_model()
             self._transform = _build_transform()

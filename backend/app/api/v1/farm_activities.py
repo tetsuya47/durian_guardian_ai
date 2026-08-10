@@ -115,3 +115,38 @@ async def get_tree_timeline(
     repo = FarmActivityRepository(db)
     activities = await repo.get_recent_activities_for_tree(tree_id, limit=30)
     return success_response(data=activities, message=f"Retrieved timeline for tree {tree_id}")
+
+
+@router.get("/logs", response_model=SuccessResponse[list[dict[str, Any]]])
+async def list_farm_logs(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    _=Depends(allow_all),
+):
+    """Retrieve farm logs for approval."""
+    cursor = db["farm_logs"].find({}).sort("created_at", -1)
+    docs = await cursor.to_list(100)
+    for d in docs:
+        d["_id"] = str(d["_id"])
+        d["id"] = d["_id"]
+    return success_response(data=docs, message=f"Retrieved {len(docs)} farm logs")
+
+
+@router.put("/logs/{log_id}", response_model=SuccessResponse[dict[str, Any]])
+async def update_farm_log(
+    log_id: str,
+    update_data: dict[str, Any],
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    _=Depends(allow_all),
+):
+    """Update status of a farm log (e.g. 'Đã phê duyệt' or 'Yêu cầu làm lại')."""
+    from bson import ObjectId
+    oid = ObjectId(log_id) if ObjectId.is_valid(log_id) else log_id
+    await db["farm_logs"].update_one({"_id": oid}, {"$set": update_data})
+    doc = await db["farm_logs"].find_one({"_id": oid})
+    if doc:
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
+    return success_response(data=doc or {}, message="Farm log updated successfully")
+

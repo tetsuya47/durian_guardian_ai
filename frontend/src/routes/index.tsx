@@ -6,6 +6,7 @@ import DashboardPage from "@/pages/dashboard/Dashboard";
 import FarmDashboardPage from "@/pages/dashboard/FarmDashboard";
 import AIChatbotPage from "@/pages/chatbot/AIChatbotPage";
 import FarmPerformancePage from "@/pages/performance/FarmPerformancePage";
+import FarmStatisticsPage from "@/pages/performance/FarmStatisticsPage";
 import CompaniesPage from "@/pages/companies/Companies";
 import FarmsPage from "@/pages/farms/Farms";
 import ZonesPage from "@/pages/zones/Zones";
@@ -112,6 +113,10 @@ export const router = createBrowserRouter([
       {
         path: "farm-reports",
         element: <FarmReportsPage />,
+      },
+      {
+        path: "farm-statistics",
+        element: <FarmStatisticsPage />,
       },
       {
         path: "iot-setup-guide",

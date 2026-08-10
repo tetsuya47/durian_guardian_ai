@@ -68,11 +68,23 @@ class AIService:
         self.detection_result_repo = DetectionResultRepository(db)
         self.alert_repo = AlertRepository(db)
         self.decision_engine = AIDecisionEngineService(db)
-        # Singleton predictor — model is loaded once on first call
+        # Singleton predictor — model is loaded on demand or startup
+        self._predictor = None
+        self._predictor_error = None
         try:
             self._predictor = DiseasePredictor()
         except Exception as exc:
-            logger.critical("Disease detection model failed to load: %s", exc, exc_info=True)
+            self._predictor_error = str(exc)
+            logger.warning("Disease detection model failed to load (will retry on prediction): %s", exc)
+
+    def get_predictor(self) -> DiseasePredictor:
+        if self._predictor is not None:
+            return self._predictor
+        try:
+            self._predictor = DiseasePredictor()
+            return self._predictor
+        except Exception as exc:
+            self._predictor_error = str(exc)
             raise AppException(f"Disease detection model failed to load: {exc}") from exc
 
     def _analyze_quality(self, file_bytes: bytes) -> dict:
@@ -119,7 +131,8 @@ class AIService:
         prediction = None
         confidence = 0.0
         try:
-            prediction = self._predictor.predict(file_bytes)
+            predictor = self.get_predictor()
+            prediction = predictor.predict(file_bytes)
             confidence = float(prediction.get("confidence", 0.0))
         except Exception as exc:
             logger.warning("Predictor failed during quality check: %s", exc)
@@ -243,7 +256,7 @@ class AIService:
             start_time = time.perf_counter()
             prediction = quality.get("prediction")
             if not prediction:
-                prediction = self._predictor.predict(file_bytes)
+                prediction = self.get_predictor().predict(file_bytes)
             inference_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
             # Save uploaded image
@@ -403,7 +416,7 @@ class AIService:
         """
         start = time.perf_counter()
         try:
-            prediction = self._predictor.predict(file_bytes)
+            prediction = self.get_predictor().predict(file_bytes)
         except Exception as exc:
             logger.error("AI inference failed: %s", exc, exc_info=True)
             raise AppException(f"AI inference failed: {exc}") from exc

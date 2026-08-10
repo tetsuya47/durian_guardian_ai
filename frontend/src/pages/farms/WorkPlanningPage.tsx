@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Calendar, Plus, Clock, CheckCircle2, MapPin, User, CheckSquare, Users, XCircle, Search, FileText } from "lucide-react";
 import Card from "@/components/dashboard/Shared/Card";
 import SectionTitle from "@/components/dashboard/Shared/SectionTitle";
+import api from "@/api";
+import { farmActivityService } from "@/services/farmActivity.service";
+import { zoneService } from "@/services/zone.service";
 
 // Interface for Task Assignment (Tab 1)
 interface PlanTask {
@@ -26,105 +29,126 @@ interface LogEntry {
   status: "Chờ duyệt" | "Đã phê duyệt" | "Yêu cầu làm lại";
 }
 
-const INITIAL_PLANS: PlanTask[] = [
-  {
-    id: "plan-1",
-    title: "Phun phân bón lá Canxi-Bo & Vi lượng đọt non",
-    farmZone: "Khu A - Sầu Riêng Thái (120 cây)",
-    scheduledDate: "06/08/2026",
-    assignee: "Nguyễn Văn Tèo",
-    priority: "Cao",
-    status: "Đang thực hiện",
-  },
-  {
-    id: "plan-2",
-    title: "Xử lý quét vôi gốc & rải Ridomil phòng nấm xì mủ",
-    farmZone: "Khu B - Sầu Riêng Ri6 (90 cây)",
-    scheduledDate: "07/08/2026",
-    assignee: "Trần Văn Bình",
-    priority: "Cao",
-    status: "Chưa bắt đầu",
-  },
-  {
-    id: "plan-3",
-    title: "Kiểm tra hệ thống van tưới nhỏ giọt LoRaWAN Drip",
-    farmZone: "Khu C & D (140 cây)",
-    scheduledDate: "08/08/2026",
-    assignee: "Kỹ thuật viên Vie-farm",
-    priority: "Trung bình",
-    status: "Chưa bắt đầu",
-  },
-];
-
-const INITIAL_LOGS: LogEntry[] = [
-  {
-    id: "log-1",
-    code: "LOG-2026-0801",
-    submittedBy: "Nguyễn Văn Tèo",
-    taskName: "Đã phun phân bón lá Canxi-Bo & vi lượng đọt non 120 cây",
-    zoneName: "Khu A - Sầu Riêng Thái",
-    submittedTime: "Hôm nay 11:30",
-    note: "Đã pha đúng tỷ lệ 1:500, đọt non nhú đều đẹp.",
-    status: "Chờ duyệt",
-  },
-  {
-    id: "log-2",
-    code: "LOG-2026-0802",
-    submittedBy: "Trần Văn Bình",
-    taskName: "Đã quét vôi gốc & rải Ridomil Gold cây bị xì mủ SR-EAYONG-019",
-    zoneName: "Khu B - Sầu Riêng Ri6",
-    submittedTime: "Hôm nay 10:15",
-    note: "Vết xì mủ cạo sạch vỏ, bôi Boóc-đô 10%.",
-    status: "Chờ duyệt",
-  },
-  {
-    id: "log-3",
-    code: "LOG-2026-0803",
-    submittedBy: "Lê Thị Hoa",
-    taskName: "Bón phân hữu cơ nở 2kg/gốc cho 50 cây khu A",
-    zoneName: "Khu A - Sầu Riêng Thái",
-    submittedTime: "Hôm qua 16:45",
-    note: "Phân rải xung quanh đường hình chiếu tán lá.",
-    status: "Đã phê duyệt",
-  },
-];
-
 export default function WorkPlanningPage() {
   const [activeTab, setActiveTab] = useState<"assignment" | "approval">("assignment");
 
   // Tab 1 States
-  const [plans, setPlans] = useState<PlanTask[]>(INITIAL_PLANS);
+  const [plans, setPlans] = useState<PlanTask[]>([]);
+  const [zones, setZones] = useState<string[]>(["Khu A - Sầu Riêng Thái", "Khu B - Sầu Riêng Ri6"]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newZone, setNewZone] = useState("Khu A - Sầu Riêng Thái");
   const [newAssignee, setNewAssignee] = useState("Nguyễn Văn Tèo");
 
   // Tab 2 States
-  const [logs, setLogs] = useState<LogEntry[]>(INITIAL_LOGS);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  const handleAddPlan = (e: React.FormEvent) => {
+  // Fetch live MongoDB work plans & logs
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch work plans from MongoDB
+      const activitiesData: any = await farmActivityService.get({ params: { per_page: 50 } });
+      const rawPlans = Array.isArray(activitiesData) ? activitiesData : (activitiesData?.items ?? []);
+      const mappedPlans: PlanTask[] = rawPlans.map((item: any) => ({
+        id: item._id || item.id || `plan-${Math.random()}`,
+        title: item.title || item.activity_type || "Công việc trang trại",
+        farmZone: item.farm_zone || "Khu vực trang trại",
+        scheduledDate: item.scheduled_date || (item.activity_date ? new Date(item.activity_date).toLocaleDateString("vi-VN") : "Hôm nay"),
+        assignee: item.assignee || "Nhân công thực địa",
+        priority: item.priority || "Trung bình",
+        status: item.status || "Chưa bắt đầu",
+      }));
+      setPlans(mappedPlans);
+
+      // 2. Fetch farm logs from MongoDB
+      const logsRes = await api.get("/farm-activities/logs");
+      const rawLogs = Array.isArray(logsRes.data) ? logsRes.data : (logsRes.data?.items ?? []);
+      const mappedLogs: LogEntry[] = rawLogs.map((l: any) => ({
+        id: l._id || l.id,
+        code: l.code || "LOG-2026",
+        submittedBy: l.submitted_by || l.submittedBy || "Công nhân",
+        taskName: l.task_name || l.taskName || "Nhật ký công việc",
+        zoneName: l.zone_name || l.zoneName || "Khu vực trang trại",
+        submittedTime: l.submitted_time || l.submittedTime || "Gần đây",
+        note: l.note || "",
+        status: l.status || "Chờ duyệt",
+      }));
+      setLogs(mappedLogs);
+
+      // 3. Fetch zones from MongoDB
+      const zonesData: any = await zoneService.get({ params: { per_page: 50 } });
+      const rawZones = Array.isArray(zonesData) ? zonesData : (zonesData?.items ?? []);
+      if (rawZones.length > 0) {
+        const zoneNames = rawZones.map((z: any) => z.zone_name || z.name).filter(Boolean);
+        if (zoneNames.length > 0) {
+          setZones(zoneNames);
+          setNewZone(zoneNames[0]);
+        }
+      }
+    } catch (err) {
+      console.error("Error loading MongoDB work planning data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleAddPlan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    const item: PlanTask = {
-      id: `plan-${Date.now()}`,
+    const payload = {
       title: newTitle,
-      farmZone: newZone,
-      scheduledDate: new Date().toLocaleDateString("vi-VN"),
+      activity_type: "Chăm sóc",
+      farm_zone: newZone,
+      scheduled_date: new Date().toLocaleDateString("vi-VN"),
       assignee: newAssignee,
       priority: "Trung bình",
       status: "Chưa bắt đầu",
     };
-    setPlans([item, ...plans]);
-    setNewTitle("");
-    setShowAddModal(false);
+
+    try {
+      await farmActivityService.post(payload);
+      setNewTitle("");
+      setShowAddModal(false);
+      fetchData();
+    } catch (err) {
+      console.error("Error creating work plan:", err);
+      const item: PlanTask = {
+        id: `plan-${Date.now()}`,
+        title: newTitle,
+        farmZone: newZone,
+        scheduledDate: new Date().toLocaleDateString("vi-VN"),
+        assignee: newAssignee,
+        priority: "Trung bình",
+        status: "Chưa bắt đầu",
+      };
+      setPlans([item, ...plans]);
+      setNewTitle("");
+      setShowAddModal(false);
+    }
   };
 
-  const handleApproveLog = (id: string) => {
-    setLogs(logs.map((l) => (l.id === id ? { ...l, status: "Đã phê duyệt" } : l)));
+  const handleApproveLog = async (id: string) => {
+    try {
+      await api.put(`/farm-activities/logs/${id}`, { status: "Đã phê duyệt" });
+      setLogs(logs.map((l) => (l.id === id ? { ...l, status: "Đã phê duyệt" } : l)));
+    } catch (err) {
+      setLogs(logs.map((l) => (l.id === id ? { ...l, status: "Đã phê duyệt" } : l)));
+    }
   };
 
-  const handleRejectLog = (id: string) => {
-    setLogs(logs.map((l) => (l.id === id ? { ...l, status: "Yêu cầu làm lại" } : l)));
+  const handleRejectLog = async (id: string) => {
+    try {
+      await api.put(`/farm-activities/logs/${id}`, { status: "Yêu cầu làm lại" });
+      setLogs(logs.map((l) => (l.id === id ? { ...l, status: "Yêu cầu làm lại" } : l)));
+    } catch (err) {
+      setLogs(logs.map((l) => (l.id === id ? { ...l, status: "Yêu cầu làm lại" } : l)));
+    }
   };
 
   const pendingLogCount = logs.filter((l) => l.status === "Chờ duyệt").length;
@@ -419,10 +443,11 @@ export default function WorkPlanningPage() {
                   onChange={(e) => setNewZone(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="Khu A - Sầu Riêng Thái">Khu A - Sầu Riêng Thái</option>
-                  <option value="Khu B - Sầu Riêng Ri6">Khu B - Sầu Riêng Ri6</option>
-                  <option value="Khu C - Sầu Riêng Musang King">Khu C - Sầu Riêng Musang King</option>
-                  <option value="Khu D - Sầu Riêng Thái">Khu D - Sầu Riêng Thái</option>
+                  {zones.map((z) => (
+                    <option key={z} value={z}>
+                      {z}
+                    </option>
+                  ))}
                 </select>
               </div>
 
