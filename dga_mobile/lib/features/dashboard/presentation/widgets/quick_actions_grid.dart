@@ -49,7 +49,7 @@ class QuickActionsGrid extends StatelessWidget {
               bgColor: const Color(0xFFDBEAFE),
               title: 'Nhật ký',
               subtitle: 'Ghi chép canh tác',
-              onTap: () => context.go('/history'),
+              onTap: () => context.push('/today-activity'),
             ),
             _buildQuickActionCard(
               context,

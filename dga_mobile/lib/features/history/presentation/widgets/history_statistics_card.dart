@@ -11,12 +11,12 @@ class HistoryStatisticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = logs.isNotEmpty ? logs.length : 15;
-    final healthy = logs.isNotEmpty
-        ? logs.where((l) => l.diseaseName.contains('Không phát hiện') || l.diseaseName.toLowerCase().contains('khỏe mạnh')).length
-        : 12;
-    final diseased = logs.isNotEmpty ? (total - healthy) : 3;
-    final rate = total > 0 ? ((diseased / total) * 100).toStringAsFixed(0) : '20';
+    final total = logs.length;
+    final healthy = logs
+        .where((l) => l.diseaseName.contains('Không phát hiện') || l.diseaseName.toLowerCase().contains('khỏe mạnh'))
+        .length;
+    final diseased = total > healthy ? (total - healthy) : 0;
+    final rate = total > 0 ? ((diseased / total) * 100).toStringAsFixed(0) : '0';
 
     return Container(
       width: double.infinity,

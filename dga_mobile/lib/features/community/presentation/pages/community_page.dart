@@ -66,6 +66,26 @@ class ExpertModel {
   });
 }
 
+class DurianDepotModel {
+  final String id;
+  final String name;
+  final String location;
+  final String priceRange;
+  final String buyTypes;
+  final String phone;
+  final bool isOpen;
+
+  DurianDepotModel({
+    required this.id,
+    required this.name,
+    required this.location,
+    required this.priceRange,
+    required this.buyTypes,
+    required this.phone,
+    required this.isOpen,
+  });
+}
+
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
 
@@ -76,7 +96,7 @@ class CommunityPage extends StatefulWidget {
 class _CommunityPageState extends State<CommunityPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedCategory = 'all'; // 'all', 'pests', 'techniques', 'weather'
+  String _selectedCategory = 'all'; // 'all', 'pests', 'techniques', 'expert'
   final Map<String, TextEditingController> _commentControllers = {};
 
   final List<ExpertModel> _experts = [
@@ -88,7 +108,7 @@ class _CommunityPageState extends State<CommunityPage>
       experience: '20 năm kinh nghiệm',
       consultationsCount: 1420,
       rating: 4.9,
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
+      avatarUrl: 'assets/images/expert_nguyen_van_duc.png',
       isOnline: true,
       specialty: 'Cân bằng NPK, pH đất & Phục hồi rễ tơ',
     ),
@@ -100,7 +120,7 @@ class _CommunityPageState extends State<CommunityPage>
       experience: '14 năm kinh nghiệm',
       consultationsCount: 980,
       rating: 4.9,
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
+      avatarUrl: 'assets/images/expert_le_minh.png',
       isOnline: true,
       specialty: 'Đặc trị Xì mủ gốc, Thối rễ & Nấm hồng',
     ),
@@ -112,14 +132,88 @@ class _CommunityPageState extends State<CommunityPage>
       experience: '18 năm kinh nghiệm',
       consultationsCount: 1150,
       rating: 5.0,
-      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200',
+      avatarUrl: 'assets/images/expert_tran_thi_thanh.png',
       isOnline: true,
       specialty: 'Trichoderma đối kháng, Phosphonate & Hữu cơ',
+    ),
+    ExpertModel(
+      id: 'exp-4',
+      name: 'GS. TS. Hoàng Trọng Nam',
+      title: 'Chuyên gia Sinh lý Cây trồng & Xử lý Ra hoa',
+      workplace: 'Học viện Nông nghiệp Việt Nam',
+      experience: '25 năm kinh nghiệm',
+      consultationsCount: 2100,
+      rating: 5.0,
+      avatarUrl: 'assets/images/expert_hoang_trong_nam.png',
+      isOnline: true,
+      specialty: 'Kích ra hoa nghịch vụ, Hạn chế rụng bông',
+    ),
+    ExpertModel(
+      id: 'exp-5',
+      name: 'Kỹ sư Phạm Văn Hùng',
+      title: 'Chuyên gia Nuôi trái & Tăng chất lượng Cơm',
+      workplace: 'Hiệp hội Sầu riêng Đắk Lắk',
+      experience: '16 năm kinh nghiệm',
+      consultationsCount: 1340,
+      rating: 4.8,
+      avatarUrl: 'assets/images/expert_pham_van_hung.png',
+      isOnline: false,
+      specialty: 'Kali Sunfat, Chống sượng cơm, Lên màu trái',
+    ),
+    ExpertModel(
+      id: 'exp-6',
+      name: 'ThS. Vũ Thị Ngọc',
+      title: 'Chuyên gia Quản lý Sâu bệnh VietGAP / Export',
+      workplace: 'Chi cục Trồng trọt & BVTV Lâm Đồng',
+      experience: '12 năm kinh nghiệm',
+      consultationsCount: 890,
+      rating: 4.9,
+      avatarUrl: 'assets/images/expert_vu_thi_ngoc.png',
+      isOnline: true,
+      specialty: 'Thuốc BVTV sinh học & Quản lý tồn dư PHI',
+    ),
+  ];
+
+  final List<DurianDepotModel> _depots = [
+    DurianDepotModel(
+      id: 'depot-1',
+      name: 'Vựa Sầu Riêng Tuấn Vũ (Đắk Lắk)',
+      location: 'KM 19, QL26, Krông Pắc, Đắk Lắk',
+      priceRange: '85.000đ - 95.000đ / kg',
+      buyTypes: 'Ri6 Loại 1, Monthong Thái Export',
+      phone: '0988.123.456',
+      isOpen: true,
+    ),
+    DurianDepotModel(
+      id: 'depot-2',
+      name: 'Vựa Sầu Riêng Miền Tây (Tiền Giang)',
+      location: 'Cai Lậy, Tiền Giang (Gần Cầu Ngũ Hiệp)',
+      priceRange: '88.000đ - 98.000đ / kg',
+      buyTypes: 'Chuyên xuất khẩu đi Trung Quốc chính ngạch',
+      phone: '0913.987.654',
+      isOpen: true,
+    ),
+    DurianDepotModel(
+      id: 'depot-3',
+      name: 'Vựa Sầu Riêng Hoàng Nam (Lâm Đồng)',
+      location: 'TT. Đạ Tẻh, Huyện Đạ Tẻh, Lâm Đồng',
+      priceRange: '82.000đ - 92.000đ / kg',
+      buyTypes: 'Thu mua tại vườn & Cắt xô nguyên lô',
+      phone: '0977.456.789',
+      isOpen: true,
+    ),
+    DurianDepotModel(
+      id: 'depot-4',
+      name: 'Vựa Sầu Riêng Khôi Nguyên (Bình Phước)',
+      location: 'Bù Đăng, Bình Phước',
+      priceRange: '84.000đ - 94.000đ / kg',
+      buyTypes: 'Ri6, Monthong, Musang King',
+      phone: '0909.112.233',
+      isOpen: true,
     ),
   ];
 
   final List<PostItem> _posts = [
-    // 1. Featured Post (Card 1)
     PostItem(
       id: 'post-featured-1',
       authorName: 'Nguyễn Văn Hùng',
@@ -146,8 +240,6 @@ class _CommunityPageState extends State<CommunityPage>
         },
       ],
     ),
-
-    // 2. Normal Post (Card 2)
     PostItem(
       id: 'post-normal-2',
       authorName: 'Trần Thị Thu Hà',
@@ -173,17 +265,15 @@ class _CommunityPageState extends State<CommunityPage>
         },
       ],
     ),
-
-    // 3. Question Card (Card 3)
     PostItem(
       id: 'post-question-3',
-      authorName: 'Phan Hải (Nông dân Lâm Đồng)',
-      authorRole: 'Thành viên Vie-farm',
+      authorName: 'Phan Hải',
+      authorRole: 'Nông dân Lâm Đồng',
       avatarUrl: '',
       timeAgo: '10 phút trước',
       title: 'Hỏi Chuyên Gia: Cây sầu riêng Monthong rụng búp hoa mùa mưa có phải do thiếu Canxi Bột?',
       content:
-          'Kính gửi Kỹ sư Vie-farm! Vườn Monthong nhà tôi 6 năm tuổi đang giai đoạn ra búp hoa bằng ngón tay trỏ. Mấy hôm nay mưa dầm búp hoa rụng rải rác dưới gốc...',
+          'Kính gửi Kỹ sư Vie-farm! Vườn Monthong nhà tôi 6 năm tuổi đang giai đoạn ra búp hoa bằng ngón tay trỏ. Mấy hôm nay mưa dầm búp hoa rụng rải rác dưới gốc. Cho tôi hỏi cách xử lý xịt Canxi Boron phòng rụng búp?',
       category: 'expert',
       likes: 18,
       isLiked: false,
@@ -195,147 +285,366 @@ class _CommunityPageState extends State<CommunityPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    for (var controller in _commentControllers.values) {
+    for (final controller in _commentControllers.values) {
       controller.dispose();
     }
     super.dispose();
   }
 
-  void _openCreateDiscussionModal(BuildContext context) {
+  // Interactive Expert Consultation Dialog
+  void _openConsultationDialog(ExpertModel expert) {
     final titleController = TextEditingController();
     final contentController = TextEditingController();
-    String category = 'pests';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: MediaQuery.of(context).size.height * 0.85,
+      builder: (ctx) {
+        return Container(
           padding: EdgeInsets.only(
             top: 20,
             left: 20,
             right: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
           ),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Icon(Icons.chat_bubble_outline, color: Color(0xFF1E8E4A), size: 24),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'Đăng Bài Thảo Luận Mới',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Image.asset(expert.avatarUrl, fit: BoxFit.cover),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Hỏi Ý Kiến Chuyên Gia',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              expert.name,
+                              style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.w600, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 12),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Tiêu đề bài viết (*)',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: titleController,
-                        decoration: InputDecoration(
-                          hintText: 'Nhập tiêu đề ngắn gọn...',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Nội dung chi tiết (*)',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: contentController,
-                        maxLines: 4,
-                        decoration: InputDecoration(
-                          hintText: 'Mô tả chi tiết tình trạng vườn cây...',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ],
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text('Tiêu đề thắc mắc', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    hintText: 'Ví dụ: Cây bị xì mủ gốc, rụng búp hoa...',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
                 ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) return;
-                    setState(() {
-                      _posts.insert(
-                        0,
-                        PostItem(
-                          id: 'post-${DateTime.now().millisecondsSinceEpoch}',
-                          authorName: 'HH (Bạn)',
-                          authorRole: 'Nông dân Vie-farm',
-                          avatarUrl: '',
-                          timeAgo: 'Vừa xong',
-                          title: titleController.text.trim(),
-                          content: contentController.text.trim(),
-                          category: category,
-                          likes: 0,
-                          comments: [],
+                const SizedBox(height: 14),
+                const Text('Chi tiết tình trạng vườn sầu riêng', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: contentController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Mô tả hiện tượng, tuổi cây, triệu chứng trên lá/thân/trái...',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  label: const Text('Đính kèm ảnh chụp thực tế tại vườn'),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      if (titleController.text.trim().isEmpty) return;
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('✓ Đã gửi câu hỏi tới ${expert.name}. Phản hồi trong 30 phút!'),
+                          backgroundColor: Colors.green.shade700,
+                          behavior: SnackBarBehavior.floating,
                         ),
                       );
-                    });
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.send),
-                  label: const Text('Đăng Bài Thảo Luận'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E8E4A),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    },
+                    icon: const Icon(Icons.send),
+                    label: const Text('GỬI CÂU HỎI CHO CHUYÊN GIA', style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E8E4A),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
+    );
+  }
+
+  // Open Create Post Modal
+  void _openCreatePostModal() {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    String category = 'pests';
+    final List<String> attachedPhotos = [];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Tạo Bài Thảo Luận Mới',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Chủ đề bài viết', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Sâu bệnh & Nấm'),
+                          selected: category == 'pests',
+                          onSelected: (_) => setModalState(() => category = 'pests'),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Kỹ thuật canh tác'),
+                          selected: category == 'techniques',
+                          onSelected: (_) => setModalState(() => category = 'techniques'),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Hỏi chuyên gia'),
+                          selected: category == 'expert',
+                          onSelected: (_) => setModalState(() => category = 'expert'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        hintText: 'Tiêu đề bài viết...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: contentController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Chia sẻ kinh nghiệm hoặc đặt câu hỏi cho cộng đồng...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Gallery Image Upload Section
+                    StatefulBuilder(
+                      builder: (ctx, setPhotoState) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                setModalState(() {
+                                  final samplePhotos = [
+                                    'assets/images/post_tran_thi_thu_ha.jpg',
+                                    'assets/images/post_phan_hai.jpg',
+                                    'assets/images/post_nguyen_thi_mai.jpg',
+                                  ];
+                                  final nextPhoto = samplePhotos[attachedPhotos.length % samplePhotos.length];
+                                  attachedPhotos.add(nextPhoto);
+                                });
+                              },
+                              icon: const Icon(Icons.add_photo_alternate_outlined, color: Color(0xFF1E8E4A)),
+                              label: Text(
+                                attachedPhotos.isEmpty
+                                    ? 'Tải ảnh từ thư viện / Chụp ảnh'
+                                    : 'Đã đính kèm ${attachedPhotos.length} ảnh (Chạm thêm)',
+                                style: const TextStyle(color: Color(0xFF1E8E4A), fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF1E8E4A)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                            if (attachedPhotos.isNotEmpty) ...[
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                height: 75,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: attachedPhotos.length,
+                                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                                  itemBuilder: (context, idx) {
+                                    return Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: SizedBox(
+                                            width: 75,
+                                            height: 75,
+                                            child: Image.asset(
+                                              attachedPhotos[idx],
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 2,
+                                          right: 2,
+                                          child: InkWell(
+                                            onTap: () {
+                                              setModalState(() {
+                                                attachedPhotos.removeAt(idx);
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.7),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(Icons.close, size: 12, color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (titleController.text.trim().isEmpty) return;
+                          setState(() {
+                            _posts.insert(
+                              0,
+                              PostItem(
+                                id: 'post-${DateTime.now().millisecondsSinceEpoch}',
+                                authorName: 'Nguyễn Văn A (Bạn)',
+                                authorRole: 'Nông dân Vie-farm',
+                                avatarUrl: '',
+                                timeAgo: 'Vừa xong',
+                                title: titleController.text.trim(),
+                                content: contentController.text.trim(),
+                                galleryImages: attachedPhotos.isNotEmpty ? List.from(attachedPhotos) : null,
+                                category: category,
+                                likes: 0,
+                                comments: [],
+                              ),
+                            );
+                          });
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('✓ Đã đăng bài viết thảo luận lên Cộng đồng!'),
+                              backgroundColor: Color(0xFF1E8E4A),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.send),
+                        label: const Text('ĐĂNG BÀI THẢO LUẬN', style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E8E4A),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -365,7 +674,6 @@ class _CommunityPageState extends State<CommunityPage>
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
-                      // Community Icon Avatar
                       Container(
                         width: 44,
                         height: 44,
@@ -380,8 +688,6 @@ class _CommunityPageState extends State<CommunityPage>
                         ),
                       ),
                       const SizedBox(width: 10),
-
-                      // Title & Subtitle Column
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,8 +717,6 @@ class _CommunityPageState extends State<CommunityPage>
                         ),
                       ),
                       const SizedBox(width: 8),
-
-                      // Notification Bell Button
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -423,13 +727,6 @@ class _CommunityPageState extends State<CommunityPage>
                               color: Colors.white,
                               shape: BoxShape.circle,
                               border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.03),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
                             ),
                             child: const Icon(
                               Icons.notifications_none_rounded,
@@ -520,7 +817,7 @@ class _CommunityPageState extends State<CommunityPage>
                             SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'Vựa vật tư',
+                                'Vựa thu mua sầu riêng',
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -541,207 +838,133 @@ class _CommunityPageState extends State<CommunityPage>
         children: [
           _buildDiscussionTab(),
           _buildExpertsTab(),
-          _buildSuppliesTab(),
+          _buildDepotsTab(),
         ],
       ),
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton.extended(
+              onPressed: _openCreatePostModal,
+              backgroundColor: const Color(0xFF1E8E4A),
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.edit_note),
+              label: const Text('Đăng bài thảo luận', style: TextStyle(fontWeight: FontWeight.bold)),
+            )
+          : null,
     );
   }
 
-  // 1. DISCUSSION TAB VIEW
+  // 1. DISCUSSION TAB VIEW (RICH CARDS & FILTERS RESTORED)
   Widget _buildDiscussionTab() {
+    final filteredPosts = _selectedCategory == 'all'
+        ? _posts
+        : _posts.where((p) => p.category == _selectedCategory).toList();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Create Post Card ("Bạn muốn trao đổi kỹ thuật gì?")
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+          // Create Post Prompt Box
+          InkWell(
+            onTap: _openCreatePostModal,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.green.shade50,
+                    child: Icon(Icons.person, color: Colors.green.shade800, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Hôm nay vườn bạn thế nào? Đăng bài...',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.image_outlined, color: Colors.green.shade700, size: 20),
+                ],
+              ),
             ),
+          ),
+          const SizedBox(height: 14),
+
+          // Category Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                // Avatar "HH"
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF0B7C3E),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'HH',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
+                FilterChip(
+                  label: const Text('Tất cả'),
+                  selected: _selectedCategory == 'all',
+                  onSelected: (_) => setState(() => _selectedCategory = 'all'),
                 ),
-                const SizedBox(width: 10),
-
-                // Fake Input button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _openCreateDiscussionModal(context),
-                    child: Container(
-                      height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      alignment: Alignment.centerLeft,
-                      child: const Text(
-                        'Bạn muốn trao đổi kỹ thuật gì?',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          color: Color(0xFF6B7280),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Sâu bệnh & Nấm'),
+                  selected: _selectedCategory == 'pests',
+                  onSelected: (_) => setState(() => _selectedCategory = 'pests'),
                 ),
-                const SizedBox(width: 10),
-
-                // Action Button (Image icon)
-                GestureDetector(
-                  onTap: () => _openCreateDiscussionModal(context),
-                  child: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E8E4A),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.edit_square,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Kỹ thuật canh tác'),
+                  selected: _selectedCategory == 'techniques',
+                  onSelected: (_) => setState(() => _selectedCategory = 'techniques'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Hỏi chuyên gia'),
+                  selected: _selectedCategory == 'expert',
+                  onSelected: (_) => setState(() => _selectedCategory = 'expert'),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // Category Chips Row (Horizontal Scroll)
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildChip('all', 'Tất cả bài viết'),
-                      const SizedBox(width: 8),
-                      _buildChip('pests', 'Hỏi đáp Sâu bệnh'),
-                      const SizedBox(width: 8),
-                      _buildChip('techniques', 'Kỹ thuật canh tác'),
-                      const SizedBox(width: 8),
-                      _buildChip('weather', 'Thời tiết nông vụ'),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Filter Icon Button
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5ED),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.filter_alt_outlined,
-                  color: Color(0xFF1E8E4A),
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Posts Feed
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _posts.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final post = _posts[index];
-              if (post.isFeatured) {
-                return _buildFeaturedPostCard(post);
-              } else if (post.category == 'expert') {
-                return _buildQuestionPostCard(post);
-              } else {
-                return _buildNormalPostCard(post);
-              }
-            },
-          ),
+          // Render Post Cards
+          ...filteredPosts.map((post) {
+            if (post.isFeatured) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildFeaturedPostCard(post),
+              );
+            } else if (post.galleryImages != null) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildNormalPostCard(post),
+              );
+            } else {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildQuestionPostCard(post),
+              );
+            }
+          }),
+          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  Widget _buildChip(String key, String label) {
-    final isSelected = _selectedCategory == key;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedCategory = key),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E8E4A) : Colors.white,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF1E8E4A) : const Color(0xFFD1D5DB),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSelected) ...[
-              const Icon(Icons.check_rounded, color: Colors.white, size: 15),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : const Color(0xFF374151),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // CARD 1: FEATURED POST CARD
+  // CARD 1: FEATURED POST CARD WITH VERIFIED EXPERT ANSWER
   Widget _buildFeaturedPostCard(PostItem post) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF1E8E4A).withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -753,201 +976,16 @@ class _CommunityPageState extends State<CommunityPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Featured Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5ED),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.star_rounded, color: Color(0xFF1E8E4A), size: 14),
-                SizedBox(width: 4),
-                Text(
-                  'Bài viết nổi bật',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: const Color(0xFFE8F5ED),
+                child: Text(
+                  post.authorName[0],
+                  style: const TextStyle(
                     color: Color(0xFF1E8E4A),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Horizontal 2-Column Split
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Image Column
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: SizedBox(
-                      width: 110,
-                      height: 170,
-                      child: Image.asset(
-                        'assets/images/post_nguyen_van_hung.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: const Color(0xFFE5E7EB),
-                          child: const Icon(Icons.park_rounded, color: Color(0xFF1E8E4A), size: 48),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.65),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        '3 ảnh',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 12),
-
-              // Right Response Column
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Author Row
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.verified_rounded,
-                          color: Color(0xFF0F8A4C),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        const Expanded(
-                          child: Text(
-                            'Kỹ sư Lê Minh (Vie-farm Verified)',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F8A4C),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const Icon(Icons.more_vert_rounded, color: Color(0xFF9CA3AF), size: 20),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Light Mint Box
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEF7F2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        post.expertAnswer ??
-                            'Chào anh Hùng! Anh rải vôi bột 500g/gốc rất tốt để nâng pH đất > 6.0 hạn chế nấm Phytophthora bào hòa. Nhớ siết thoát nước mương rãnh nhé!',
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          color: Color(0xFF1F2937),
-                          height: 1.35,
-                        ),
-                        maxLines: 5,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Footer Stats Row
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: [
-                        const Text(
-                          '2 giờ trước',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.thumb_up_alt_outlined, size: 13, color: Color(0xFF6B7280)),
-                            const SizedBox(width: 2),
-                            Text('${post.likes}', style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.chat_bubble_outline_rounded, size: 13, color: Color(0xFF6B7280)),
-                            const SizedBox(width: 2),
-                            Text('${post.comments.length}', style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.share_outlined, size: 13, color: Color(0xFF6B7280)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // CARD 2: NORMAL POST CARD
-  Widget _buildNormalPostCard(PostItem post) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5ED),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    post.authorName.isNotEmpty ? post.authorName[0] : 'T',
-                    style: const TextStyle(
-                      color: Color(0xFF1E8E4A),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -967,122 +1005,121 @@ class _CommunityPageState extends State<CommunityPage>
                     const SizedBox(height: 2),
                     Text(
                       '${post.authorRole} • ${post.timeAgo}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7280),
-                      ),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.more_vert_rounded, color: Color(0xFF9CA3AF), size: 20),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified, size: 12, color: Colors.amber.shade900),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Đã trả lời',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber.shade900,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-
-          // Title
           Text(
             post.title,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF111827),
-              height: 1.3,
             ),
           ),
-          const SizedBox(height: 8),
-
-          // Content
+          const SizedBox(height: 6),
           Text(
             post.content,
-            style: const TextStyle(
-              fontSize: 13.5,
-              color: Color(0xFF374151),
-              height: 1.4,
-            ),
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13.5, color: Color(0xFF374151)),
           ),
           const SizedBox(height: 12),
 
-          // Gallery (3 horizontal images)
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SizedBox(
-                    height: 105,
-                    child: Image.asset(
-                      'assets/images/post_tran_thi_thu_ha.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]),
-                    ),
-                  ),
-                ),
+          // Expert Answer Highlight Box
+          if (post.isExpertAnswered)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF7F2),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF1E8E4A).withOpacity(0.2)),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SizedBox(
-                    height: 105,
-                    child: Image.asset(
-                      'assets/images/post_phan_hai.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]),
-                    ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.verified_rounded, color: Color(0xFF1E8E4A), size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        post.expertName ?? 'Chuyên gia Vie-farm',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E8E4A),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SizedBox(
-                    height: 105,
-                    child: Image.asset(
-                      'assets/images/post_nguyen_thi_mai.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]),
-                    ),
+                  const SizedBox(height: 6),
+                  Text(
+                    post.expertAnswer ?? '',
+                    style: const TextStyle(fontSize: 12.5, color: Color(0xFF1F2937), height: 1.35),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
+            ),
+          const SizedBox(height: 12),
 
-          // Footer Row (Tag + Likes/Comments)
+          // Actions Row
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5ED),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text(
-                    'Kỹ thuật canh tác',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E8E4A),
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      post.isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                      color: post.isLiked ? Colors.green.shade700 : Colors.grey.shade600,
+                      size: 18,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    onPressed: () {
+                      setState(() {
+                        post.isLiked = !post.isLiked;
+                        post.likes += post.isLiked ? 1 : -1;
+                      });
+                    },
                   ),
-                ),
+                  Text('${post.likes}', style: const TextStyle(fontSize: 13)),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text('${post.comments.length}', style: const TextStyle(fontSize: 13)),
+                ],
               ),
-              const SizedBox(width: 8),
-              const Icon(Icons.thumb_up_alt_outlined, size: 16, color: Color(0xFF6B7280)),
-              const SizedBox(width: 4),
-              Text('${post.likes}', style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
-              const SizedBox(width: 14),
-              const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: Color(0xFF6B7280)),
-              const SizedBox(width: 4),
-              Text('${post.comments.isNotEmpty ? post.comments.length : 8}', style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+              const Icon(Icons.share_outlined, size: 18, color: Colors.grey),
             ],
           ),
         ],
@@ -1090,8 +1127,8 @@ class _CommunityPageState extends State<CommunityPage>
     );
   }
 
-  // CARD 3: QUESTION CARD
-  Widget _buildQuestionPostCard(PostItem post) {
+  // CARD 2: GALLERY POST CARD
+  Widget _buildNormalPostCard(PostItem post) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1108,24 +1145,16 @@ class _CommunityPageState extends State<CommunityPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5ED),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text(
-                    'P',
-                    style: TextStyle(
-                      color: Color(0xFF1E8E4A),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: const Color(0xFFE8F5ED),
+                child: Text(
+                  post.authorName[0],
+                  style: const TextStyle(
+                    color: Color(0xFF1E8E4A),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -1143,72 +1172,174 @@ class _CommunityPageState extends State<CommunityPage>
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 6,
-                      runSpacing: 2,
-                      children: [
-                        Text(
-                          '${post.authorRole} • ${post.timeAgo}',
-                          style: const TextStyle(
-                            fontSize: 11.5,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5ED),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'Hỏi chuyên gia',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E8E4A),
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '${post.authorRole} • ${post.timeAgo}',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.more_vert_rounded, color: Color(0xFF9CA3AF), size: 20),
             ],
           ),
           const SizedBox(height: 12),
-
-          // Large Title
           Text(
             post.title,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF111827),
-              height: 1.3,
             ),
           ),
-          const SizedBox(height: 8),
-
-          // Content snippet
+          const SizedBox(height: 6),
           Text(
             post.content,
-            style: const TextStyle(
-              fontSize: 13.5,
-              color: Color(0xFF374151),
-              height: 1.4,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13.5, color: Color(0xFF374151)),
+          ),
+          const SizedBox(height: 12),
+
+          // 3 Images Gallery
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 100,
+                    child: Image.asset(
+                      'assets/images/post_tran_thi_thu_ha.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 100,
+                    child: Image.asset(
+                      'assets/images/post_phan_hai.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 100,
+                    child: Image.asset(
+                      'assets/images/post_nguyen_thi_mai.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Actions Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      post.isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                      color: post.isLiked ? Colors.green.shade700 : Colors.grey.shade600,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        post.isLiked = !post.isLiked;
+                        post.likes += post.isLiked ? 1 : -1;
+                      });
+                    },
+                  ),
+                  Text('${post.likes}', style: const TextStyle(fontSize: 13)),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text('${post.comments.length}', style: const TextStyle(fontSize: 13)),
+                ],
+              ),
+              const Icon(Icons.share_outlined, size: 18, color: Colors.grey),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // 2. EXPERTS TAB VIEW
+  // CARD 3: QUESTION POST CARD
+  Widget _buildQuestionPostCard(PostItem post) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.blue.shade50,
+                child: Text(post.authorName[0], style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text('${post.authorRole} • ${post.timeAgo}', style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text('Hỏi chuyên gia', style: TextStyle(color: Colors.blue.shade900, fontSize: 10.5, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            post.title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            post.content,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF374151)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 2. EXPERTS TAB VIEW (FIXED: 6 Distinct Vietnamese Avatars & Interactive Consultation)
   Widget _buildExpertsTab() {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -1216,6 +1347,7 @@ class _CommunityPageState extends State<CommunityPage>
       separatorBuilder: (_, __) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
         final exp = _experts[index];
+
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1230,45 +1362,171 @@ class _CommunityPageState extends State<CommunityPage>
             ],
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: const Color(0xFFE8F5ED),
-                child: Text(
-                  exp.name[0],
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E8E4A),
+              // Expert Avatar with Online Indicator
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: exp.avatarUrl.startsWith('assets/')
+                          ? Image.asset(
+                              exp.avatarUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: const Color(0xFFE8F5ED),
+                                  child: Text(
+                                    exp.name[0],
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E8E4A),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : Image.network(
+                              exp.avatarUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: const Color(0xFFE8F5ED),
+                                  child: Text(
+                                    exp.name[0],
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E8E4A),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
                   ),
-                ),
+                  if (exp.isOnline)
+                    Positioned(
+                      right: 2,
+                      bottom: 2,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
+
+              // Expert Info Column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      exp.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            exp.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.star, color: Color(0xFFD97706), size: 14),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${exp.rating}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       exp.title,
-                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280)),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF4B5563),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '⭐ ${exp.rating} • ${exp.consultationsCount} tư vấn',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E8E4A),
+                      '🏢 ${exp.workplace}',
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5ED),
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      child: Text(
+                        '💡 Chuyên môn: ${exp.specialty}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E8E4A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '💬 ${exp.consultationsCount} lượt tư vấn',
+                          style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280)),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () => _openConsultationDialog(exp),
+                          icon: const Icon(Icons.chat, size: 14),
+                          label: const Text('Hỏi ý kiến', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E8E4A),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1280,14 +1538,16 @@ class _CommunityPageState extends State<CommunityPage>
     );
   }
 
-  // 3. SUPPLIES TAB VIEW
-  Widget _buildSuppliesTab() {
-    return ListView.builder(
+  // 3. DURIAN DEPOTS TAB VIEW (Vựa thu mua sầu riêng)
+  Widget _buildDepotsTab() {
+    return ListView.separated(
       padding: const EdgeInsets.all(16),
-      itemCount: 4,
+      itemCount: _depots.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
+        final depot = _depots[index];
+
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -1300,25 +1560,109 @@ class _CommunityPageState extends State<CommunityPage>
               ),
             ],
           ),
-          child: const Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.storefront_outlined, color: Color(0xFF1E8E4A), size: 28),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Vựa Vật Tư Nông Nghiệp Đắk Lắk',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      shape: BoxShape.circle,
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Chuyên NPK, Trichoderma & Phân bón vi sinh',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                    child: Icon(Icons.storefront, color: Colors.amber.shade900, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          depot.name,
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF111827),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '📍 ${depot.location}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      'Đang thu mua',
+                      style: TextStyle(
+                        color: Colors.green.shade800,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Giá thu mua hôm nay:',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF6B7280)),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        depot.priceRange,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFB45309),
+                        ),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('📞 Đang gọi cho ${depot.name} (${depot.phone})'),
+                          backgroundColor: Colors.amber.shade900,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.phone, size: 14),
+                    label: const Text('Liên hệ vựa', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade900,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '🏷 Loại thu mua: ${depot.buyTypes}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF374151), fontWeight: FontWeight.w500),
               ),
             ],
           ),

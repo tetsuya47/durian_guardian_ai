@@ -9,6 +9,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Khuyên dùng',
       'isGreenTag': true,
       'type': 'granule',
+      'imageAsset': 'assets/images/pesticide_ridomil_gold.png',
       'target': 'Đặc trị: Thán thư, sương mai, thối rễ',
       'active': 'Hoạt chất: Metalaxyl-M 4% + Mancozeb 64%',
       'dosage': 'Liều lượng: 40-50g / bình 25 lít nước',
@@ -21,6 +22,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Khuyên dùng',
       'isGreenTag': true,
       'type': 'granule',
+      'imageAsset': 'assets/images/pesticide_aliette.png',
       'target': 'Đặc trị: Nấm Phytophthora & Xì mủ gốc',
       'active': 'Hoạt chất: Fosetyl-Aluminium 800g/kg',
       'dosage': 'Liều lượng: 20g / bình 16 lít nước',
@@ -33,6 +35,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'insecticide',
+      'imageAsset': 'assets/images/pesticide_confidor.png',
       'target': 'Đặc trị: Rầy phấn trắng, rệp sáp, bọ trĩ',
       'active': 'Hoạt chất: Imidacloprid 200g/L',
       'dosage': 'Liều lượng: 10ml / 20 lít nước',
@@ -45,6 +48,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Sinh học',
       'isGreenTag': true,
       'type': 'bio',
+      'imageAsset': 'assets/images/pesticide_agrifos_400.png',
       'target': 'Phòng nấm & kích kháng rễ tơ',
       'active': 'Hoạt chất: Potassium Phosphonate 400g/L',
       'dosage': 'Liều lượng: 500ml / 200 lít nước',
@@ -57,6 +61,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'fungicide',
+      'imageAsset': 'assets/images/pesticide_anvil_5sc.png',
       'target': 'Đặc trị: Nấm hồng, đốm lá, rỉ sắt',
       'active': 'Hoạt chất: Hexaconazole 50g/L',
       'dosage': 'Liều lượng: 40ml / 20 lít nước',
@@ -69,6 +74,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Khuyên dùng',
       'isGreenTag': true,
       'type': 'granule',
+      'imageAsset': 'assets/images/pesticide_nativo_750wg.png',
       'target': 'Đặc trị: Thán thư bông & Đốm mắt cua',
       'active': 'Hoạt chất: Tebuconazole 500g/kg + Trifloxystrobin 250g/kg',
       'dosage': 'Liều lượng: 10g / bình 25 lít nước',
@@ -81,6 +87,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Khuyên dùng',
       'isGreenTag': true,
       'type': 'fungicide',
+      'imageAsset': 'assets/images/pesticide_amistar_top.png',
       'target': 'Phòng khô bông, rụng trái non & đốm lá',
       'active': 'Hoạt chất: Azoxystrobin 200g/L + Difenoconazole 125g/L',
       'dosage': 'Liều lượng: 15ml / bình 25 lít nước',
@@ -93,6 +100,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'insecticide',
+      'imageAsset': 'assets/images/pesticide_confidor.png',
       'target': 'Đặc trị: Rệp sáp rễ & Bọ trĩ kháng thuốc',
       'active': 'Hoạt chất: Spirotetramat 150g/L',
       'dosage': 'Liều lượng: 20ml / 25 lít nước',
@@ -105,6 +113,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Sinh học',
       'isGreenTag': true,
       'type': 'bio',
+      'imageAsset': 'assets/images/pesticide_agrifos_400.png',
       'target': 'Nấm đối kháng ủ phân & Ngừa thối rễ',
       'active': 'Chủng bào tử: Trichoderma harzianum 10^9 CFU/g',
       'dosage': 'Liều lượng: 1kg / 400 lít nước tưới gốc',
@@ -117,6 +126,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Khuyên dùng',
       'isGreenTag': true,
       'type': 'granule',
+      'imageAsset': 'assets/images/pesticide_aliette.png',
       'target': 'Áo giáp kẽm bảo vệ đọt non & Trừ thán thư',
       'active': 'Hoạt chất: Propineb 700g/kg + Kẽm tinh khiết (Zn++)',
       'dosage': 'Liều lượng: 50g / bình 25 lít nước',
@@ -129,6 +139,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'insecticide',
+      'imageAsset': 'assets/images/pesticide_anvil_5sc.png',
       'target': 'Đặc trị: Nhện đỏ & Rầy nhảy gây cháy lá',
       'active': 'Hoạt chất: Abamectin 50g/L + Petroleum Oil 200g/L',
       'dosage': 'Liều lượng: 25ml / bình 25 lít nước',
@@ -141,6 +152,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'fungicide',
+      'imageAsset': 'assets/images/pesticide_ridomil_gold.png',
       'target': 'Đặc trị: Rỉ sắt, nấm hồng & Vàng lá',
       'active': 'Hoạt chất: Propiconazole 150g/L + Difenoconazole 150g/L',
       'dosage': 'Liều lượng: 10ml / bình 16 lít nước',
@@ -153,6 +165,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'insecticide',
+      'imageAsset': 'assets/images/pesticide_confidor.png',
       'target': 'Đặc trị: Sâu đục quả & Sâu ăn bông',
       'active': 'Hoạt chất: Chlorantraniliprole 50g/L',
       'dosage': 'Liều lượng: 15ml / 25 lít nước',
@@ -165,6 +178,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Khuyên dùng',
       'isGreenTag': true,
       'type': 'granule',
+      'imageAsset': 'assets/images/pesticide_nativo_750wg.png',
       'target': 'Đặc trị: Thối mút trái & Xì mủ thân',
       'active': 'Hoạt chất: Metalaxyl 90% w/w',
       'dosage': 'Liều lượng: 30g / 20 lít nước',
@@ -177,6 +191,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Phòng trừ',
       'isGreenTag': false,
       'type': 'insecticide',
+      'imageAsset': 'assets/images/pesticide_amistar_top.png',
       'target': 'Đặc trị: Bọ trĩ hút mật bông & Nhện vàng',
       'active': 'Hoạt chất: Imidacloprid 100g/L',
       'dosage': 'Liều lượng: 20ml / 25 lít nước',
@@ -189,6 +204,7 @@ class PesticideLookupCard extends StatelessWidget {
       'tag': 'Sinh học',
       'isGreenTag': true,
       'type': 'bio',
+      'imageAsset': 'assets/images/pesticide_agrifos_400.png',
       'target': 'Diệt rệp sáp gốc & Ve sầu sinh học',
       'active': 'Chủng nấm ký sinh: Metarhizium anisopliae 10^8 spores/g',
       'dosage': 'Liều lượng: 500g / 200 lít nước tưới gốc',
@@ -198,7 +214,39 @@ class PesticideLookupCard extends StatelessWidget {
     },
   ];
 
-  Widget _buildPesticideTypeIcon(String type, {double size = 44}) {
+  Widget _buildPesticideTypeIcon(String type, {double size = 44, String? imageAsset}) {
+    if (imageAsset != null && imageAsset.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(size * 0.25),
+          border: Border.all(color: Colors.grey.shade200, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(size * 0.22),
+          child: Image.asset(
+            imageAsset,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildFallbackIcon(type, size),
+          ),
+        ),
+      );
+    }
+    return _buildFallbackIcon(type, size);
+  }
+
+  Widget _buildFallbackIcon(String type, double size) {
     Color bg;
     Color border;
     Color iconColor;
@@ -294,12 +342,16 @@ class PesticideLookupCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'Danh Mục Thuốc BVTV Đề Xuất',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
+                          const Expanded(
+                            child: Text(
+                              'Danh Mục Thuốc BVTV Đề Xuất',
+                              style: TextStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -371,7 +423,7 @@ class PesticideLookupCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            _buildPesticideTypeIcon(type, size: 44),
+                            _buildPesticideTypeIcon(type, size: 44, imageAsset: item['imageAsset'] as String?),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -535,8 +587,8 @@ class PesticideLookupCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Left Custom Pesticide Product Icon Container
-          _buildPesticideTypeIcon(type, size: 52),
+          // Left Custom Pesticide Product Image Asset Container
+          _buildPesticideTypeIcon(type, size: 52, imageAsset: item['imageAsset'] as String?),
           const SizedBox(width: 12),
 
           // Content Middle

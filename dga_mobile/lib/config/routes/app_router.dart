@@ -13,7 +13,6 @@ import '../../features/history/presentation/pages/compare_page.dart';
 import '../../features/history/presentation/pages/leaderboard_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
-import '../../features/recommendation/presentation/pages/recommendation_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/disease_detection/presentation/pages/camera_simulator_page.dart';
@@ -22,6 +21,7 @@ import '../../features/farms/presentation/pages/register_farm_page.dart';
 import '../../features/iot/presentation/pages/iot_shop_page.dart';
 import '../../features/iot/presentation/pages/iot_management_page.dart';
 import '../../features/iot/presentation/pages/farm_management_iot_page.dart';
+import '../../features/farm_activity/presentation/pages/today_activity_page.dart';
 import '../../features/authentication/presentation/providers/auth_providers.dart';
 import '../../core/constants/storage_keys.dart';
 import '../../services/storage_service.dart';
@@ -34,6 +34,12 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/today-activity',
+        name: RouteNames.todayActivity,
+        builder: (context, state) => const TodayActivityPage(),
+      ),
+
       GoRoute(
         path: '/splash',
         name: RouteNames.splash,

@@ -11,6 +11,7 @@ import '../widgets/durian_market_price_card.dart';
 import '../widgets/pesticide_lookup_card.dart';
 import '../widgets/quick_actions_grid.dart';
 import '../widgets/recent_inspections_list.dart';
+import '../../../farm_activity/presentation/widgets/today_activity_dashboard_banner.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -45,9 +46,13 @@ class DashboardPage extends ConsumerWidget {
                 children: [
                   // 1. Hero AI Card & Tình Trạng Vườn
                   AIFarmStatusCard(status: data.farmStatus),
+                  const SizedBox(height: 16),
+
+                  // 2. Banner Nhật Ký Canh Tác Hôm Nay (VietGAP Log)
+                  const TodayActivityDashboardBanner(),
                   const SizedBox(height: 20),
 
-                  // 2. Hành Động Hôm Nay (2x2 Grid)
+                  // 3. Hành Động Hôm Nay (2x2 Grid)
                   const QuickActionsGrid(),
                   const SizedBox(height: 20),
 

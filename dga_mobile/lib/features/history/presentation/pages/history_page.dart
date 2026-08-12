@@ -33,7 +33,7 @@ class HistoryPage extends ConsumerWidget {
     final filteredLogs = ref.watch(filteredHistoryLogsProvider);
 
     final healthyCount = filteredLogs.where((l) => l.diseaseName.contains('Không phát hiện') || l.diseaseName.toLowerCase().contains('khỏe mạnh')).length;
-    final diseasedCount = filteredLogs.length > healthyCount ? (filteredLogs.length - healthyCount) : 1;
+    final diseasedCount = filteredLogs.length > healthyCount ? (filteredLogs.length - healthyCount) : 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAF7),
@@ -126,9 +126,9 @@ class HistoryPage extends ConsumerWidget {
 
                 // 2. Summary Card
                 SummaryCard(
-                  todayScanned: filteredLogs.isNotEmpty ? filteredLogs.length : 3,
-                  healthyCount: filteredLogs.isNotEmpty ? healthyCount : 2,
-                  diseasedCount: filteredLogs.isNotEmpty ? diseasedCount : 1,
+                  todayScanned: filteredLogs.length,
+                  healthyCount: healthyCount,
+                  diseasedCount: diseasedCount,
                 ),
                 const SizedBox(height: 16),
 

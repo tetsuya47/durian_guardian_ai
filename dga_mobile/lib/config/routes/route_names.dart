@@ -14,4 +14,6 @@ class RouteNames {
   static const String registerFarm = 'register-farm';
   static const String iotShop = 'iot-shop';
   static const String iotManagement = 'iot-management';
+  static const String todayActivity = 'today-activity';
 }
+
