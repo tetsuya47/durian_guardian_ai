@@ -66,26 +66,6 @@ class ExpertModel {
   });
 }
 
-class DurianDepotModel {
-  final String id;
-  final String name;
-  final String location;
-  final String priceRange;
-  final String buyTypes;
-  final String phone;
-  final bool isOpen;
-
-  DurianDepotModel({
-    required this.id,
-    required this.name,
-    required this.location,
-    required this.priceRange,
-    required this.buyTypes,
-    required this.phone,
-    required this.isOpen,
-  });
-}
-
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
 
@@ -174,45 +154,6 @@ class _CommunityPageState extends State<CommunityPage>
     ),
   ];
 
-  final List<DurianDepotModel> _depots = [
-    DurianDepotModel(
-      id: 'depot-1',
-      name: 'Vựa Sầu Riêng Tuấn Vũ (Đắk Lắk)',
-      location: 'KM 19, QL26, Krông Pắc, Đắk Lắk',
-      priceRange: '85.000đ - 95.000đ / kg',
-      buyTypes: 'Ri6 Loại 1, Monthong Thái Export',
-      phone: '0988.123.456',
-      isOpen: true,
-    ),
-    DurianDepotModel(
-      id: 'depot-2',
-      name: 'Vựa Sầu Riêng Miền Tây (Tiền Giang)',
-      location: 'Cai Lậy, Tiền Giang (Gần Cầu Ngũ Hiệp)',
-      priceRange: '88.000đ - 98.000đ / kg',
-      buyTypes: 'Chuyên xuất khẩu đi Trung Quốc chính ngạch',
-      phone: '0913.987.654',
-      isOpen: true,
-    ),
-    DurianDepotModel(
-      id: 'depot-3',
-      name: 'Vựa Sầu Riêng Hoàng Nam (Lâm Đồng)',
-      location: 'TT. Đạ Tẻh, Huyện Đạ Tẻh, Lâm Đồng',
-      priceRange: '82.000đ - 92.000đ / kg',
-      buyTypes: 'Thu mua tại vườn & Cắt xô nguyên lô',
-      phone: '0977.456.789',
-      isOpen: true,
-    ),
-    DurianDepotModel(
-      id: 'depot-4',
-      name: 'Vựa Sầu Riêng Khôi Nguyên (Bình Phước)',
-      location: 'Bù Đăng, Bình Phước',
-      priceRange: '84.000đ - 94.000đ / kg',
-      buyTypes: 'Ri6, Monthong, Musang King',
-      phone: '0909.112.233',
-      isOpen: true,
-    ),
-  ];
-
   final List<PostItem> _posts = [
     PostItem(
       id: 'post-featured-1',
@@ -284,7 +225,7 @@ class _CommunityPageState extends State<CommunityPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
@@ -809,22 +750,6 @@ class _CommunityPageState extends State<CommunityPage>
                           ],
                         ),
                       ),
-                      Tab(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.storefront_outlined, size: 15),
-                            SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'Vựa thu mua sầu riêng',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -838,7 +763,6 @@ class _CommunityPageState extends State<CommunityPage>
         children: [
           _buildDiscussionTab(),
           _buildExpertsTab(),
-          _buildDepotsTab(),
         ],
       ),
       floatingActionButton: _tabController.index == 0
@@ -1538,136 +1462,5 @@ class _CommunityPageState extends State<CommunityPage>
     );
   }
 
-  // 3. DURIAN DEPOTS TAB VIEW (Vựa thu mua sầu riêng)
-  Widget _buildDepotsTab() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _depots.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 14),
-      itemBuilder: (context, index) {
-        final depot = _depots[index];
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade50,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.storefront, color: Colors.amber.shade900, size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          depot.name,
-                          style: const TextStyle(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '📍 ${depot.location}',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'Đang thu mua',
-                      style: TextStyle(
-                        color: Colors.green.shade800,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Giá thu mua hôm nay:',
-                        style: TextStyle(fontSize: 11.5, color: Color(0xFF6B7280)),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        depot.priceRange,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFB45309),
-                        ),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('📞 Đang gọi cho ${depot.name} (${depot.phone})'),
-                          backgroundColor: Colors.amber.shade900,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.phone, size: 14),
-                    label: const Text('Liên hệ vựa', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber.shade900,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '🏷 Loại thu mua: ${depot.buyTypes}',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF374151), fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }

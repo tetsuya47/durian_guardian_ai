@@ -63,9 +63,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 label: 'Quét AI',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.book_outlined),
-                activeIcon: Icon(Icons.book),
-                label: 'Nhật ký',
+                icon: Icon(Icons.yard_outlined),
+                activeIcon: Icon(Icons.yard),
+                label: 'Vườn',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.people_outline),

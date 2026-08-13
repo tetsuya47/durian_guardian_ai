@@ -22,20 +22,33 @@ allow_all = RoleChecker([r.value for r in UserRole])
 @router.get("", response_model=SuccessResponse[list[dict[str, Any]]])
 async def list_farm_activities(
     tree_id: str | None = Query(None),
+    farm_id: str | None = Query(None),
     activity_type: str | None = Query(None),
+    category: str | None = Query(None),
+    year: int | None = Query(None),
+    month: int | None = Query(None),
+    season: str | None = Query(None),
     page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-    user_id: str = Depends(get_current_user_id),
+    per_page: int = Query(50, ge=1, le=100),
     db: AsyncIOMotorDatabase = Depends(get_database),
-    _=Depends(allow_all),
 ):
-    """List farm activities with optional tree_id or activity_type filters."""
+    """List farm activities with optional farm_id, year, month, season filters."""
     repo = FarmActivityRepository(db)
     filter_query: dict[str, Any] = {}
     if tree_id:
         filter_query["$or"] = [{"tree_ids": tree_id}, {"tree_ids": []}, {"tree_ids": None}]
+    if farm_id and farm_id != "all":
+        filter_query["farm_id"] = farm_id
     if activity_type:
         filter_query["activity_type"] = {"$regex": f"^{activity_type}$", "$options": "i"}
+    if category and category != "all":
+        filter_query["category"] = category
+    if year:
+        filter_query["year"] = year
+    if month:
+        filter_query["month"] = month
+    if season and season != "all":
+        filter_query["$or"] = [{"season": season}, {"crop_season": season}]
 
     docs, total = await repo.list(
         filter_query=filter_query,

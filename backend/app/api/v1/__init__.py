@@ -22,6 +22,7 @@ from app.api.v1.iot import router as iot_router
 from app.api.v1.farm_performance import router as farm_performance_router
 from app.api.v1.market import router as market_router
 from app.api.v1.farm_activities import router as farm_activities_router
+from app.api.v1.news import router as news_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -47,3 +48,4 @@ api_router.include_router(iot_router)
 api_router.include_router(farm_performance_router)
 api_router.include_router(market_router)
 api_router.include_router(farm_activities_router)
+api_router.include_router(news_router)

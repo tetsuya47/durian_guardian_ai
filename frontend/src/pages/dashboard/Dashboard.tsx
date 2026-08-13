@@ -25,6 +25,7 @@ import TreeDistributionCard from "../../components/dashboard/TreeDistributionCar
 import WorkPlanningCard from "../../components/dashboard/WorkPlanningCard";
 import WeeklyInspectionScheduleCard from "../../components/dashboard/WeeklyInspectionScheduleCard";
 import UserIoTDevicesCard from "../../components/dashboard/UserIoTDevicesCard";
+import SmartGardenCard from "../../components/dashboard/SmartGardenCard";
 import FarmPerformanceCard from "../../components/dashboard/FarmPerformanceCard";
 import { KPISkeleton, CardSkeleton } from "../../components/dashboard/Shared/SkeletonCard";
 import type { CellData, ZoneSection } from "../../components/dashboard/HeatmapGrid";
@@ -320,6 +321,13 @@ export default function DashboardPage() {
               🚀 Hướng Dẫn Lắp Đặt IoT
             </a>
           </div>
+        </div>
+      )}
+
+      {/* SMART GARDEN IOT & AI RECOMMENDATION CARD FOR USER */}
+      {!isAdmin && (
+        <div className="w-full">
+          <SmartGardenCard />
         </div>
       )}
 

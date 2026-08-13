@@ -14,8 +14,8 @@ class EnvironmentConfig {
   static const _Env _activeEnv = _Env.device;
 
   /// Host for real-device testing on LAN or ADB reverse proxy.
-  /// Wi-Fi LAN IP: '192.168.1.101' (or '127.0.0.1' with adb reverse tcp:8000 tcp:8000)
-  static const String deviceHost = '172.16.31.126';
+  /// Wi-Fi LAN IP: '192.168.1.152' (or '127.0.0.1' with adb reverse tcp:8000 tcp:8000)
+  static const String deviceHost = '127.0.0.1';
   static const String emulatorHost = '10.0.2.2';
   // ─────────────────────────────────────────────────────────────────────────
 

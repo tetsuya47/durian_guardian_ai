@@ -18,6 +18,7 @@ import {
 } from "../../services/dashboardDataManager.service";
 
 import KPICard from "../../components/dashboard/KPICard";
+import SmartGardenCard from "../../components/dashboard/SmartGardenCard";
 import TreeDistributionCard from "../../components/dashboard/TreeDistributionCard";
 import HeatmapGrid from "../../components/dashboard/HeatmapGrid";
 import Card from "../../components/dashboard/Shared/Card";
@@ -171,6 +172,11 @@ export default function FarmDashboard() {
           {error}
         </div>
       )}
+
+      {/* SMART GARDEN REALTIME TELEMETRY & AI ADVICE CARD */}
+      <div className="w-full">
+        <SmartGardenCard />
+      </div>
 
       {/* ROW 1: KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" style={{ gap: "20px" }}>

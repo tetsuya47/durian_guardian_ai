@@ -26,6 +26,7 @@ import {
   PhoneCall,
   FileText,
 } from "lucide-react";
+import SmartGardenCard from "../../components/dashboard/SmartGardenCard";
 import {
   PieChart,
   Pie,
@@ -631,6 +632,7 @@ export default function IoTManagementPage() {
       {/* ========================================================================= */}
       {activeTab === "overview" && (
         <div className="flex flex-col space-y-4">
+          <SmartGardenCard />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white border border-gray-200/80 p-4 rounded-[18px] shadow-xs flex items-center justify-between">
               <div>

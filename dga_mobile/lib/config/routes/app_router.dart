@@ -18,11 +18,20 @@ import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/disease_detection/presentation/pages/camera_simulator_page.dart';
 import '../../features/disease_detection/presentation/pages/image_editor_wizard.dart';
 import '../../features/farms/presentation/pages/register_farm_page.dart';
+import '../../features/farms/presentation/pages/farm_garden_hub_page.dart';
 import '../../features/iot/presentation/pages/iot_shop_page.dart';
 import '../../features/iot/presentation/pages/iot_management_page.dart';
 import '../../features/iot/presentation/pages/farm_management_iot_page.dart';
 import '../../features/farm_activity/presentation/pages/today_activity_page.dart';
 import '../../features/authentication/presentation/providers/auth_providers.dart';
+import '../../features/recommendation/presentation/pages/farming_techniques_page.dart';
+import '../../features/recommendation/presentation/pages/pests_and_diseases_page.dart';
+import '../../features/recommendation/presentation/pages/biocontrol_measures_page.dart';
+import '../../features/weather/presentation/pages/weather_page.dart';
+import '../../features/subscription/presentation/pages/subscription_packages_page.dart';
+import '../../features/news/presentation/pages/durian_news_page.dart';
+import '../../features/farm/presentation/pages/smart_garden_management_page.dart';
+import '../../features/notification/presentation/pages/daily_ai_notifications_page.dart';
 import '../../core/constants/storage_keys.dart';
 import '../../services/storage_service.dart';
 import '../../shared/components/tab_scaffold.dart';
@@ -100,6 +109,88 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
         name: 'farmManagementIoT',
         builder: (context, state) => const FarmManagementIoTPage(),
       ),
+      GoRoute(
+        path: '/farming-techniques',
+        name: 'farmingTechniques',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return FarmingTechniquesPage(
+            varietyId: extra?['varietyId'] ?? 'ri6',
+            varietyName: extra?['varietyName'] ?? 'Sầu riêng Ri6',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/pests-and-diseases',
+        name: 'pestsAndDiseases',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return PestsAndDiseasesPage(
+            varietyId: extra?['varietyId'] ?? 'ri6',
+            varietyName: extra?['varietyName'] ?? 'Sầu riêng Ri6',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/weather',
+        name: 'weatherPage',
+        builder: (context, state) => const WeatherPage(),
+      ),
+      GoRoute(
+        path: '/subscription-packages',
+        name: 'subscriptionPackages',
+        builder: (context, state) => const SubscriptionPackagesPage(),
+      ),
+      GoRoute(
+        path: '/durian-news',
+        name: 'durianNews',
+        builder: (context, state) => const DurianNewsPage(),
+      ),
+      GoRoute(
+        path: '/biocontrol-measures',
+        name: 'biocontrolMeasures',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return BiocontrolMeasuresPage(
+            varietyId: extra?['varietyId'] ?? 'ri6',
+            varietyName: extra?['varietyName'] ?? 'Sầu riêng Ri6',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/smart-garden-management',
+        name: 'smartGardenManagement',
+        builder: (context, state) => const FarmManagementIoTPage(),
+      ),
+      GoRoute(
+        path: '/daily-ai-notifications',
+        name: 'dailyAiNotifications',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final hasIoT = extra?['hasIoTDevices'] as bool? ?? false;
+          return DailyAiNotificationsPage(hasIoTDevices: hasIoT);
+        },
+      ),
+      GoRoute(
+        path: '/register-farm',
+        name: 'registerFarm',
+        builder: (context, state) => const RegisterFarmPage(),
+      ),
+      GoRoute(
+        path: '/iot-shop',
+        name: 'iotShop',
+        builder: (context, state) => const IoTShopPage(),
+      ),
+      GoRoute(
+        path: '/iot-management',
+        name: 'iotManagement',
+        builder: (context, state) => const IoTManagementPage(),
+      ),
+      GoRoute(
+        path: '/history-logs',
+        name: 'historyLogs',
+        builder: (context, state) => const HistoryPage(),
+      ),
 
       ShellRoute(
         builder: (context, state, child) {
@@ -121,17 +212,17 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/community',
-            name: 'community',
+            path: '/farm-hub',
+            name: 'farmHub',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: CommunityPage(),
+              child: FarmGardenHubPage(),
             ),
           ),
           GoRoute(
             path: '/history',
             name: RouteNames.history,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: HistoryPage(),
+              child: FarmGardenHubPage(),
             ),
             routes: [
               GoRoute(
@@ -148,6 +239,13 @@ final appRouterWithoutGeneratorProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const LeaderboardPage(),
               ),
             ],
+          ),
+          GoRoute(
+            path: '/community',
+            name: 'community',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: CommunityPage(),
+            ),
           ),
           GoRoute(
             path: '/profile',

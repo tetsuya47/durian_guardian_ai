@@ -171,15 +171,18 @@ class ProfileInformationCard extends StatelessWidget {
             color: Color(0xFF374151),
           ),
         ),
-        const Spacer(),
-
         // Value
-        Text(
-          displayValue,
-          style: TextStyle(
-            fontSize: 14,
-            color: isUnupdated ? const Color(0xFF9CA3AF) : const Color(0xFF1F2937),
-            fontWeight: isUnupdated ? FontWeight.normal : FontWeight.w500,
+        Expanded(
+          child: Text(
+            displayValue,
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              color: isUnupdated ? const Color(0xFF9CA3AF) : const Color(0xFF1F2937),
+              fontWeight: isUnupdated ? FontWeight.normal : FontWeight.w500,
+            ),
           ),
         ),
         const SizedBox(width: 8),

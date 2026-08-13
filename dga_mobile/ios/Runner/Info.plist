@@ -70,5 +70,7 @@
 	<string>Durian Guardian AI cần truy cập camera để chụp ảnh lá sầu riêng phục vụ phân tích bệnh.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Durian Guardian AI cần truy cập thư viện ảnh để chọn ảnh lá sầu riêng phục vụ phân tích bệnh.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Durian Guardian AI cần vị trí GPS để xác định tâm trang trại và hỗ trợ định vị vườn sầu riêng trên bản đồ.</string>
 </dict>
 </plist>
