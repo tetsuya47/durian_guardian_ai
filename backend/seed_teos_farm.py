@@ -62,6 +62,8 @@ async def seed_teos_farm() -> None:
     ]
 
     if not teo_farm:
+        company = await db["companies"].find_one()
+        company_id = company["_id"] if company else ObjectId()
         farm_doc = {
             "farm_code": "FRM-EAYONG-01",
             "farm_name": "Trang trại Sầu Riêng Sinh Thái Krông Pắc",
@@ -69,6 +71,7 @@ async def seed_teos_farm() -> None:
             "owner_user_id": teo_id,
             "user_id": str(teo_id),
             "created_by": str(teo_id),
+            "company_id": company_id,
             "district": "Krông Pắc",
             "province": "Đắk Lắk",
             "location": "Xã Ea Yông, Huyện Krông Pắc, Đắk Lắk",
