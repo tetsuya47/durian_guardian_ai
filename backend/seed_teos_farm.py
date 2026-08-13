@@ -32,7 +32,7 @@ async def seed_teos_farm() -> None:
             "email": "teo@gmail.com",
             "phone": "0987654321",
             "password_hash": hash_password("123456"),
-            "role": "user",
+            "role": "Farm Owner",
             "refresh_token": "",
             "created_at": now,
             "updated_at": now,
