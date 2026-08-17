@@ -54,16 +54,23 @@ class AIResultCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.analytics_outlined, color: Color(0xFF2E7D32), size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        '📊 AI PHÂN TÍCH CHẨN ĐOÁN',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1B4D3E)),
-                      ),
-                    ],
+                  const Expanded(
+                    child: Row(
+                      children: [
+                        Icon(Icons.analytics_outlined, color: Color(0xFF2E7D32), size: 20),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            '📊 AI PHÂN TÍCH CHẨN ĐOÁN',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1B4D3E)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -122,9 +129,13 @@ class AIResultCard extends StatelessWidget {
                 children: [
                   Icon(Icons.psychology_outlined, color: Color(0xFF2E7D32), size: 20),
                   SizedBox(width: 8),
-                  Text(
-                    '🔍 VÌ SAO AI ĐƯA RA KẾT LUẬN?',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1B4D3E)),
+                  Expanded(
+                    child: Text(
+                      '🔍 VÌ SAO AI ĐƯA RA KẾT LUẬN?',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1B4D3E)),
+                    ),
                   ),
                 ],
               ),
@@ -207,9 +218,13 @@ class AIResultCard extends StatelessWidget {
                 children: [
                   Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
                   SizedBox(width: 8),
-                  Text(
-                    '⚠️ CẢNH BÁO VÀ HƯỚNG DẪN QUẢN LÝ',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                  Expanded(
+                    child: Text(
+                      '⚠️ CẢNH BÁO VÀ HƯỚNG DẪN QUẢN LÝ',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                    ),
                   ),
                 ],
               ),
@@ -261,13 +276,25 @@ class AIResultCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-              color: color ?? Colors.black87,
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+                color: color ?? Colors.black87,
+              ),
             ),
           ),
         ],

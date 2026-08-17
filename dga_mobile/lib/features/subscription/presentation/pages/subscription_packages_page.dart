@@ -441,9 +441,11 @@ class _SubscriptionPackagesPageState extends State<SubscriptionPackagesPage> {
             children: [
               const Icon(Icons.verified, color: Color(0xFF2E7D32), size: 26),
               const SizedBox(width: 10),
-              Text(
-                'Đăng ký $packageName',
-                style: const TextStyle(color: Color(0xFF1B2E25), fontSize: 18, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  'Đăng ký $packageName',
+                  style: const TextStyle(color: Color(0xFF1B2E25), fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

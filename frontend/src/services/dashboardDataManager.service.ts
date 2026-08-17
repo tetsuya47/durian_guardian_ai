@@ -275,7 +275,7 @@ export const EMPTY_USER_WIDGETS: WidgetsData = {
 
 export async function loadDashboardCore(): Promise<DashboardResult> {
   try {
-    const res = await api.get("/dashboard");
+    const res = await api.get("/api/v1/dashboard");
     const rawData = res.data?.data || res.data;
     const backendKpi = rawData?.kpi || res.data?.kpi;
     const systemOverview = rawData?.system_overview || res.data?.system_overview;
@@ -299,7 +299,7 @@ export async function loadDashboardCore(): Promise<DashboardResult> {
 
 export async function loadHeatmap(): Promise<HeatmapResult> {
   try {
-    const res = await api.get("/dashboard/heatmap");
+    const res = await api.get("/api/v1/dashboard/heatmap");
     const rawData = res.data?.data || res.data;
     const list = Array.isArray(rawData) ? rawData : rawData?.data || rawData?.trees;
     return { heatmapData: Array.isArray(list) ? list : FALLBACK_HEATMAP };
@@ -310,7 +310,7 @@ export async function loadHeatmap(): Promise<HeatmapResult> {
 
 export async function loadWidgets(): Promise<WidgetsResult> {
   try {
-    const res = await api.get("/dashboard/widgets");
+    const res = await api.get("/api/v1/dashboard/widgets");
     const rawData = res.data?.data || res.data;
     if (rawData && (Array.isArray(rawData.farms) || Array.isArray(rawData.inspections))) {
       return {
@@ -418,7 +418,7 @@ const DEFAULT_FARM_DASHBOARD: FarmDashboardData = {
 
 export async function loadFarmDashboard(farmId: string): Promise<FarmDashboardData> {
   try {
-    const resp = await api.get(`/dashboard/farm/${farmId}`).then((r) => r.data);
+    const resp = await api.get(`/api/v1/dashboard/farm/${farmId}`).then((r) => r.data);
     return resp ?? DEFAULT_FARM_DASHBOARD;
   } catch {
     return DEFAULT_FARM_DASHBOARD;
@@ -457,7 +457,7 @@ export async function loadFarmPerformance(farmId?: string): Promise<FarmPerforma
   try {
     const params: Record<string, string> = {};
     if (farmId) params.farm_id = farmId;
-    const resp = await api.get("/dashboard/farm-performance", { params }).then((r) => r.data);
+    const resp = await api.get("/api/v1/dashboard/farm-performance", { params }).then((r) => r.data);
     return resp ?? DEFAULT_FARM_PERFORMANCE;
   } catch {
     return DEFAULT_FARM_PERFORMANCE;

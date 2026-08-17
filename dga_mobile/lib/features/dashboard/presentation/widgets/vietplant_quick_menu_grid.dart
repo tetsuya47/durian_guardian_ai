@@ -59,8 +59,8 @@ class VietplantQuickMenuGrid extends StatelessWidget {
       _MenuItemData(
         title: 'Phòng trừ sinh học',
         icon: Icons.eco_outlined,
-        color: const Color(0xFFE0F2F1),
-        iconColor: const Color(0xFF00796B),
+        color: const Color(0xFFE8F5E9),
+        iconColor: const Color(0xFF2E7D32),
         onTap: onBiocontrolTap,
       ),
     ];
@@ -71,7 +71,7 @@ class VietplantQuickMenuGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        childAspectRatio: 0.9,
+        childAspectRatio: 0.8,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),

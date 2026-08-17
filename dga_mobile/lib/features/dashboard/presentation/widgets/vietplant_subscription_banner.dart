@@ -438,9 +438,11 @@ class _VietplantSubscriptionBannerState extends State<VietplantSubscriptionBanne
           children: [
             const Icon(Icons.verified, color: Color(0xFF2E7D32), size: 24),
             const SizedBox(width: 8),
-            Text(
-              'Đăng ký $packageName',
-              style: const TextStyle(color: Color(0xFF1B2E25), fontSize: 17, fontWeight: FontWeight.bold),
+            Expanded(
+              child: Text(
+                'Đăng ký $packageName',
+                style: const TextStyle(color: Color(0xFF1B2E25), fontSize: 17, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),

@@ -175,7 +175,7 @@ class _CommunityPageState extends State<CommunityPage>
       isLiked: false,
       comments: [
         {
-          'author': 'Phan Hải',
+          'author': 'Nguyễn Văn Chinh',
           'text': 'Kinh nghiệm nhà mình là pha thêm Phosphonate tưới rễ tơ 2 lần cách nhau 7 ngày.',
           'time': '30 phút trước'
         },
@@ -208,7 +208,7 @@ class _CommunityPageState extends State<CommunityPage>
     ),
     PostItem(
       id: 'post-question-3',
-      authorName: 'Phan Hải',
+      authorName: 'Nguyễn Văn Chinh',
       authorRole: 'Nông dân Lâm Đồng',
       avatarUrl: '',
       timeAgo: '10 phút trước',

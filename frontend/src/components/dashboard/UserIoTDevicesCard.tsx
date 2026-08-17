@@ -74,7 +74,7 @@ export default function UserIoTDevicesCard() {
         return;
       }
 
-      const res = await api.get<{ data: { items?: UserIoTDevice[] } | UserIoTDevice[] }>("/iot/my-devices");
+      const res = await api.get<{ data: { items?: UserIoTDevice[] } | UserIoTDevice[] }>("/api/v1/iot/my-devices");
       const items = Array.isArray(res.data)
         ? res.data
         : (res.data as any)?.data?.items || (res.data as any)?.data || [];
@@ -107,9 +107,9 @@ export default function UserIoTDevicesCard() {
 
   const filteredDevices = devices.filter((d) => {
     const matchSearch =
-      d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.device_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.device_type.toLowerCase().includes(searchTerm.toLowerCase());
+      (d.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (d.device_code || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (d.device_type || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === "all" || d.status === statusFilter;
     return matchSearch && matchStatus;
   });

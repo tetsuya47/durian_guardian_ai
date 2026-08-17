@@ -321,14 +321,16 @@ class _VietplantMarketPricesState extends State<VietplantMarketPrices> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      group.gaccTag,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
+                    Flexible(
+                      child: Text(
+                        group.gaccTag,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],

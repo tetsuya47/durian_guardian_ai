@@ -82,10 +82,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Result<void>> logout() async {
     try {
-      // Notify backend if possible (revokes token)
-      await _remoteDataSource.logout();
+      // Fire-and-forget remote logout with a quick 2s timeout so logout is instant
+      await _remoteDataSource.logout().timeout(const Duration(seconds: 2));
     } catch (_) {
-      // Suppress backend logout errors to ensure local logout still completes
+      // Suppress backend logout errors to ensure local logout still completes instantly
     } finally {
       await _localDataSource.clearSession();
     }

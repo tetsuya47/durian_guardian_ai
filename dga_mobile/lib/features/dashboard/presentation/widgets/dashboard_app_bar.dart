@@ -26,7 +26,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             onTap: () => context.go('/profile'),
             child: const CircleAvatar(
               radius: 20,
-              backgroundColor: Color(0xFF16A34A),
+              backgroundColor: Color(0xFF2E7D32),
               child: Text(
                 'HH',
                 style: TextStyle(
@@ -56,7 +56,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
                 Text(
-                  userName.isNotEmpty ? userName : 'Hoàng Văn Hải',
+                  userName.isNotEmpty ? userName : 'Nguyễn Văn Chinh',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -69,7 +69,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 const Row(
                   children: [
-                    Icon(Icons.location_on, size: 12, color: Color(0xFF16A34A)),
+                    Icon(Icons.location_on, size: 12, color: Color(0xFF2E7D32)),
                     SizedBox(width: 2),
                     Expanded(
                       child: Text(

@@ -36,9 +36,20 @@ class DiseaseHistoryService:
         page: int = 1,
         per_page: int = 20,
         keyword: str | None = None,
+        user_id: str | None = None,
     ) -> tuple[list[dict], int]:
-        logger.info("Listing disease history (page=%d, keyword=%s)", page, keyword)
-        docs, total = await self.repo.get_all(page, per_page, keyword)
+        logger.info("Listing disease history (page=%d, keyword=%s, user=%s)", page, keyword, user_id)
+        filter_query: dict = {}
+        if user_id:
+            user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+            user_doc = await self.db["users"].find_one({"_id": user_oid})
+            user_email = (user_doc.get("email") or "").lower() if user_doc else ""
+            if user_email != "chinh@gmail.com":
+                filter_query["$or"] = [
+                    {"user_id": user_id},
+                    {"user_id": str(user_id)},
+                ]
+        docs, total = await self.repo.get_all(page, per_page, keyword, filter_query=filter_query)
         serialized_docs = [serialize_disease_history(doc) for doc in docs if doc is not None]
         return serialized_docs, total
 

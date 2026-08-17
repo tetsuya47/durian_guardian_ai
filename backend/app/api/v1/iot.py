@@ -35,16 +35,46 @@ async def ingest_telemetry(
     )
 
 
+from app.core.dependencies import get_current_user_id
+
+
 @router.get(
     "/telemetry/latest",
     summary="Get latest IoT telemetry + Model 3 Risk Assessment + Model 4 AI Agronomist Advice",
 )
 async def get_latest_telemetry_analysis(
+    user_id: str = Depends(get_current_user_id),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """Get the most recent IoT sensor reading and AI recommendations."""
+    user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+    user_doc = await db["users"].find_one({"_id": user_oid})
+    user_email = (user_doc.get("email") or "").lower() if user_doc else ""
+
+    if user_email != "chinh@gmail.com":
+        user_devices = await db["iot_devices"].find({
+            "$or": [
+                {"user_id": user_id},
+                {"user_id": str(user_id)},
+                {"owner_user_id": user_oid},
+                {"owner_user_id": str(user_id)},
+            ]
+        }).to_list(length=1)
+        if not user_devices:
+            return success_response(
+                data={
+                    "has_iot": False,
+                    "telemetry": None,
+                    "model3_risk_level": "Chưa kích hoạt",
+                    "model3_risk_score": 0.0,
+                    "model4_recommendations": [],
+                },
+                message="Tài khoản chưa đăng ký/kích hoạt thiết bị IoT.",
+            )
+
     service = IoTService(db)
     analysis = await service.get_latest_analysis()
+    analysis["has_iot"] = True
     return success_response(
         data=analysis,
         message="Latest IoT sensor readings and AI recommendations retrieved successfully",
@@ -57,9 +87,29 @@ async def get_latest_telemetry_analysis(
 )
 async def get_telemetry_history(
     limit: int = 50,
+    user_id: str = Depends(get_current_user_id),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """Retrieve up to 50 recent 30-second telemetry readings."""
+    user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+    user_doc = await db["users"].find_one({"_id": user_oid})
+    user_email = (user_doc.get("email") or "").lower() if user_doc else ""
+
+    if user_email != "chinh@gmail.com":
+        user_devices = await db["iot_devices"].find({
+            "$or": [
+                {"user_id": user_id},
+                {"user_id": str(user_id)},
+                {"owner_user_id": user_oid},
+                {"owner_user_id": str(user_id)},
+            ]
+        }).to_list(length=1)
+        if not user_devices:
+            return success_response(
+                data=[],
+                message="Tài khoản chưa đăng ký/kích hoạt thiết bị IoT.",
+            )
+
     service = IoTService(db)
     history = await service.get_history(limit)
     return success_response(
@@ -75,10 +125,23 @@ async def get_telemetry_history(
 async def get_my_devices(
     farm_id: Optional[str] = Query(None),
     status_filter: Optional[str] = Query(None),
+    user_id: str = Depends(get_current_user_id),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """Get active IoT devices stored in MongoDB `iot_devices` collection."""
+    user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+    user_doc = await db["users"].find_one({"_id": user_oid})
+    user_email = (user_doc.get("email") or "").lower() if user_doc else ""
+
     query: Dict[str, Any] = {}
+    if user_email != "chinh@gmail.com":
+        query["$or"] = [
+            {"user_id": user_id},
+            {"user_id": str(user_id)},
+            {"owner_user_id": user_oid},
+            {"owner_user_id": str(user_id)},
+        ]
+
     if farm_id and farm_id != "all":
         query["farm_id"] = farm_id
     if status_filter and status_filter != "all":
@@ -87,13 +150,11 @@ async def get_my_devices(
     cursor = db["iot_devices"].find(query).sort("created_at", -1).limit(100)
     devices = await cursor.to_list(length=100)
 
-    # Format ObjectId to string
     items = []
     for d in devices:
         item = {**d, "id": str(d["_id"])}
         if "_id" in item:
             del item["_id"]
-        # Format datetimes
         if isinstance(item.get("last_signal"), datetime):
             item["last_signal"] = item["last_signal"].isoformat()
         if isinstance(item.get("created_at"), datetime):

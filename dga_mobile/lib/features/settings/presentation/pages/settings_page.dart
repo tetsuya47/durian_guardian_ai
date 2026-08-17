@@ -13,6 +13,7 @@ import '../../../../shared/loading/loading_dialog.dart';
 import '../../../../shared/utils/ui_helpers.dart';
 import '../../domain/entities/settings_entities.dart';
 import '../../../authentication/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../providers/settings_providers.dart';
 import '../widgets/about_card.dart';
 import '../widgets/settings_card.dart';
@@ -172,6 +173,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         try {
           final repo = ref.read(authRepositoryProvider);
           await repo.logout();
+          ref.invalidate(dashboardDataProvider);
+          ref.invalidate(userIoTStatusProvider);
+          ref.invalidate(latestTelemetryProvider);
         } catch (_) {}
         if (context.mounted) context.go('/login');
       },

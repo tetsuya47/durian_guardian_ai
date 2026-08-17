@@ -97,6 +97,8 @@ class RiskPredictionService:
                     last_date = latest.get("created_at")
                     if isinstance(last_date, datetime):
                         now = datetime.now(timezone.utc)
+                        if last_date.tzinfo is None:
+                            last_date = last_date.replace(tzinfo=timezone.utc)
                         days_since_inspection = max(0, (now - last_date).days)
             except Exception as exc:
                 logger.warning("Failed to fetch tree detection history: %s", exc)

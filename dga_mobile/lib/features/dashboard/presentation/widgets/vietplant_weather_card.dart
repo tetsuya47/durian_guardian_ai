@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/components/weather_icon_widget.dart';
 
 class VietplantWeatherCard extends StatelessWidget {
   final Map<String, dynamic>? weatherData;
@@ -14,10 +15,12 @@ class VietplantWeatherCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final location = weatherData?['location_name'] ?? weatherData?['location'] ?? 'Krông Pắc, Đắk Lắk';
     final tempVal = weatherData?['temp_celsius'] ?? weatherData?['temperature_c'] ?? weatherData?['temp'];
-    final temp = tempVal != null ? (tempVal is num ? tempVal.toStringAsFixed(1) : tempVal.toString()) : '28.5';
-    final highTemp = weatherData?['temp_max']?.toString() ?? (double.tryParse(temp) != null ? (double.parse(temp) + 3).round().toString() : '31');
-    final lowTemp = weatherData?['temp_min']?.toString() ?? (double.tryParse(temp) != null ? (double.parse(temp) - 5).round().toString() : '22');
+    final temp = tempVal != null ? (tempVal is num ? tempVal.round().toString() : (double.tryParse(tempVal.toString())?.round().toString() ?? tempVal.toString())) : '24';
+    final highTemp = weatherData?['temp_max'] != null ? (weatherData!['temp_max'] is num ? (weatherData!['temp_max'] as num).round().toString() : (double.tryParse(weatherData!['temp_max'].toString())?.round().toString() ?? '31')) : '31';
+    final lowTemp = weatherData?['temp_min'] != null ? (weatherData!['temp_min'] is num ? (weatherData!['temp_min'] as num).round().toString() : (double.tryParse(weatherData!['temp_min'].toString())?.round().toString() ?? '22')) : '22';
     final condition = weatherData?['description'] ?? weatherData?['condition'] ?? 'Nắng nhẹ, mây rải rác';
+    final iconUrl = weatherData?['icon_url']?.toString();
+    final iconCode = weatherData?['icon_code']?.toString();
     final recommendation = weatherData?['agricultural_advice'] ?? weatherData?['agri_recommendation'] ??
         'Tây Nguyên: Duy trì hệ thống thoát nước thông suốt, theo dõi độ ẩm vườn và kiểm soát nấm nứt thân xì mủ Phytophthora.';
 
@@ -65,14 +68,14 @@ class VietplantWeatherCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1B5E6B), Color(0xFF2A7C8C)],
+                colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1B5E6B).withOpacity(0.3),
+                  color: const Color(0xFF2E7D32).withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -179,11 +182,12 @@ class VietplantWeatherCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
 
-                    // Weather Cloud Illustration Icon
-                    const Icon(
-                      Icons.cloud_outlined,
-                      color: Colors.white70,
-                      size: 68,
+                    // Dynamic Weather Icon matching description (Mưa, Nắng, Mây...)
+                    WeatherIconWidget(
+                      description: condition,
+                      iconUrl: iconUrl,
+                      iconCode: iconCode,
+                      size: 64,
                     ),
                   ],
                 ),

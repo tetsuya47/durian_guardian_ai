@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     OPENWEATHER_API_KEY: str = ""
     OPENWEATHER_BASE_URL: str = "https://api.openweathermap.org/data/2.5"
-    WEATHER_CACHE_TTL_MINUTES: int = 15
+    WEATHER_CACHE_TTL_MINUTES: int = 5
 
     LOG_LEVEL: str = "INFO"
 

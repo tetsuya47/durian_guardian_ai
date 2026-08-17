@@ -79,10 +79,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const api = (await import("../../api")).default;
-      await api.post("/auth/register", {
+      await api.post("/api/v1/auth/register", {
         full_name: fullName.trim(),
         email: email.trim(),
         password,
+        role: "farm_manager",
       });
       setSuccess("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
       setTimeout(() => navigate("/login", { replace: true }), 1500);

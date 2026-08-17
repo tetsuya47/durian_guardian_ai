@@ -19,7 +19,7 @@ class VietplantHomeHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -112,7 +112,7 @@ class VietplantHomeHeader extends StatelessWidget {
                 hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                suffixIcon: Icon(Icons.search, color: Color(0xFF4CAF50), size: 26),
+                suffixIcon: Icon(Icons.search, color: Color(0xFF2E7D32), size: 26),
               ),
             ),
           ),

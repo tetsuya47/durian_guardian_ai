@@ -26,7 +26,7 @@ async def list_detection_results(
     _=Depends(allow_all),
 ):
     service = DetectionResultService(db)
-    items, total = await service.list_detection_results(page, per_page, keyword=keyword)
+    items, total = await service.list_detection_results(page, per_page, keyword=keyword, user_id=user_id)
     return success_response(
         data={"items": items, "total": total, "page": page, "per_page": per_page}
     )

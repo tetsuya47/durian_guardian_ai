@@ -10,8 +10,7 @@ import {
   CheckCircle2,
   RefreshCw,
   Activity,
-  ArrowRight,
-  ShieldAlert,
+  ShoppingBag,
 } from "lucide-react";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +30,7 @@ export interface TelemetryPayload {
 }
 
 export interface AIAnalysisData {
+  has_iot?: boolean;
   telemetry: TelemetryPayload;
   model3_risk_level: "Low" | "Medium" | "High" | string;
   model3_risk_score: number;
@@ -49,12 +49,15 @@ export default function SmartGardenCard() {
     try {
       const res = await api.get<{ success?: boolean; data?: AIAnalysisData }>("/api/v1/iot/telemetry/latest");
       const payload = (res.data as any)?.data || res.data;
-      if (payload && payload.telemetry) {
+      if (payload && payload.has_iot !== false && payload.telemetry) {
         setData(payload as AIAnalysisData);
         setLastSync(new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+      } else {
+        setData(null);
       }
     } catch (err) {
       console.warn("Could not fetch IoT telemetry latest analysis:", err);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -67,13 +70,70 @@ export default function SmartGardenCard() {
     return () => clearInterval(interval);
   }, []);
 
+  const isIoTActive = Boolean(
+    data &&
+    data.has_iot !== false &&
+    data.telemetry &&
+    Object.keys(data.telemetry).length > 0
+  );
+
+  if (!loading && !isIoTActive) {
+    return (
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[24px] p-6 shadow-sm mb-6 transition-all">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+              <Cpu className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Quản Lý Vườn Thông Minh (IoT & AI)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Giám sát vi khí hậu thời gian thực & chẩn đoán bệnh từ cảm biến đất
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700/80 px-6">
+          <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 shadow-xs">
+            <Cpu className="w-8 h-8" />
+          </div>
+          <h4 className="text-base font-black text-slate-800 dark:text-white mb-1.5">
+            Chưa Kết Nối Thiết Bị & Gói IoT
+          </h4>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-lg mb-6 leading-relaxed">
+            Vườn sầu riêng của bạn chưa đăng ký bộ cảm biến IoT hoặc chưa kích hoạt gói dịch vụ. Hãy mua sắm thiết bị IoT hoặc đăng ký gói dịch vụ để bật giám sát tự động!
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <button
+              onClick={() => navigate("/iot-shop")}
+              className="px-4.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>Mua Thiết Bị IoT</span>
+            </button>
+            <button
+              onClick={() => navigate("/subscription-packages")}
+              className="px-4.5 py-2.5 border border-emerald-600/80 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-extrabold text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Mua Gói Dịch Vụ</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const telemetry = data?.telemetry || {
-    soil_moisture: 68.5,
-    soil_ph: 6.2,
-    temperature: 28.5,
-    humidity: 78.0,
-    nitrogen_ppm: 125,
-    farm_name: "Vườn Sầu Riêng Nguyễn Văn An",
+    soil_moisture: 0,
+    soil_ph: 0,
+    temperature: 0,
+    humidity: 0,
+    nitrogen_ppm: 0,
+    farm_name: "Vườn Sầu Riêng",
   };
 
   const riskScore = data?.model3_risk_score ? Math.round(data.model3_risk_score * 100) : 15;
@@ -219,7 +279,7 @@ export default function SmartGardenCard() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
-                Chẩn đoán Nông học Vie-farm AI (Model 3 & 4)
+                Chẩn đoán Nông học Vie-farm AI
               </span>
             </div>
             <p className="text-xs sm:text-sm font-semibold text-white leading-relaxed">

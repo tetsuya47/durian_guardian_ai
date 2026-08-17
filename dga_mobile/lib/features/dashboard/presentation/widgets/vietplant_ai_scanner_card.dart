@@ -30,7 +30,7 @@ class VietplantAIScannerCard extends StatelessWidget {
               border: Border.all(color: const Color(0xFFC8E6C9), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withOpacity(0.08),
+                  color: const Color(0xFF2E7D32).withOpacity(0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -62,22 +62,22 @@ class VietplantAIScannerCard extends StatelessWidget {
                       Positioned(
                         top: 8,
                         left: 8,
-                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF4CAF50), width: 3), left: BorderSide(color: Color(0xFF4CAF50), width: 3)))),
+                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF2E7D32), width: 3), left: BorderSide(color: Color(0xFF2E7D32), width: 3)))),
                       ),
                       Positioned(
                         top: 8,
                         right: 8,
-                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF4CAF50), width: 3), right: BorderSide(color: Color(0xFF4CAF50), width: 3)))),
+                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF2E7D32), width: 3), right: BorderSide(color: Color(0xFF2E7D32), width: 3)))),
                       ),
                       Positioned(
                         bottom: 8,
                         left: 8,
-                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF4CAF50), width: 3), left: BorderSide(color: Color(0xFF4CAF50), width: 3)))),
+                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF2E7D32), width: 3), left: BorderSide(color: Color(0xFF2E7D32), width: 3)))),
                       ),
                       Positioned(
                         bottom: 8,
                         right: 8,
-                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF4CAF50), width: 3), right: BorderSide(color: Color(0xFF4CAF50), width: 3)))),
+                        child: Container(width: 14, height: 14, decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF2E7D32), width: 3), right: BorderSide(color: Color(0xFF2E7D32), width: 3)))),
                       ),
                     ],
                   ),
@@ -113,7 +113,7 @@ class VietplantAIScannerCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onCameraTap,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
+                      backgroundColor: const Color(0xFF2E7D32),
                       foregroundColor: Colors.white,
                       elevation: 3,
                       shape: RoundedRectangleBorder(

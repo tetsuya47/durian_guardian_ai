@@ -44,6 +44,12 @@ class DecisionContext:
     days_to_harvest: int = 999
 
 
+def _normalize_dt(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 class ContextEngine:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
         self.db = db
@@ -88,7 +94,7 @@ class ContextEngine:
         if recent_scans:
             last_scan_dt = recent_scans[0].get("created_at")
             if isinstance(last_scan_dt, datetime):
-                days_since_last_scan = (now - last_scan_dt).days
+                days_since_last_scan = (now - _normalize_dt(last_scan_dt)).days
 
         # 3. Farm Activities (Pesticide & Fertilizer)
         last_pesticide = await self.farm_activity_repo.get_last_activity_by_type(
@@ -102,13 +108,13 @@ class ContextEngine:
         if last_pesticide and "activity_date" in last_pesticide:
             p_date = last_pesticide["activity_date"]
             if isinstance(p_date, datetime):
-                days_since_last_spray = (now - p_date).days
+                days_since_last_spray = (now - _normalize_dt(p_date)).days
 
         days_since_last_fertilizer = 999
         if last_fertilizer and "activity_date" in last_fertilizer:
             f_date = last_fertilizer["activity_date"]
             if isinstance(f_date, datetime):
-                days_since_last_fertilizer = (now - f_date).days
+                days_since_last_fertilizer = (now - _normalize_dt(f_date)).days
 
         context = DecisionContext(
             tree_id=tree_id,

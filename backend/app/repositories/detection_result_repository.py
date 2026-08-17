@@ -43,19 +43,23 @@ class DetectionResultRepository(BaseRepository):
         ]
 
     async def get_all(
-        self, page: int = 1, per_page: int = 20, keyword: str | None = None
+        self, page: int = 1, per_page: int = 20, keyword: str | None = None, filter_query: dict | None = None
     ) -> tuple[list[dict[str, Any]], int]:
         import re
-        filter_query: dict = {}
+        query: dict = filter_query.copy() if filter_query else {}
         if keyword:
-            filter_query["$or"] = [
+            kw_match = [
                 {"model": {"$regex": re.escape(keyword), "$options": "i"}},
                 {"prediction": {"$regex": re.escape(keyword), "$options": "i"}},
             ]
-        pipeline = [{"$match": filter_query}, {"$sort": {"created_at": -1}}]
+            if "$or" in query:
+                query = {"$and": [query, {"$or": kw_match}]}
+            else:
+                query["$or"] = kw_match
+        pipeline = [{"$match": query}, {"$sort": {"created_at": -1}}]
         pipeline.extend(self._build_enrichment_stages())
 
-        count_pipeline = [{"$match": filter_query}, {"$count": "total"}]
+        count_pipeline = [{"$match": query}, {"$count": "total"}]
         count_cursor = self.collection.aggregate(count_pipeline)
         count_result = await count_cursor.to_list(length=1)
         total = count_result[0]["total"] if count_result else 0

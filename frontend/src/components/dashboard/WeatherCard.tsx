@@ -32,7 +32,7 @@ export default function WeatherCard() {
   const fetchWeather = async () => {
     setLoading(true);
     try {
-      const res = await api.get<{ data: WeatherData }>("/weather/current");
+      const res = await api.get<{ data: WeatherData }>("/api/v1/weather/current");
       if (res.data?.data) {
         setWeather(res.data.data);
       }

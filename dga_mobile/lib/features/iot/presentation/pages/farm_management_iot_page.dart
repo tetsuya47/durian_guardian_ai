@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
 import 'package:dga_mobile/core/network/api_endpoints.dart';
 import 'package:dga_mobile/core/network/dio_api_client.dart';
 
@@ -89,7 +90,95 @@ class _FarmManagementIoTPageState
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF4F7F5),
+        appBar: AppBar(
+          title: const Text('Quản lý Vườn Thông Minh', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFF1B4D3E),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
+      );
+    }
+
+    final bool hasIoT = (_analysisData != null) &&
+        (_analysisData!['has_iot'] == true ||
+            (_analysisData!['telemetry'] is Map && (_analysisData!['telemetry'] as Map).isNotEmpty));
     final telemetry = (_analysisData?['telemetry'] as Map?) ?? {};
+
+    if (!hasIoT || telemetry.isEmpty) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF4F7F5),
+        appBar: AppBar(
+          title: const Text('Quản lý Vườn Thông Minh', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFF1B4D3E),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withAlpha(25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.sensors_off_rounded, size: 64, color: Colors.orange),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Chưa Mua Gói & Thiết Bị IoT',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1B4D3E)),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Tài khoản này chưa đăng ký mua gói dịch vụ hoặc trạm cảm biến IoT.\nVui lòng mua gói dịch vụ hoặc trang bị thiết bị IoT để kích hoạt tính năng theo dõi vi khí hậu nông trại.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13.5, color: Colors.black54, height: 1.5),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/iot-shop'),
+                        icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 18),
+                        label: const Text('Mua Thiết Bị IoT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E7D32),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.push('/subscription-packages'),
+                        icon: const Icon(Icons.workspace_premium_outlined, color: Color(0xFF2E7D32), size: 18),
+                        label: const Text('Mua Gói Dịch Vụ', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     final riskLevel = (_analysisData?['model3_risk_level'] ?? 'Low').toString();
     final riskScore = ((_analysisData?['model3_risk_score'] ?? 0.15) as num).toDouble();
     final aiAdvice = (_analysisData?['model4_ai_advice'] ?? 'Nông trại hoạt động ổn định.').toString();

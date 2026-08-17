@@ -61,9 +61,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void _useFallbackProfile() {
     final fallback = UserProfileEntity(
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-      fullName: 'Phan Hải',
+      fullName: 'Nguyễn Văn Chinh',
       role: 'Chủ trang trại Sầu Riêng',
-      email: 'phan.hai@vietplant.vn',
+      email: 'chinh@gmail.com',
       phoneNumber: '0987654321',
       workUnit: 'Hợp Tác Xã Sầu Riêng Krông Pắc',
       address: 'Krông Pắc, Đắk Lắk',
@@ -131,6 +131,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         final repo = ref.read(authRepositoryProvider);
         await repo.logout();
         ref.invalidate(dashboardDataProvider);
+        ref.invalidate(userIoTStatusProvider);
+        ref.invalidate(latestTelemetryProvider);
         ref.invalidate(userProfileProvider);
         ref.invalidate(profileStateProvider);
         if (context.mounted) context.go('/login');

@@ -110,6 +110,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         }
 
         if (!mounted) return;
+        ref.invalidate(dashboardDataProvider);
+        ref.invalidate(userIoTStatusProvider);
+        ref.invalidate(latestTelemetryProvider);
+        ref.invalidate(scanHistoryProvider);
         AppSnackbars.showSuccess(context, AppStrings.loginSuccess);
         context.go('/dashboard');
       } else {

@@ -63,7 +63,7 @@ export default function WorkPlanningPage() {
       setPlans(mappedPlans);
 
       // 2. Fetch farm logs from MongoDB
-      const logsRes = await api.get("/farm-activities/logs");
+      const logsRes = await api.get("/api/v1/farm-activities/logs");
       const rawLogs = Array.isArray(logsRes.data) ? logsRes.data : (logsRes.data?.items ?? []);
       const mappedLogs: LogEntry[] = rawLogs.map((l: any) => ({
         id: l._id || l.id,

@@ -11,6 +11,7 @@ import '../../../../shared/widgets/input_field.dart';
 import '../../../../shared/widgets/password_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -84,6 +85,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ref.read(authLoadingProvider.notifier).state = false;
 
       if (result.isSuccess) {
+        ref.invalidate(dashboardDataProvider);
+        ref.invalidate(userIoTStatusProvider);
+        ref.invalidate(latestTelemetryProvider);
+        ref.invalidate(scanHistoryProvider);
         AppSnackbars.showSuccess(context, 'Đăng ký thành công!');
         context.go('/dashboard');
       } else {

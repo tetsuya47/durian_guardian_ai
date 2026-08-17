@@ -37,7 +37,7 @@ class DashboardPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
       body: RefreshIndicator(
-        color: const Color(0xFF4CAF50),
+        color: const Color(0xFF2E7D32),
         onRefresh: () async {
           ref.invalidate(dashboardDataProvider);
           ref.invalidate(userIoTStatusProvider);
@@ -97,7 +97,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50))),
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
                 ),
                 error: (_, __) => VietplantSmartGardenCard(
                   hasIoTDevices: false,
@@ -116,7 +116,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50))),
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
                 ),
                 error: (_, __) => VietplantMarketPrices(prices: const [], onViewAll: () {}),
               ),
@@ -147,7 +147,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50))),
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
                 ),
                 error: (_, __) => const VietplantWeatherCard(),
               ),
@@ -161,7 +161,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 loading: () => const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50))),
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF2E7D32))),
                 ),
                 error: (_, __) => VietplantNewsSection(articles: const [], onViewAll: () {}),
               ),
@@ -195,11 +195,16 @@ class DashboardPage extends ConsumerWidget {
   }
 
   void _showVarietySelector(BuildContext context, String targetRoute) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (ctx) => DurianVarietySelectorDialog(
-        onVarietySelected: (varietyId) {
-          context.push(targetRoute, extra: {'varietyId': varietyId});
+        onVarietySelected: (variety) {
+          context.push(targetRoute, extra: {
+            'varietyId': variety.id,
+            'varietyName': variety.name,
+          });
         },
       ),
     );

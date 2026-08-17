@@ -59,7 +59,7 @@ def _validate_image(contents: bytes, filename: str) -> None:
 
 @router.post("/detect", response_model=SuccessResponse[DetectionResponse])
 async def detect_disease(
-    tree_id: str = Form(...),
+    tree_id: str | None = Form(None),
     file: UploadFile = File(...),
     user_id: str = Depends(get_current_user_id),
     db: AsyncIOMotorDatabase = Depends(get_database),

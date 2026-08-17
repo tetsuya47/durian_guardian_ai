@@ -161,6 +161,8 @@ class WeatherService:
         main = raw_data.get("main", {}) or {}
         temp = float(main.get("temp", 28.0))
         feels_like = float(main.get("feels_like", temp))
+        temp_min = float(main.get("temp_min", temp - 2.0))
+        temp_max = float(main.get("temp_max", temp + 3.0))
         humidity = int(main.get("humidity", 75))
         pressure = int(main.get("pressure", 1013))
 
@@ -187,6 +189,8 @@ class WeatherService:
             "location_name": location_name,
             "temperature": round(temp, 1),
             "feels_like": round(feels_like, 1),
+            "temp_min": round(temp_min, 1),
+            "temp_max": round(temp_max, 1),
             "humidity": humidity,
             "pressure": pressure,
             "wind_speed": round(wind_speed, 1),
@@ -228,22 +232,30 @@ class WeatherService:
     def _build_response(self, doc: dict) -> dict:
         temp = float(doc.get("temperature", 28.0))
         feels_like = float(doc.get("feels_like", temp))
+        temp_min = float(doc.get("temp_min", temp - 2.0))
+        temp_max = float(doc.get("temp_max", temp + 3.0))
         humidity = int(doc.get("humidity", 75))
         wind_speed = float(doc.get("wind_speed", 0.0))
 
         risk, advice = self._analyze_durian_risk(temp, humidity, wind_speed)
 
-        return {
+        res = {
             "location_name": doc.get("location_name", "Trang trại Đắk Lắk - Đồng Nai"),
             "temp_celsius": round(temp, 1),
             "feels_like_celsius": round(feels_like, 1),
+            "temp_min": round(temp_min, 1),
+            "temp_max": round(temp_max, 1),
             "humidity_percent": humidity,
             "wind_speed_m_s": round(wind_speed, 1),
             "description": str(doc.get("description", "Thời tiết ổn định")).capitalize(),
+            "icon_code": str(doc.get("icon", "02d")),
             "icon_url": f"https://openweathermap.org/img/wn/{doc.get('icon', '02d')}@2x.png",
             "fungal_disease_risk": risk,
             "agricultural_advice": advice,
         }
+        if "forecast" in doc and doc["forecast"]:
+            res["forecast"] = doc["forecast"]
+        return res
 
     # ------------------------------------------------------------------ #
     # Agricultural risk logic (Task 7 — existing logic, unchanged)        #

@@ -18,7 +18,12 @@ class VietplantSmartGardenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!hasIoTDevices) {
+    final bool isIoTActive = hasIoTDevices &&
+        (telemetryData != null) &&
+        (telemetryData!['has_iot'] == true ||
+            (telemetryData!['telemetry'] is Map && (telemetryData!['telemetry'] as Map).isNotEmpty));
+
+    if (!isIoTActive) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
@@ -142,12 +147,15 @@ class VietplantSmartGardenCard extends StatelessWidget {
       );
     }
 
-    final farmName = telemetryData?['farm_name'] ?? 'Vườn Sầu Riêng Krông Pắk';
-    final temp = telemetryData?['temperature_celsius'] ?? telemetryData?['temperature'] ?? 28.5;
-    final soilMoisture = telemetryData?['soil_moisture_percent'] ?? telemetryData?['soil_moisture'] ?? 78.0;
-    final airHumidity = telemetryData?['humidity_percent'] ?? telemetryData?['humidity'] ?? 82.0;
-    final soilPh = telemetryData?['soil_ph'] ?? 6.2;
-    final riskPercent = telemetryData?['phytophthora_risk_percent'] ?? 85;
+    final telemetry = (telemetryData?['telemetry'] as Map?) ?? {};
+    final farmName = (telemetry['farm_name'] ?? telemetryData?['farm_name'] ?? 'Vườn Sầu Riêng').toString();
+    final temp = (telemetry['temperature'] ?? telemetryData?['temperature_celsius'] ?? telemetryData?['temperature'])?.toString() ?? '--';
+    final soilMoisture = (telemetry['soil_moisture'] ?? telemetryData?['soil_moisture_percent'] ?? telemetryData?['soil_moisture'])?.toString() ?? '--';
+    final airHumidity = (telemetry['humidity'] ?? telemetryData?['humidity_percent'] ?? telemetryData?['humidity'])?.toString() ?? '--';
+    final soilPh = (telemetry['soil_ph'] ?? telemetryData?['soil_ph'])?.toString() ?? '--';
+    final riskPercent = telemetryData?['model3_risk_score'] != null
+        ? ((telemetryData!['model3_risk_score'] as num) * 100).toInt()
+        : (telemetryData?['phytophthora_risk_percent'] ?? 0);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -281,7 +289,7 @@ class VietplantSmartGardenCard extends StatelessWidget {
                     children: [
                       _buildMetricTile('🌡️ Nhiệt độ', '$temp°C', 'Ổn định'),
                       const SizedBox(width: 6),
-                      _buildMetricTile('💧 Ẩm độ đất', '$soilMoisture%', soilMoisture > 75 ? 'Cao ⚠️' : 'Ổn định'),
+                      _buildMetricTile('💧 Ẩm độ đất', '$soilMoisture%', (num.tryParse(soilMoisture.toString()) ?? 0) > 75 ? 'Cao ⚠️' : 'Ổn định'),
                       const SizedBox(width: 6),
                       _buildMetricTile('💨 Ẩm không khí', '$airHumidity%', 'Ẩm ướt'),
                       const SizedBox(width: 6),

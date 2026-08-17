@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_api_client.dart';
+import '../../../../shared/components/weather_icon_widget.dart';
 
 class RegionItem {
   final String name;
@@ -132,7 +133,16 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
 
       if (mounted) {
         setState(() {
-          _liveWeatherData = response.data;
+          Map<String, dynamic>? payload;
+          if (response.data != null) {
+            final raw = response.data!;
+            if (raw['data'] is Map) {
+              payload = Map<String, dynamic>.from(raw['data'] as Map);
+            } else {
+              payload = raw;
+            }
+          }
+          _liveWeatherData = payload;
           _isLoading = false;
         });
       }
@@ -170,7 +180,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1B5E6B),
+        backgroundColor: const Color(0xFF1B5E20),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -191,7 +201,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
           children: [
             // Search Input & Region Selector Header
             Container(
-              color: const Color(0xFF1B5E6B),
+              color: const Color(0xFF1B5E20),
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Column(
                 children: [
@@ -207,7 +217,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                       decoration: const InputDecoration(
                         hintText: 'Tìm tỉnh thành / vùng canh tác...',
                         hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                        prefixIcon: Icon(Icons.search, color: Color(0xFF1B5E6B), size: 22),
+                        prefixIcon: Icon(Icons.search, color: Color(0xFF2E7D32), size: 22),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
@@ -215,38 +225,50 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Quick-tap Region Chips
-                  SizedBox(
-                    height: 36,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: prominentRegions.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final r = prominentRegions[index];
-                        final isSelected = _selectedRegion.name == r.name;
-                        return ChoiceChip(
-                          label: Text(r.province),
-                          selected: isSelected,
-                          onSelected: (_) {
-                            setState(() => _selectedRegion = r);
-                            _fetchLiveWeather(r);
-                          },
-                          selectedColor: Colors.white,
-                          backgroundColor: Colors.white.withOpacity(0.18),
-                          labelStyle: TextStyle(
-                            color: isSelected ? const Color(0xFF1B5E6B) : Colors.white,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            fontSize: 13,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                            side: BorderSide(
-                              color: isSelected ? Colors.white : Colors.white24,
+                  // Region Selector Menu (Menu chọn tỉnh thành)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white30, width: 1),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<RegionItem>(
+                        value: _selectedRegion,
+                        isExpanded: true,
+                        dropdownColor: const Color(0xFF1B5E20),
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.amberAccent, size: 26),
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                        items: prominentRegions.map((region) {
+                          return DropdownMenuItem<RegionItem>(
+                            value: region,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_on, color: Colors.amberAccent, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    region.name,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        }).toList(),
+                        onChanged: (newRegion) {
+                          if (newRegion != null) {
+                            setState(() => _selectedRegion = newRegion);
+                            _fetchLiveWeather(newRegion);
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -305,7 +327,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isCurrent ? const Color(0xFF1B5E6B) : Colors.grey.shade200,
+                        color: isCurrent ? const Color(0xFF2E7D32) : Colors.grey.shade200,
                         width: isCurrent ? 1.8 : 1.0,
                       ),
                       boxShadow: [
@@ -323,7 +345,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                           backgroundColor: isCurrent ? const Color(0xFFE0F2F1) : Colors.grey.shade100,
                           child: Icon(
                             Icons.location_on,
-                            color: isCurrent ? const Color(0xFF1B5E6B) : Colors.grey,
+                            color: isCurrent ? const Color(0xFF2E7D32) : Colors.grey,
                             size: 20,
                           ),
                         ),
@@ -337,7 +359,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: isCurrent ? const Color(0xFF1B5E6B) : const Color(0xFF222222),
+                                  color: isCurrent ? const Color(0xFF2E7D32) : const Color(0xFF222222),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -352,7 +374,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1B5E6B),
+                              color: const Color(0xFF2E7D32),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
@@ -376,24 +398,28 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
   }
 
   Widget _buildLiveWeatherHeroCard(Map<String, dynamic>? data) {
-    final temp = data?['temp_celsius']?.toString() ?? '29';
-    final feelsLike = data?['feels_like_celsius']?.toString() ?? '31';
+    final tempVal = data?['temp_celsius'];
+    final temp = tempVal != null ? (tempVal is num ? tempVal.round().toString() : (double.tryParse(tempVal.toString())?.round().toString() ?? tempVal.toString())) : '24';
+    final feelsVal = data?['feels_like_celsius'];
+    final feelsLike = feelsVal != null ? (feelsVal is num ? feelsVal.round().toString() : (double.tryParse(feelsVal.toString())?.round().toString() ?? feelsVal.toString())) : '25';
     final humidity = data?['humidity_percent']?.toString() ?? '65';
     final wind = data?['wind_speed_m_s']?.toString() ?? '3.5';
     final description = data?['description'] ?? 'Mây rải rác';
+    final iconUrl = data?['icon_url']?.toString();
+    final iconCode = data?['icon_code']?.toString();
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1B5E6B), Color(0xFF2E869B)],
+          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1B5E6B).withOpacity(0.35),
+            color: const Color(0xFF2E7D32).withOpacity(0.35),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -480,7 +506,12 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.wb_sunny_outlined, size: 68, color: Colors.amberAccent),
+              WeatherIconWidget(
+                description: description,
+                iconUrl: iconUrl,
+                iconCode: iconCode,
+                size: 64,
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -609,7 +640,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
       height: 200,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF1B5E6B).withOpacity(0.8),
+        color: const Color(0xFF1B5E20).withOpacity(0.8),
         borderRadius: BorderRadius.circular(24),
       ),
       child: const Center(

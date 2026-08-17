@@ -30,17 +30,16 @@ class DiseaseHistoryRepository(BaseRepository):
         ]
 
     async def get_all(
-        self, page: int = 1, per_page: int = 20, keyword: str | None = None
+        self, page: int = 1, per_page: int = 20, keyword: str | None = None, filter_query: dict | None = None
     ) -> tuple[list[dict[str, Any]], int]:
         import re
-        filter_query: dict = {}
+        query: dict = filter_query.copy() if filter_query else {}
         if keyword:
             conditions: list[dict] = [
                 {"disease": {"$regex": re.escape(keyword), "$options": "i"}},
                 {"action": {"$regex": re.escape(keyword), "$options": "i"}},
             ]
 
-            # Resolve tree_ids from tree_code matching keyword
             matching_tree_ids = []
             cursor = self.collection.database["trees"].find(
                 {"tree_code": {"$regex": re.escape(keyword), "$options": "i"}},
@@ -52,12 +51,15 @@ class DiseaseHistoryRepository(BaseRepository):
             if matching_tree_ids:
                 conditions.append({"tree_id": {"$in": matching_tree_ids}})
 
-            filter_query["$or"] = conditions
+            if "$or" in query:
+                query = {"$and": [query, {"$or": conditions}]}
+            else:
+                query["$or"] = conditions
 
-        pipeline = [{"$match": filter_query}, {"$sort": {"date": -1}}]
+        pipeline = [{"$match": query}, {"$sort": {"date": -1}}]
         pipeline.extend(self._build_enrichment_stages())
 
-        count_pipeline = [{"$match": filter_query}, {"$count": "total"}]
+        count_pipeline = [{"$match": query}, {"$count": "total"}]
         count_cursor = self.collection.aggregate(count_pipeline)
         count_result = await count_cursor.to_list(length=1)
         total = count_result[0]["total"] if count_result else 0

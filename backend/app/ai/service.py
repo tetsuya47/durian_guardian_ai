@@ -223,14 +223,12 @@ class AIService:
                         logger.warning("Could not insert fallback tree: %s", err)
                 tree_id = str(fallback_oid)
 
-        # Validate image quality & leaf presence
+        # Validate image quality & leaf presence for advisory metadata (non-blocking)
         quality = self._analyze_quality(file_bytes)
-        if quality["brightness"] == "dark":
-            raise BadRequestException("Ảnh quá tối. Vui lòng chụp ở nơi đủ ánh sáng.")
-        if quality["blur"]:
-            raise BadRequestException("Ảnh quá mờ. Vui lòng chụp lại ảnh lá sầu riêng rõ nét hơn.")
-        if not quality["leaf_detected"]:
-            raise BadRequestException("Ảnh tải lên không phải là lá hoặc cây sầu riêng. Vui lòng chụp hoặc chọn ảnh lá/quả sầu riêng rõ nét để phân tích.")
+        logger.info(
+            "Image quality metadata: blur=%s, brightness=%s, leaf_detected=%s, passed=%s",
+            quality.get("blur"), quality.get("brightness"), quality.get("leaf_detected"), quality.get("passed")
+        )
 
         farm_id = tree.get("farm_id") if isinstance(tree, dict) else None
         zone_id = tree.get("zone_id") if isinstance(tree, dict) else None

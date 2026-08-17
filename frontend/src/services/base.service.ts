@@ -5,7 +5,8 @@ export class BaseService<T> {
   protected endpoint: string;
 
   constructor(endpoint: string) {
-    this.endpoint = endpoint;
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    this.endpoint = cleanEndpoint.startsWith("/api/v1") ? cleanEndpoint : `/api/v1${cleanEndpoint}`;
   }
 
   async get<R = T[]>(config?: AxiosRequestConfig): Promise<R> {
