@@ -55,8 +55,8 @@ class WeatherService:
         include_forecast: bool = False,
     ) -> dict:
         """Fetch live weather for a farm with cache-aside + Durian risk analysis."""
-        # 1. Resolve farm coordinates (no hardcoding except final fallback).
-        if farm_id:
+        # 1. Resolve farm coordinates (only if lat/lon are not explicitly provided).
+        if farm_id and (lat == self.DEFAULT_LAT and lon == self.DEFAULT_LON):
             farm = await self.farm_repo.get(farm_id)
             if farm:
                 lat, lon = self._resolve_coords(farm, lat, lon)
@@ -331,14 +331,19 @@ class WeatherService:
             )
 
     def _build_fallback_weather(self) -> dict:
+        now_hour = datetime.now(timezone.utc).hour + 7  # ICT UTC+7
+        is_night = (now_hour % 24) >= 18 or (now_hour % 24) < 6
+        icon = "04n" if is_night else "04d"
+        desc = "Trời nhiều mây, ban đêm" if is_night else "Trời nhiều mây, độ ẩm cao"
         return {
             "location_name": "Vườn Sầu Riêng Đắk Lắk",
-            "temp_celsius": 29.5,
-            "feels_like_celsius": 31.0,
-            "humidity_percent": 82,
-            "wind_speed_m_s": 2.8,
-            "description": "Mây rải rác, độ ẩm cao",
-            "icon_url": "https://openweathermap.org/img/wn/02d@2x.png",
+            "temp_celsius": 23.5 if is_night else 28.5,
+            "feels_like_celsius": 24.5 if is_night else 31.0,
+            "humidity_percent": 88 if is_night else 82,
+            "wind_speed_m_s": 2.2 if is_night else 2.8,
+            "description": desc,
+            "icon_code": icon,
+            "icon_url": f"https://openweathermap.org/img/wn/{icon}@2x.png",
             "fungal_disease_risk": "MEDIUM",
             "agricultural_advice": "Thời tiết tương đối ẩm. Kiểm tra kỹ mặt dưới lá và gốc cây sầu riêng.",
         }

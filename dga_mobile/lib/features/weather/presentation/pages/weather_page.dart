@@ -121,46 +121,51 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
 
     try {
       final client = ref.read(dioApiClientProvider);
-      final response = await client.request<Map<String, dynamic>>(
+      final response = await client.request<dynamic>(
         path: '/weather/current',
         method: 'GET',
         queryParameters: {
           'lat': region.lat,
           'lon': region.lon,
         },
-        decoder: (json) => json is Map<String, dynamic> ? json : {},
+        decoder: (json) => json,
       );
 
       if (mounted) {
-        setState(() {
-          Map<String, dynamic>? payload;
-          if (response.data != null) {
-            final raw = response.data!;
+        Map<String, dynamic>? payload;
+        if (response.data != null) {
+          final raw = response.data;
+          if (raw is Map) {
             if (raw['data'] is Map) {
               payload = Map<String, dynamic>.from(raw['data'] as Map);
             } else {
-              payload = raw;
+              payload = Map<String, dynamic>.from(raw);
             }
           }
+        }
+        setState(() {
           _liveWeatherData = payload;
           _isLoading = false;
         });
       }
     } catch (e) {
+      debugPrint('Error fetching live weather for ${region.name}: $e');
       if (mounted) {
+        final hour = DateTime.now().hour;
+        final isNight = hour >= 18 || hour < 6;
         setState(() {
           _isLoading = false;
-          // Fallback realistic weather data if network error
           _liveWeatherData = {
             'location_name': region.name.split(' (').first,
-            'temp_celsius': 29.5,
-            'feels_like_celsius': 32.0,
-            'humidity_percent': 65,
-            'wind_speed_m_s': 3.8,
-            'description': 'Nắng nhẹ, mây rải rác',
+            'temp_celsius': isNight ? 23.0 : 28.0,
+            'feels_like_celsius': isNight ? 24.0 : 30.0,
+            'humidity_percent': isNight ? 90 : 70,
+            'wind_speed_m_s': 2.5,
+            'description': isNight ? 'Trời nhiều mây, ban đêm' : 'Trời nhiều mây',
+            'icon_code': isNight ? '04n' : '04d',
             'fungal_disease_risk': 'LOW',
             'agricultural_advice':
-                'Thời tiết tại ${region.name} thuận lợi cho các hoạt động chăm sóc cây trồng, tỉa cành và bón phân hữu cơ.',
+                'Thời tiết tại ${region.name} tương đối mát mẻ, duy trì theo dõi độ ẩm vườn.',
           };
         });
       }

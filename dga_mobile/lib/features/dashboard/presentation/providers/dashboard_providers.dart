@@ -113,16 +113,19 @@ final weatherCurrentProvider = FutureProvider<Map<String, dynamic>>((ref) async 
   } catch (_) {}
 
   final now = DateTime.now();
+  final isNight = now.hour >= 18 || now.hour < 6;
   final dateStr = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+  final cond = isNight ? 'Mây cụm ban đêm, mát mẻ' : 'Trời nhiều mây, nắng nhẹ';
   return {
     'location': 'Krông Pắc, Đắk Lắk',
     'location_name': 'Krông Pắc, Đắk Lắk',
-    'temperature_c': 28.5,
-    'temp_celsius': 28.5,
+    'temperature_c': isNight ? 23.5 : 28.5,
+    'temp_celsius': isNight ? 23.5 : 28.5,
     'temp_max': 31,
     'temp_min': 22,
-    'condition': 'Nắng nhẹ, mây rải rác',
-    'description': 'Nắng nhẹ, mây rải rác',
+    'condition': cond,
+    'description': cond,
+    'icon_code': isNight ? '04n' : '04d',
     'agri_recommendation': 'Tây Nguyên ($dateStr): Duy trì độ ẩm vườn 65-75%, phun phòng ngừa nấm nứt thân xì mủ Phytophthora.',
     'agricultural_advice': 'Tây Nguyên ($dateStr): Duy trì độ ẩm vườn 65-75%, phun phòng ngừa nấm nứt thân xì mủ Phytophthora.',
   };
